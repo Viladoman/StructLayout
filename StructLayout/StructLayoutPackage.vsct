@@ -15,10 +15,10 @@
         defining some of the constants that we will use inside the file. -->
 
   <!--This is the file that defines the IDs for all the commands exposed by VisualStudio. -->
-  <Extern href="stdidcmd.h"/>
+  <Extern href="stdidcmd.h" />
 
   <!--This header contains the command ids for the menus provided by the shell. -->
-  <Extern href="vsshlids.h"/>
+  <Extern href="vsshlids.h" />
 
   <!--The Commands section is where commands, menus, and menu groups are defined.
       This section uses a Guid to identify the package that provides the command defined inside it. -->
@@ -43,10 +43,17 @@
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
       <Button guid="guidStructLayoutPackageCmdSet" id="LayoutWindowCommandId" priority="0x0100" type="Button">
-        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
-          <ButtonText>LayoutWindow</ButtonText>
+          <ButtonText>Struct Layout</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidStructLayoutPackageCmdSet1" id="cmdidParseCommand" priority="0x0100" type="Button">
+        <Parent guid="guidStructLayoutPackageCmdSet1" id="EditorContextMenuGroup" />
+        <Icon guid="guidImages1" id="bmpPic1" />
+        <Strings>
+          <ButtonText>Show Struct Layout</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -58,10 +65,20 @@
             bitmap strip containing the bitmaps and then there are the numeric ids of the elements used
             inside a button definition. An important aspect of this declaration is that the element id
             must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
-      <Bitmap guid="guidImages" href="LayoutWindow\Resources\LayoutWindowCommand.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough"/>
+      <Bitmap guid="guidImages" href="LayoutWindow\Resources\LayoutWindowCommand.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
+      <Bitmap guid="guidImages1" href="Editor\Resources\ParseCommand.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
     </Bitmaps>
+    <Groups>
+      <Group guid="guidStructLayoutPackageCmdSet1" id="EditorContextMenuGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN" />
+      </Group>
+    </Groups>
   </Commands>
 
+  <KeyBindings>
+    <KeyBinding guid="guidStructLayoutPackageCmdSet1" id="cmdidParseCommand" key1="L" mod1="ALT" editor="guidVSStd97" />
+  </KeyBindings>
+  
   <Symbols>
     <!-- This is the package guid. -->
     <GuidSymbol name="guidStructLayoutPackage" value="{f8311149-1f10-4946-a454-0ac3ca1e28cc}" />
@@ -71,7 +88,21 @@
       <IDSymbol name="LayoutWindowCommandId" value="0x0100" />
     </GuidSymbol>
 
-    <GuidSymbol name="guidImages" value="{37b49787-74b7-4937-b6ea-f7d8144f71fc}" >
+    <GuidSymbol name="guidImages" value="{37b49787-74b7-4937-b6ea-f7d8144f71fc}">
+      <IDSymbol name="bmpPic1" value="1" />
+      <IDSymbol name="bmpPic2" value="2" />
+      <IDSymbol name="bmpPicSearch" value="3" />
+      <IDSymbol name="bmpPicX" value="4" />
+      <IDSymbol name="bmpPicArrows" value="5" />
+      <IDSymbol name="bmpPicStrikethrough" value="6" />
+    </GuidSymbol>
+  
+    <GuidSymbol value="{1dffa616-1620-4243-92e7-6e5efdc8e05d}" name="guidStructLayoutPackageCmdSet1">
+      <IDSymbol value="4128" name="EditorContextMenuGroup" />
+      <IDSymbol value="256" name="cmdidParseCommand" />
+    </GuidSymbol>
+  
+    <GuidSymbol value="{2654e379-69fd-4d04-96ed-532e2a23442f}" name="guidImages1">
       <IDSymbol name="bmpPic1" value="1" />
       <IDSymbol name="bmpPic2" value="2" />
       <IDSymbol name="bmpPicSearch" value="3" />
