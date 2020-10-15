@@ -23,8 +23,8 @@ namespace StructLayout
         }
 
         public string Filename { get; }
-        public uint    Line { get; }
-        public uint    Column { get; }
+        public uint   Line { get; }
+        public uint   Column { get; }
     };
 
     public class ProjectProperties
@@ -44,18 +44,32 @@ namespace StructLayout
 
     public class EditorProcessor
     {
-        static public EditorPosition GetCurrentPosition(IServiceProvider serviceProvider)
+        private static readonly Lazy<EditorProcessor> lazy = new Lazy<EditorProcessor>(() => new EditorProcessor());
+        public static EditorProcessor Instance { get { return lazy.Value; } }
+
+        LayoutParser parser = new LayoutParser();
+
+        private StructLayoutPackage Package { get; set; }
+        private IServiceProvider ServiceProvider { get; set; }
+
+        public void Initialize(StructLayoutPackage package)
+        {
+            Package = package;
+            ServiceProvider = package;
+        }
+
+        public EditorPosition GetCurrentPosition()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             //Get full file path
-            var applicationObject = serviceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
+            var applicationObject = ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
             if (applicationObject == null) return null;
 
             string filename = applicationObject.ActiveDocument.FullName;
 
             //Get text location
-            var textManager = serviceProvider.GetService(typeof(SVsTextManager)) as IVsTextManager2;
+            var textManager = ServiceProvider.GetService(typeof(SVsTextManager)) as IVsTextManager2;
             if (textManager == null) return null;
 
             IVsTextView view;
@@ -66,126 +80,20 @@ namespace StructLayout
             return new EditorPosition(filename,(uint)line,(uint)col);
         }
 
-        static public Project GetActiveProject(IServiceProvider serviceProvider)
+        public Project GetActiveProject()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-            var applicationObject = serviceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
+            var applicationObject = ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
             if (applicationObject == null || applicationObject.ActiveDocument == null || applicationObject.ActiveDocument.ProjectItem == null) return null;
             return applicationObject.ActiveDocument.ProjectItem.ContainingProject;
         }
-        /*
-        static void Test(IServiceProvider serviceProvider)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-      
-            Project project = GetActiveProject(serviceProvider);
-            if (project != null)
-            {
-                OutputLog.Log(project.Name);
-                OutputLog.Log("----------");
-                foreach (Property property in project.Properties)
-                {
-                    //Check for ActiveConfiguration... 
-                    //Try to extract MACROS & Include Paths & x64/86
-
-                    OutputLog.Log("\t"+property.Name);
-
-                    foreach (Property property2 in property.Collection)
-                    {
-                        OutputLog.Log("\t- " + property2.Name);
-                    }
-
-                }
-            }
-
-
-            //configuration
-
-            var dte = serviceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
-            
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            ConfigurationManager configmgr;
-            Configuration config;
-            if (dte.Solution.Projects.Count > 0)
-            {
-                configmgr = dte.Solution.Projects.Item(1).ConfigurationManager;
-                // Return the ActiveConfiguration.  
-                config = configmgr.ActiveConfiguration;
-
-                
-
-                OutputLog.Log(config.PlatformName);
-            }
-
-
-            //Add ifs all the way 
-            Project project = GetActiveProject(serviceProvider);
-            VCProject prj = project.Object as VCProject;
-            VCConfiguration config = prj.ActiveConfiguration;
-
-    
-            IVCRulePropertyStorage generalRule = config.Rules.Item("ConfigurationGeneral");
-
-            string outputPath = config.OutputDirectory;
-
-            //vccon.OutputDirectory = "$(test)";
-            //string test1 = generalRule.GetEvaluatedPropertyValue(2);
-            string tar = generalRule.GetEvaluatedPropertyValue("TargetExt");
-            string name = generalRule.GetEvaluatedPropertyValue("TargetName");
-         
-
-            var vctools = config.Tools as IVCCollection;
-            var midl = vctools.Item("VCMidlTool") as VCMidlTool;
-            var cl = vctools.Item("VCCLCompilerTool") as VCCLCompilerTool;
-            var nmake = vctools.Item("VCNMakeTool") as VCNMakeTool;
-
-            if (midl != null)
-            {
-                midlTargetEnvironment environment = midl.TargetEnvironment; //gcc uses -m32 ( check for clang ) 
-            }
-
-            if (cl != null)
-            {
-                string includeDirs = cl.AdditionalIncludeDirectories;
-                string preprocessor = cl.PreprocessorDefinitions;
-            }
-            else if (nmake != null)
-            {
-                string preprocessor2 = nmake.PreprocessorDefinitions;
-                string includes2 = nmake.IncludeSearchPath;
-            }
-
-            //parse and replace include macros ${SolutionDir} ...
-
-
-            //IVCRulePropertyStorage generalRule = config.Rules.Item("ConfigurationGeneral");
-
-
-
-            //VCProject prj = dte.Solution.Projects.Item(1).Object as VCProject;
-            foreach (VCConfiguration vccon in prj.Configurations)
-            {
-                IVCRulePropertyStorage generalRule = vccon.Rules.Item("ConfigurationGeneral");
-
-                string outputPath = vccon.OutputDirectory;
-
-                vccon.OutputDirectory = "$(test)";
-                //string test1 = generalRule.GetEvaluatedPropertyValue(2);
-                string tar = generalRule.GetEvaluatedPropertyValue("TargetExt");
-                string name = generalRule.GetEvaluatedPropertyValue("TargetName");
-            }
-            
-
-        }
-        */
-
-        static public ProjectProperties GetProjectData(IServiceProvider serviceProvider)
+       
+        public ProjectProperties GetProjectData()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             //TODO ~ ramonv ~ Add ifs all the way 
-            Project project = GetActiveProject(serviceProvider);
+            Project project = GetActiveProject();
             VCProject prj = project.Object as VCProject;
             VCConfiguration config = prj.ActiveConfiguration;
 
@@ -196,6 +104,8 @@ namespace StructLayout
 
             if (cl == null && nmake == null)
             {
+                //TODO ~ ramonv ~ fallback to something different and custom
+                // Not supported atm 
                 return null;
             }
 
@@ -205,23 +115,63 @@ namespace StructLayout
             if (cl != null)
             {
                 ret.IncludeDirectories = cl.AdditionalIncludeDirectories; //TODO ~ ramonv ~ parse ${macros}
-                ret.PrepocessorDefinitions = cl.PreprocessorDefinitions;
+                ret.PrepocessorDefinitions = cl.PreprocessorDefinitions; //split
             }
             else
             {
-                ret.IncludeDirectories = nmake.IncludeSearchPath; //TODO ~ ramonv ~ parse ${macros}
-                ret.PrepocessorDefinitions = nmake.PreprocessorDefinitions;
+                ret.IncludeDirectories = nmake.IncludeSearchPath; //TODO ~ ramonv ~ parse ${macros} and split
+                ret.PrepocessorDefinitions = nmake.PreprocessorDefinitions; //split
             }
 
             return ret;
         }
 
-
-        static public void ParseAtCurrentLocation(IServiceProvider serviceProvider)
+        public LayoutNode ParseNode(EditorPosition position)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            EditorPosition position = GetCurrentPosition(serviceProvider);
+            ProjectProperties properties = GetProjectData();
+
+            if (properties == null)
+            {
+                OutputLog.Error("Unable to retrieve the project configuration");
+                return null;
+            }
+
+            return parser.Parse(properties, position);
+        }
+
+        public void DisplayLayout(LayoutNode node)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            LayoutWindow window = FocusLayoutWindow();
+            window.SetLayout(node);
+        }
+
+        public LayoutWindow FocusLayoutWindow()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            // Get the instance number 0 of this tool window. This window is single instance so this instance
+            // is actually the only one.
+            // The last flag is set to true so that if the tool window does not exists it will be created.
+            LayoutWindow window = Package.FindToolWindow(typeof(LayoutWindow), 0, true) as LayoutWindow;
+            if ((null == window) || (null == window.GetFrame()))
+            {
+                throw new NotSupportedException("Cannot create tool window");
+            }
+
+            window.ProxyShow();
+
+            return window;
+        }
+
+        public void ParseAtCurrentLocation()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            EditorPosition position = GetCurrentPosition();
 
             if (position == null)
             {
@@ -229,53 +179,7 @@ namespace StructLayout
                 return;
             }
 
-            ProjectProperties properties = GetProjectData(serviceProvider);
-
-            if (properties == null)
-            {
-                OutputLog.Error("Unable to retrieve the project configuration");
-                return;
-            } 
-
-            OutputLog.Log(position.Filename + " " + position.Line + " " + position.Column);
-
-            //PLACEHOLDER - move to its own place 
-
-            string archStr = properties != null && properties.Target == ProjectProperties.TargetType.x86 ? "-m32" : "-m64";
-
-            //TODO ~ ramonv ~ passi includes and macros
-
-            string toolCmd = "--show " + position.Filename + " -- clang++ -x c++ " + archStr;
-
-            if (ParseLocation(toolCmd, position.Filename, position.Line+1, position.Column+1))
-            {
-                uint size = 0;
-                IntPtr result = GetData(ref size);
-                byte[] managedArray = new byte[size];
-                Marshal.Copy(result, managedArray, 0, (int)size);
-
-                Clear();
-                
-                MessageBox.Show("This is a struct");
-            }
-            else 
-            {
-                MessageBox.Show("NOTHING!!!!");
-            }
+            DisplayLayout(ParseNode(position));
         }
-
-        //move to layoutParser... for testing purposes only
-
-        [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool ParseLocation(string commandline, string fullFilename, uint row, uint col);
-
-        [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool ParseType(string commandline, string typeName);
-
-        [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr GetData(ref uint size);
-
-        [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void Clear();
     }
 }

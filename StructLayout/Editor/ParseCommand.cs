@@ -89,8 +89,7 @@ namespace StructLayout
         private void Execute(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-
-            EditorProcessor.ParseAtCurrentLocation(this.package);
+            EditorProcessor.Instance.ParseAtCurrentLocation();
         }
     }
 }

@@ -45,8 +45,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Common\ColorTheme.cs" />
+    <Compile Include="Common\LayoutColors.cs" />
+    <Compile Include="Common\LayoutParser.cs" />
     <Compile Include="Common\OutputLog.cs" />
+    <Compile Include="Common\WindowProxy.cs" />
     <Compile Include="Editor\EditorProcessor.cs" />
+    <Compile Include="LayoutWindow\LayoutNodeTooltip.xaml.cs">
+      <DependentUpon>LayoutNodeTooltip.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="LayoutWindow\LayoutViewer.xaml.cs">
+      <DependentUpon>LayoutViewer.xaml</DependentUpon>
+    </Compile>
     <Compile Include="LayoutWindow\LayoutWindow.cs" />
     <Compile Include="LayoutWindow\LayoutWindowCommand.cs" />
     <Compile Include="LayoutWindow\LayoutWindowControl.xaml.cs">
@@ -82,6 +92,14 @@
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.6.2051" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="LayoutWindow\LayoutNodeTooltip.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="LayoutWindow\LayoutViewer.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="LayoutWindow\LayoutWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

@@ -15,7 +15,13 @@ StructLayout/.vs/
 StructLayout/bin/
 StructLayout/obj/
 
+# LLVM project
+llvm-project/
+
+# WPF App for rapid UX iteration
+Prototype/
+
 # Test Project
-TestProject/tmp/*
-TestProject/bin/*
-TestProject/.vs/*
+TestProject/.vs/
+TestProject/tmp/
+TestProject/bin/

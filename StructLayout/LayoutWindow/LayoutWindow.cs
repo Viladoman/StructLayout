@@ -16,12 +16,12 @@ namespace StructLayout
     /// </para>
     /// </remarks>
     [Guid("c1b1ecb5-9ef7-4b66-8864-e11f8917bc78")]
-    public class LayoutWindow : ToolWindowPane
+    public class LayoutWindow : Common.WindowProxy
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="LayoutWindow"/> class.
         /// </summary>
-        public LayoutWindow() : base(null)
+        public LayoutWindow()
         {
             this.Caption = "Struct Layout";
 
@@ -29,6 +29,13 @@ namespace StructLayout
             // we are not calling Dispose on this object. This is because ToolWindowPane calls Dispose on
             // the object returned by the Content property.
             this.Content = new LayoutWindowControl();
+        }
+
+        public void SetLayout(LayoutNode node)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            (this.Content as LayoutWindowControl).SetLayout(node);
         }
     }
 }
