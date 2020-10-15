@@ -134,6 +134,9 @@
       <AdditionalDependencies>LLVMOption.lib;LLVMSupport.lib;clangBasic.lib;clangFrontend.lib;clangRewrite.lib;clangSerialization.lib;clangTooling.lib;clangToolingCore.lib;clangToolingRefactoring.lib;clangIndex.lib;clangDriver.lib;version.lib;clangParse.lib;LLVMMCParser.lib;LLVMProfileData.lib;clangSema.lib;clangEdit.lib;clangAnalysis.lib;clangASTMatchers.lib;LLVMBitReader.lib;clangFormat.lib;clangToolingInclusions.lib;clangAST.lib;clangLex.lib;LLVMCore.lib;LLVMRemarks.lib;LLVMBitstreamReader.lib;LLVMMC.lib;LLVMBinaryFormat.lib;LLVMDebugInfoCodeView.lib;LLVMDebugInfoMSF.lib;LLVMFrontendOpenMP.lib;psapi.lib;shell32.lib;ole32.lib;uuid.lib;advapi32.lib;delayimp.lib;-delayload:shell32.dll;-delayload:ole32.dll;LLVMDemangle.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;oleaut32.lib;comdlg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)..\llvm-project\build\Release\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(TargetDir)$(ProjectName).dll" "$(SolutionDir)..\StructLayout\$(ProjectName).dll"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
