@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Parser">
+      <UniqueIdentifier>{0a931ad1-07b5-4870-83d6-1a07775e268f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Parser\IO.cpp">
+      <Filter>Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Parser\Parser.cpp">
+      <Filter>Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Parser\IO.h">
+      <Filter>Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Parser\LayoutDefinitions.h">
+      <Filter>Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Parser\Parser.h">
+      <Filter>Parser</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

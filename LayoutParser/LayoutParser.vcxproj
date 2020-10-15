@@ -18,35 +18,46 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Parser\IO.cpp" />
+    <ClCompile Include="src\Parser\Parser.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Parser\IO.h" />
+    <ClInclude Include="src\Parser\LayoutDefinitions.h" />
+    <ClInclude Include="src\Parser\Parser.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{37060b80-5e0c-4258-9fdc-a3bee5073690}</ProjectGuid>
-    <RootNamespace>TestProject</RootNamespace>
+    <ProjectGuid>{a38a79e8-8264-4a99-a7c7-96d7a2bb76a8}</ProjectGuid>
+    <RootNamespace>LayoutParser</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>LayoutParser</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -82,8 +93,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IntDir>$(SolutionDir)tmp\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)tmp\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -96,10 +107,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\llvm-project\clang\include;$(SolutionDir)..\llvm-project\llvm\include;$(SolutionDir)..\llvm-project\build\tools\clang\include;$(SolutionDir)..\llvm-project\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>LLVMOption.lib;LLVMSupport.lib;clangBasic.lib;clangFrontend.lib;clangRewrite.lib;clangSerialization.lib;clangTooling.lib;clangToolingCore.lib;clangToolingRefactoring.lib;clangIndex.lib;clangDriver.lib;version.lib;clangParse.lib;LLVMMCParser.lib;LLVMProfileData.lib;clangSema.lib;clangEdit.lib;clangAnalysis.lib;clangASTMatchers.lib;LLVMBitReader.lib;clangFormat.lib;clangToolingInclusions.lib;clangAST.lib;clangLex.lib;LLVMCore.lib;LLVMRemarks.lib;LLVMBitstreamReader.lib;LLVMMC.lib;LLVMBinaryFormat.lib;LLVMDebugInfoCodeView.lib;LLVMDebugInfoMSF.lib;LLVMFrontendOpenMP.lib;psapi.lib;shell32.lib;ole32.lib;uuid.lib;advapi32.lib;delayimp.lib;-delayload:shell32.dll;-delayload:ole32.dll;LLVMDemangle.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;oleaut32.lib;comdlg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\llvm-project\build\Debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -110,12 +124,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\llvm-project\clang\include;$(SolutionDir)..\llvm-project\llvm\include;$(SolutionDir)..\llvm-project\build\tools\clang\include;$(SolutionDir)..\llvm-project\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>LLVMOption.lib;LLVMSupport.lib;clangBasic.lib;clangFrontend.lib;clangRewrite.lib;clangSerialization.lib;clangTooling.lib;clangToolingCore.lib;clangToolingRefactoring.lib;clangIndex.lib;clangDriver.lib;version.lib;clangParse.lib;LLVMMCParser.lib;LLVMProfileData.lib;clangSema.lib;clangEdit.lib;clangAnalysis.lib;clangASTMatchers.lib;LLVMBitReader.lib;clangFormat.lib;clangToolingInclusions.lib;clangAST.lib;clangLex.lib;LLVMCore.lib;LLVMRemarks.lib;LLVMBitstreamReader.lib;LLVMMC.lib;LLVMBinaryFormat.lib;LLVMDebugInfoCodeView.lib;LLVMDebugInfoMSF.lib;LLVMFrontendOpenMP.lib;psapi.lib;shell32.lib;ole32.lib;uuid.lib;advapi32.lib;delayimp.lib;-delayload:shell32.dll;-delayload:ole32.dll;LLVMDemangle.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;oleaut32.lib;comdlg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\llvm-project\build\Release\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -124,10 +141,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\llvm-project\clang\include;$(SolutionDir)..\llvm-project\llvm\include;$(SolutionDir)..\llvm-project\build\tools\clang\include;$(SolutionDir)..\llvm-project\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\llvm-project\build\Debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>LLVMOption.lib;LLVMSupport.lib;clangBasic.lib;clangFrontend.lib;clangRewrite.lib;clangSerialization.lib;clangTooling.lib;clangToolingCore.lib;clangToolingRefactoring.lib;clangIndex.lib;clangDriver.lib;version.lib;clangParse.lib;LLVMMCParser.lib;LLVMProfileData.lib;clangSema.lib;clangEdit.lib;clangAnalysis.lib;clangASTMatchers.lib;LLVMBitReader.lib;clangFormat.lib;clangToolingInclusions.lib;clangAST.lib;clangLex.lib;LLVMCore.lib;LLVMRemarks.lib;LLVMBitstreamReader.lib;LLVMMC.lib;LLVMBinaryFormat.lib;LLVMDebugInfoCodeView.lib;LLVMDebugInfoMSF.lib;psapi.lib;shell32.lib;ole32.lib;uuid.lib;advapi32.lib;delayimp.lib;-delayload:shell32.dll;-delayload:ole32.dll;LLVMDemangle.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;oleaut32.lib;comdlg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -138,17 +158,16 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\llvm-project\clang\include;$(SolutionDir)..\llvm-project\llvm\include;$(SolutionDir)..\llvm-project\build\tools\clang\include;$(SolutionDir)..\llvm-project\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\llvm-project\build\Release\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="TestProject.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -10,10 +10,15 @@
 # Generated when a Git operation is conflicting.
 *.orig
 
-# VS Exports
+# VSIX
 StructLayout/.vs/
 StructLayout/bin/
 StructLayout/obj/
+
+# Layout Parser
+LayoutParser/.vs/
+LayoutParser/tmp/
+LayoutParser/bin/
 
 # LLVM project
 llvm-project/
