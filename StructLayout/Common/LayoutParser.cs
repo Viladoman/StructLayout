@@ -10,6 +10,33 @@ using System.Windows.Media;
 
 namespace StructLayout
 {
+    public class DocumentLocation
+    {
+        public DocumentLocation(string filename, uint line, uint column)
+        {
+            Filename = filename;
+            Line = line;
+            Column = column;
+        }
+
+        public string Filename { get; }
+        public uint Line { get; }
+        public uint Column { get; }
+    };
+
+    public class ProjectProperties
+    {
+        public enum TargetType
+        {
+            x86,
+            x64,
+        }
+
+        public string IncludeDirectories { set; get; }
+        public string PrepocessorDefinitions { set; get; }
+        public TargetType Target { set; get; }
+    }
+
     public class RenderData
     {
         public enum ShapeCategory
@@ -151,7 +178,7 @@ namespace StructLayout
             FinalizeNodeRecursive(node);
         }
 
-        public LayoutNode Parse(ProjectProperties projProperties, EditorPosition position)
+        public LayoutNode Parse(ProjectProperties projProperties, DocumentLocation location)
         {
             //llvm outs is not going through console
             //var sw = new StringWriter();
@@ -175,9 +202,9 @@ namespace StructLayout
             // -IIncludePath -DMACRO -DMACRO=value -UMacro (undefine macro)
 
             string archStr = projProperties != null && projProperties.Target == ProjectProperties.TargetType.x86 ? "-m32" : "-m64";
-            string toolCmd = "--show " + position.Filename + " -- clang++ -x c++ " + archStr;
+            string toolCmd = "--show " + location.Filename + " -- clang++ -x c++ " + archStr;
 
-            if (ParseLocation(toolCmd, position.Filename, position.Line + 1, position.Column + 1))
+            if (ParseLocation(toolCmd, location.Filename, location.Line + 1, location.Column + 1))
             {
                 //capture data
                 uint size = 0;

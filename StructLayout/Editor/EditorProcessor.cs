@@ -13,35 +13,6 @@ using System.Windows;
 
 namespace StructLayout
 {
-    public class EditorPosition
-    {
-        public EditorPosition(string filename, uint line, uint column)
-        {
-            Filename = filename;
-            Line = line;
-            Column = column;
-        }
-
-        public string Filename { get; }
-        public uint   Line { get; }
-        public uint   Column { get; }
-    };
-
-    public class ProjectProperties
-    {
-        public enum TargetType
-        {
-            x86,
-            x64,
-        }
-
-        public string IncludeDirectories { set; get; }
-        public string PrepocessorDefinitions { set; get; }
-        public TargetType Target { set; get; } 
-
-        //Add architecture
-    }
-
     public class EditorProcessor
     {
         private static readonly Lazy<EditorProcessor> lazy = new Lazy<EditorProcessor>(() => new EditorProcessor());
@@ -58,7 +29,7 @@ namespace StructLayout
             ServiceProvider = package;
         }
 
-        public EditorPosition GetCurrentPosition()
+        public DocumentLocation GetCurrentLocation()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -77,7 +48,7 @@ namespace StructLayout
 
             view.GetCaretPos(out int line, out int col);
 
-            return new EditorPosition(filename,(uint)line,(uint)col);
+            return new DocumentLocation(filename,(uint)line,(uint)col);
         }
 
         public Project GetActiveProject()
@@ -126,21 +97,6 @@ namespace StructLayout
             return ret;
         }
 
-        public LayoutNode ParseNode(EditorPosition position)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            ProjectProperties properties = GetProjectData();
-
-            if (properties == null)
-            {
-                OutputLog.Error("Unable to retrieve the project configuration");
-                return null;
-            }
-
-            return parser.Parse(properties, position);
-        }
-
         public void DisplayLayout(LayoutNode node)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -171,15 +127,21 @@ namespace StructLayout
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            EditorPosition position = GetCurrentPosition();
-
-            if (position == null)
+            DocumentLocation location = GetCurrentLocation();
+            if (location == null)
             {
                 OutputLog.Error("Unable to retrieve current document position.");
                 return;
             }
 
-            DisplayLayout(ParseNode(position));
+            ProjectProperties properties = GetProjectData();
+            if (properties == null)
+            {
+                OutputLog.Error("Unable to retrieve the project configuration");
+                return;
+            }
+
+            DisplayLayout(parser.Parse(properties, location));
         }
     }
 }
