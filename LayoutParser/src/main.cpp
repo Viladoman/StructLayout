@@ -52,8 +52,6 @@ namespace Utils
         //FILE* stream;
         //freopen_s( &stream, "D:/Code/Clang/freopen.out", "w", stdout );
 
-        //TODO ~ ramonv ~ Use the context system to set here what to find 
-
         std::vector<const char*> args = Utils::GenerateFakeCommandLine(commandLineArgs);
         if (Parser::Parse(static_cast<int>(args.size()),&args[0]))
         { 
@@ -80,11 +78,13 @@ extern "C"
         return Utils::Parse(commandLineArgs);
     }
 
+    /*
     DLLEXPORT bool ParserType(const char* commandLineArgs, const char* typeStr)
     { 
-        //TODO ~ ramonv ~ to be imeplemtend
+        //TODO ~ ramonv ~ to be implemented
         return Utils::Parse(commandLineArgs);
     }
+    */
 
     DLLEXPORT void Clear()
     {

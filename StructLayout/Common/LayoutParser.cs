@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Shell;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -32,8 +33,8 @@ namespace StructLayout
             x64,
         }
 
-        public string IncludeDirectories { set; get; }
-        public string PrepocessorDefinitions { set; get; }
+        public List<string> IncludeDirectories { set; get; }
+        public List<string> PrepocessorDefinitions { set; get; }
         public TargetType Target { set; get; }
     }
 
@@ -132,9 +133,6 @@ namespace StructLayout
         public static extern bool ParseLocation(string commandline, string fullFilename, uint row, uint col);
 
         [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool ParseType(string commandline, string typeName);
-
-        [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr GetData(ref uint size);
 
         [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -178,8 +176,17 @@ namespace StructLayout
             FinalizeNodeRecursive(node);
         }
 
+
         public LayoutNode Parse(ProjectProperties projProperties, DocumentLocation location)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (location.Filename == null || location.Filename.Length == 0)
+            {
+                OutputLog.Error("No file provided for parsing");
+                return null;
+            }
+
             //llvm outs is not going through console
             //var sw = new StringWriter();
             //Console.SetOut(sw);
@@ -190,21 +197,13 @@ namespace StructLayout
 
             LayoutNode ret = null;
 
-
-            /*
-
-            $LLVM_BUILD/bin/libtool-example clang/tools/clang-check/ClangCheck.cpp --   \
-                                 clang++ -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS \
-                                 -Itools/clang/include -I$LLVM_BUILD/include -Iinclude  \
-                                 -Itools/clang/lib/Headers -c
-         */
-
-            // -IIncludePath -DMACRO -DMACRO=value -UMacro (undefine macro)
-
+            string includes  = GenerateCommandStr("-I",projProperties.IncludeDirectories);
+            string defines   = GenerateCommandStr("-D",projProperties.PrepocessorDefinitions);
+            
             string archStr = projProperties != null && projProperties.Target == ProjectProperties.TargetType.x86 ? "-m32" : "-m64";
-            string toolCmd = "--show " + location.Filename + " -- clang++ -x c++ " + archStr;
+            string toolCmd = "--show " + location.Filename + " -- clang++ -x c++ " + archStr + defines + undefines + includes;
 
-            if (ParseLocation(toolCmd, location.Filename, location.Line + 1, location.Column + 1))
+            if (ParseLocation(toolCmd, location.Filename, location.Line, location.Column))
             {
                 //capture data
                 uint size = 0;
@@ -220,59 +219,27 @@ namespace StructLayout
 
                 Clear();
             }
+            else
+            {
+                OutputLog.Log("Unable to find the struct.");
+            }
 
             return ret;
 
         }
 
-        //TODO ~ ramonv ~ PLACEHOLDER
-
-        static private LayoutNode CreateFakeNode(uint offset, uint size)
+        private string GenerateCommandStr(string prefix, List<string> args)
         {
-            LayoutNode node = new LayoutNode();
-            node.Size = size;
-            node.Align = 4;
-            node.Offset = offset;
-            node.Type = "FakeType";
-            node.Name = "Fake";
-            return node;
-        }
+            string ret = "";
+            if (args != null)
+            {
+                foreach (string value in args)
+                {
+                    ret += " "+ prefix + value;
+                }
+            }
 
-        static public LayoutNode ParseFake()
-        {
-            LayoutNode root = new LayoutNode();
-            root.Size = 35;
-            root.Align = 8;
-            root.Offset = 0;
-            root.Type = "CustomType";
-            root.Name = "FakeRoot";
-
-            var smallChild = CreateFakeNode(13, 1);
-            var bigChild = CreateFakeNode(14, 21);
-
-            root.AddChild(CreateFakeNode(0, 1));
-            root.AddChild(CreateFakeNode(1, 1));
-            root.AddChild(CreateFakeNode(2, 2));
-            root.AddChild(CreateFakeNode(4, 5));
-            root.AddChild(CreateFakeNode(9, 4));
-            root.AddChild(smallChild);
-            root.AddChild(bigChild);
-
-            smallChild.AddChild(CreateFakeNode(0, 1));
-
-            var superChild = CreateFakeNode(6, 14);
-            bigChild.AddChild(CreateFakeNode(0, 1));
-            bigChild.AddChild(CreateFakeNode(1, 5));
-            bigChild.AddChild(superChild);
-
-            superChild.AddChild(CreateFakeNode(0, 4));
-            superChild.AddChild(CreateFakeNode(4, 4));
-            superChild.AddChild(CreateFakeNode(8, 4));
-            superChild.AddChild(CreateFakeNode(12, 2));
-
-            var fakeParser = new LayoutParser(); 
-            fakeParser.FinalizeNode(root);
-            return root;
+            return ret; 
         }
     }
 }

@@ -1,13 +1,17 @@
 ﻿using EnvDTE;
+using EnvDTE80;
+using Microsoft;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.VCProjectEngine;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -29,13 +33,13 @@ namespace StructLayout
             ServiceProvider = package;
         }
 
-        public DocumentLocation GetCurrentLocation()
+        private DocumentLocation GetCurrentLocation()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             //Get full file path
             var applicationObject = ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
-            if (applicationObject == null) return null;
+            Assumes.Present(applicationObject);
 
             string filename = applicationObject.ActiveDocument.FullName;
 
@@ -48,25 +52,80 @@ namespace StructLayout
 
             view.GetCaretPos(out int line, out int col);
 
-            return new DocumentLocation(filename,(uint)line,(uint)col);
+            return new DocumentLocation(filename,(uint)(line+1),(uint)(col+1));
         }
 
-        public Project GetActiveProject()
+        private Project GetActiveProject()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             var applicationObject = ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
-            if (applicationObject == null || applicationObject.ActiveDocument == null || applicationObject.ActiveDocument.ProjectItem == null) return null;
+            Assumes.Present(applicationObject);
+            if (applicationObject.ActiveDocument == null || applicationObject.ActiveDocument.ProjectItem == null) return null;
             return applicationObject.ActiveDocument.ProjectItem.ContainingProject;
         }
-       
-        public ProjectProperties GetProjectData()
+
+        private Solution GetActiveSolution()
+        {
+            DTE2 applicationObject = ServiceProvider.GetService(typeof(SDTE)) as DTE2;
+            Assumes.Present(applicationObject);
+            return applicationObject.Solution;
+        }
+
+        private  string MultipleReplace(string text, Dictionary<string,string> replacements)
+        {
+            string ret = text;
+            foreach (KeyValuePair<string, string> entry in replacements)
+            {
+                ret = ret.Replace(entry.Key,entry.Value);
+            }
+            return ret; 
+
+            //return Regex.Replace(text, "(" + String.Join("|", replacements.Keys.ToArray()) + ")",  delegate (Match m) { return replacements[m.Value]; } );
+        }
+
+        private bool IsMSBuildStringInvalid(string input)
+        {
+            if (input.Contains('$'))
+            {
+                OutputLog.Log("Dropped " + input + ". It contains an unknown MSBuild macro");
+                return true;
+            }
+            return false;
+        }
+
+        private List<string> ProcessMSBuildStringToList(string input)
+        {
+            var list = input.Split(';').ToList(); //Split
+            list.RemoveAll(s => IsMSBuildStringInvalid(s)); //Validate
+            return list;
+        }
+
+        private List<string> ProcessMSBuildPaths(string input, Dictionary<string, string> MSBuildMacros)
+        {
+            string replaced = MultipleReplace(input, MSBuildMacros);
+            return ProcessMSBuildStringToList(replaced);
+        }
+
+        private string GetPathDirectory(string input)
+        {
+            return (Path.HasExtension(input) ? Path.GetDirectoryName(input) : input) + '\\';           
+        }
+
+        private ProjectProperties GetProjectData()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            //TODO ~ ramonv ~ Add ifs all the way 
+            Solution solution = GetActiveSolution();
+            if (solution == null) return null;
+
             Project project = GetActiveProject();
+            if (project == null) return null; 
+
             VCProject prj = project.Object as VCProject;
+            if (prj == null) return null;
+
             VCConfiguration config = prj.ActiveConfiguration;
+            if (config == null) return null;
 
             var vctools = config.Tools as IVCCollection;
             var midl = vctools.Item("VCMidlTool") as VCMidlTool;
@@ -83,15 +142,35 @@ namespace StructLayout
             ProjectProperties ret = new ProjectProperties();
             ret.Target = midl != null && midl.TargetEnvironment == midlTargetEnvironment.midlTargetWin32 ? ProjectProperties.TargetType.x86 : ProjectProperties.TargetType.x64;
 
+            //build MSBuildMacros for replacement
+            var MSBuildMacros = new Dictionary<string, string>();
+
+            MSBuildMacros.Add(@"$(Configuration)",    config.Name);
+            MSBuildMacros.Add(@"$(IntDir)",           config.IntermediateDirectory);
+            MSBuildMacros.Add(@"$(OutDir)",           config.OutputDirectory);
+            MSBuildMacros.Add(@"$(TargetDir)",        config.OutputDirectory);
+
+            MSBuildMacros.Add(@"$(SolutionPath)",     solution.FullName);
+            MSBuildMacros.Add(@"$(SolutionDir)",      GetPathDirectory(solution.FullName));
+            MSBuildMacros.Add(@"$(SolutionExt)",      Path.GetExtension(solution.FullName));
+            MSBuildMacros.Add(@"$(SolutionFileName)", Path.GetFileName(solution.FullName));
+            //MSBuildMacros.Add(@"$(SolutionName)", );
+
+            MSBuildMacros.Add(@"$(ProjectPath)",      project.FullName);
+            MSBuildMacros.Add(@"$(ProjectDir)",       GetPathDirectory(project.FullName));
+            MSBuildMacros.Add(@"$(ProjectExt)",       Path.GetExtension(project.FullName));
+            MSBuildMacros.Add(@"$(ProjectFileName)",  Path.GetFileName(project.FullName));
+            MSBuildMacros.Add(@"$(ProjectName)",      project.Name);
+
             if (cl != null)
             {
-                ret.IncludeDirectories = cl.AdditionalIncludeDirectories; //TODO ~ ramonv ~ parse ${macros}
-                ret.PrepocessorDefinitions = cl.PreprocessorDefinitions; //split
+                ret.IncludeDirectories = ProcessMSBuildPaths(cl.AdditionalIncludeDirectories, MSBuildMacros);
+                ret.PrepocessorDefinitions = ProcessMSBuildStringToList(cl.PreprocessorDefinitions);
             }
             else
             {
-                ret.IncludeDirectories = nmake.IncludeSearchPath; //TODO ~ ramonv ~ parse ${macros} and split
-                ret.PrepocessorDefinitions = nmake.PreprocessorDefinitions; //split
+                ret.IncludeDirectories = ProcessMSBuildPaths(nmake.IncludeSearchPath, MSBuildMacros);
+                ret.PrepocessorDefinitions = ProcessMSBuildStringToList(nmake.PreprocessorDefinitions); 
             }
 
             return ret;

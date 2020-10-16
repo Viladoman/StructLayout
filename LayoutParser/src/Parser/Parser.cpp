@@ -65,7 +65,6 @@ namespace ClangParser
                      (locationFilter.row < endLine   || (locationFilter.row == endLine   && locationFilter.col <= endCol))   &&
                      (startLine > bestTree.startLine || (startLine == bestTree.startLine && startCol > bestTree.startCol)))
                 { 
-                    //TODO ~ ramonv ~ check for nested types... the smaller the best 
                     bestTree.root = ComputeStruct(context, declaration, true);
                     bestTree.startLine = startLine;
                     bestTree.startCol   = startCol;
@@ -96,6 +95,8 @@ namespace ClangParser
         }
 
         void SetFilter(const Parser::LocationFilter& filter){ locationFilter = filter; }
+
+        void Clear() { bestTree = Layout::Tree(); } //TODO ~ ramonv ~ this leaks memory 
 
         const Layout::Tree& GetLayout() const { return bestTree; }
 
@@ -399,6 +400,6 @@ namespace Parser
 
     void Clear()
     { 
-        //TODO ~ ramonv ~ to be imeplemtned
+        return ClangParser::g_layouts.Clear();
     }
 }

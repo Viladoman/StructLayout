@@ -524,7 +524,6 @@ namespace StructLayout
             {
                 if (Hover != null)
                 {
-                    //TODO ~ ramonv ~ render the collapse opposite
                     var overlayBrush = Brushes.White.Clone(); ///TODO ~ ramonv move outside
                     overlayBrush.Opacity = 0.3;
 
@@ -548,7 +547,7 @@ namespace StructLayout
             //TODO ~ ramonv ~ to be implemented
         }
         */
-            private bool ExpandNode(LayoutNode node)
+        private bool ExpandNode(LayoutNode node)
         {
             bool ret = node.Collapsed;
             node.Collapsed = false;

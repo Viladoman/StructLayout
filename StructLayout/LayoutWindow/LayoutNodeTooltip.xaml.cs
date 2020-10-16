@@ -64,7 +64,17 @@ namespace StructLayout
             }
 
             //LayoutData
-            offsetTxt.Text = "Offset: "+node.Offset; //TODO ~ ramonv ~ add local offset if different
+
+            var localOffset = node.Parent == null ? node.Offset : node.Offset - node.Parent.Offset;
+            if (localOffset == node.Offset)
+            {
+                offsetTxt.Text = "Offset: "+node.Offset;
+            }
+            else
+            {
+                offsetTxt.Text = "Offset: "+node.Offset+" (Local: "+localOffset+")";
+            }
+
             sizeTxt.Text = "Size: " + node.Size;
             alignTxt.Text = "Align: " + node.Align;
         }
