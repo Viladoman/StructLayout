@@ -65,7 +65,10 @@ namespace StructLayout
         {
             if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
             {
-                OnControlMouseWheel.Invoke(this, e);
+                if (OnControlMouseWheel != null)
+                {
+                    OnControlMouseWheel.Invoke(this, e);
+                }
             }
             else
             {
@@ -114,7 +117,10 @@ namespace StructLayout
             if (Is2DScolling)
             {
                 Point nextPosition = e.GetPosition(this);
-                On2DMouseScroll.Invoke(this, new Mouse2DScrollEventArgs(nextPosition - lastScrollingPosition));
+                if (On2DMouseScroll != null)
+                {
+                    On2DMouseScroll.Invoke(this, new Mouse2DScrollEventArgs(nextPosition - lastScrollingPosition));
+                }
                 lastScrollingPosition = nextPosition;
             }
             base.OnMouseMove(e);
@@ -155,9 +161,11 @@ namespace StructLayout
         const double MarginBottom = 25;
         const double paddingSize  = 5; 
 
-        private double NodeWidth  = BaseNodeWidth;
-        private double NodeHeight = BaseNodeHeight;
-        private double MaxDepth   = 0;
+        private double NodeWidth   = BaseNodeWidth;
+        private double NodeHeight  = BaseNodeHeight;
+        private uint   MaxPaddingH = 0;
+        private double MaxPaddingV = 0;
+
         private LayoutNode Root { set; get; }
         private LayoutNode Hover { set; get; }
 
@@ -226,15 +234,13 @@ namespace StructLayout
 
         private void PrepareRenderData(LayoutNode node)
         {
-            //Depth
-            node.RenderData.Depth = node.Parent.RenderData.Depth + 1;
-            MaxDepth = Math.Max(MaxDepth, node.RenderData.Depth);
-           
             //Padding
             uint endOffsetParent = node.Parent.Offset + node.Parent.Size;
             uint parentLastOffset = endOffsetParent - 1;
             uint parentStartRow = GetRow(node.Parent.Offset);
+            uint parentStartCol = GetCol(node.Parent.Offset);
             uint parentLastRow = GetRow(parentLastOffset);
+            uint parentEndCol = GetCol(endOffsetParent);
 
             uint endOffset = node.Offset + node.Size;
             uint lastOffset = endOffset - 1;
@@ -243,16 +249,29 @@ namespace StructLayout
             uint endCol = GetCol(endOffset);
             uint lastRow = GetRow(lastOffset);
 
-            node.RenderData.PaddingFlags = RenderData.PaddingFlag.OuterLeft | RenderData.PaddingFlag.OuterRight;
+            //real padding 
+            var paddings = node.RenderData.Paddings;
+            var parentPaddings = node.Parent.RenderData.Paddings;
 
-            node.RenderData.PaddingFlags |= startCol == 0 || node.Offset == node.Parent.Offset? RenderData.PaddingFlag.InnerLeft  : 0;
-            node.RenderData.PaddingFlags |= endCol == 0   || endOffset == endOffsetParent ? RenderData.PaddingFlag.InnerRight : 0;
+            paddings[(int)RenderData.PaddingSide.OuterLeft]   = 1 + parentPaddings[(int)RenderData.PaddingSide.OuterLeft];
+            paddings[(int)RenderData.PaddingSide.OuterRight]  = 1 + parentPaddings[(int)RenderData.PaddingSide.OuterRight];
 
-            node.RenderData.PaddingFlags |= startRow <= parentStartRow+1 ? RenderData.PaddingFlag.OuterTop : 0;
-            node.RenderData.PaddingFlags |= startRow == parentStartRow   ? RenderData.PaddingFlag.InnerTop : 0;
+            paddings[(int)RenderData.PaddingSide.InnerLeft]   = 1 + (startCol == 0? parentPaddings[(int)RenderData.PaddingSide.OuterLeft]  : (node.Offset == node.Parent.Offset ? parentPaddings[(int)RenderData.PaddingSide.InnerLeft] : 0));
+            paddings[(int)RenderData.PaddingSide.InnerRight]  = 1 + (endCol   == 0? parentPaddings[(int)RenderData.PaddingSide.OuterRight] : (endOffset == endOffsetParent ?      parentPaddings[(int)RenderData.PaddingSide.InnerRight] : 0));
 
-            node.RenderData.PaddingFlags |= lastRow+1 >= parentLastRow ? RenderData.PaddingFlag.OuterBottom : 0;
-            node.RenderData.PaddingFlags |= lastRow == parentLastRow   ? RenderData.PaddingFlag.InnerBottom : 0;
+            paddings[(int)RenderData.PaddingSide.OuterTop]    = 1 + (startRow == parentStartRow ? parentPaddings[(int)RenderData.PaddingSide.OuterTop] : ((parentStartCol != 0 && node.Offset <= node.Parent.Offset + DisplayGridColumns)? parentPaddings[(int)RenderData.PaddingSide.InnerTop] : 0));
+            paddings[(int)RenderData.PaddingSide.InnerTop]    = 1 + ((parentStartCol != 0 && startRow == parentStartRow) ? parentPaddings[(int)RenderData.PaddingSide.InnerTop] : 0); 
+
+            paddings[(int)RenderData.PaddingSide.OuterBottom] = 1 + (lastRow == parentLastRow ? parentPaddings[(int)RenderData.PaddingSide.OuterBottom] : ((parentEndCol != 0 && lastOffset >= parentLastOffset - DisplayGridColumns)? parentPaddings[(int)RenderData.PaddingSide.InnerBottom] : 0));
+            paddings[(int)RenderData.PaddingSide.InnerBottom] = 1 + ((parentEndCol != 0 && lastRow == parentLastRow)? parentPaddings[(int)RenderData.PaddingSide.InnerBottom] : 0);
+
+            //Compute max indentation
+            //TODO ~ ramonv ~ fix this check the corners
+            uint thisPaddingH = 5;
+            uint thisPaddingV = 5;
+
+            MaxPaddingH = Math.Max(MaxPaddingH, thisPaddingH); 
+            MaxPaddingV = Math.Max(MaxPaddingV, thisPaddingV);
 
             foreach (LayoutNode child in node.Children)
             {
@@ -281,10 +300,10 @@ namespace StructLayout
             uint lastRow = GetRow(lastOffset);
             uint lastCol = GetCol(lastOffset);
 
-            double paddingIR = GetPadding(node, RenderData.PaddingFlag.InnerRight);
-            double paddingIL = GetPadding(node, RenderData.PaddingFlag.InnerLeft);
-            double paddingOT = GetPadding(node, RenderData.PaddingFlag.OuterTop);
-            double paddingOB = GetPadding(node, RenderData.PaddingFlag.OuterBottom);
+            double paddingIR = GetPadding(node, RenderData.PaddingSide.InnerRight);
+            double paddingIL = GetPadding(node, RenderData.PaddingSide.InnerLeft);
+            double paddingOT = GetPadding(node, RenderData.PaddingSide.OuterTop);
+            double paddingOB = GetPadding(node, RenderData.PaddingSide.OuterBottom);
 
             if (startRow == lastRow)
             {
@@ -296,10 +315,10 @@ namespace StructLayout
             }
             else
             {
-                double paddingOL = GetPadding(node, RenderData.PaddingFlag.OuterLeft);
-                double paddingOR = GetPadding(node, RenderData.PaddingFlag.OuterRight);
-                double paddingIT = GetPadding(node, RenderData.PaddingFlag.InnerTop);
-                double paddingIB = GetPadding(node, RenderData.PaddingFlag.InnerBottom);
+                double paddingOL = GetPadding(node, RenderData.PaddingSide.OuterLeft);
+                double paddingOR = GetPadding(node, RenderData.PaddingSide.OuterRight);
+                double paddingIT = GetPadding(node, RenderData.PaddingSide.InnerTop);
+                double paddingIB = GetPadding(node, RenderData.PaddingSide.InnerBottom);
 
                 if (size <= DisplayGridColumns)
                 {
@@ -346,9 +365,8 @@ namespace StructLayout
         {
             if (Root != null)
             {
-                MaxDepth = 0;
-                Root.RenderData.Depth = 0;
-                Root.RenderData.PaddingFlags = RenderData.PaddingFlag.All;
+                MaxPaddingH = 0;
+                MaxPaddingV = 0;
 
                 foreach (LayoutNode child in Root.Children)
                 {
@@ -356,8 +374,8 @@ namespace StructLayout
                 }
 
                 //compute based on shape
-                NodeWidth  = BaseNodeWidth + paddingSize * MaxDepth*2;
-                NodeHeight = BaseNodeHeight + paddingSize * MaxDepth*2;
+                NodeWidth  = BaseNodeWidth + paddingSize * MaxPaddingH;
+                NodeHeight = BaseNodeHeight + paddingSize * MaxPaddingV;
 
                 ComputeRenderData(Root);
             } 
@@ -462,9 +480,9 @@ namespace StructLayout
 
         }
 
-        private double GetPadding(LayoutNode node, RenderData.PaddingFlag flag)
+        private double GetPadding(LayoutNode node, RenderData.PaddingSide flag)
         {
-            return (node.RenderData.PaddingFlags.HasFlag(flag)? node.RenderData.Depth : 1) * paddingSize;
+            return node.RenderData.Paddings[(int)flag] * paddingSize;
         }
 
         private void RenderBasicShape(DrawingContext drawingContext, LayoutNode node, Brush color)
@@ -540,13 +558,23 @@ namespace StructLayout
             canvas.Children.Remove(visual);
             canvas.Children.Add(visual);
         }
+        private void ExpandAllNodesImpl(LayoutNode node)
+        {
+            node.Collapsed = false;
+            foreach (LayoutNode child in node.Children)
+            {
+                ExpandAllNodesImpl(child);
+            }
+        }
 
-        /*
         private void ExpandAllNodes()
         {
-            //TODO ~ ramonv ~ to be implemented
+            if (Root != null)
+            {
+                ExpandAllNodesImpl(Root);
+            }
         }
-        */
+
         private bool ExpandNode(LayoutNode node)
         {
             bool ret = node.Collapsed;

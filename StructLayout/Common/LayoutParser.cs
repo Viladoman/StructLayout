@@ -48,30 +48,27 @@ namespace StructLayout
             Blob
         }
 
-        public enum PaddingFlag
+        public enum PaddingSide
         {
-            OuterTop    = 1 << 0,
-            InnerTop    = 1 << 1,
-            OuterLeft   = 1 << 2,
-            InnerLeft   = 1 << 3,
-            OuterBottom = 1 << 4,
-            InnerBottom = 1 << 5,       
-            OuterRight  = 1 << 6,
-            InnerRight  = 1 << 7,       
+            OuterTop = 0,
+            InnerTop,
+            OuterLeft,
+            InnerLeft,
+            OuterBottom,
+            InnerBottom,
+            OuterRight,
+            InnerRight,
 
-            All         = OuterTop | InnerTop | OuterLeft | InnerLeft | OuterBottom | InnerBottom | OuterRight | InnerRight
+            Count
         }
 
-        public RenderData(uint depth = 0u)
+        public RenderData()
         {
-            Depth = depth;
             Category = ShapeCategory.Invalid;
-            PaddingFlags = 0u;
+            Paddings = new uint[Enum.GetNames(typeof(PaddingSide)).Length];
         }
 
-        public PaddingFlag PaddingFlags { set; get; }
-        public uint Depth { set; get; }
-
+        public uint[] Paddings { set; get; }
         public Brush Background { set; get; }
         public ShapeCategory Category { set; get; }
         public Point[] Points { set; get; }
@@ -201,7 +198,7 @@ namespace StructLayout
             string defines   = GenerateCommandStr("-D",projProperties.PrepocessorDefinitions);
             
             string archStr = projProperties != null && projProperties.Target == ProjectProperties.TargetType.x86 ? "-m32" : "-m64";
-            string toolCmd = "--show " + location.Filename + " -- clang++ -x c++ " + archStr + defines + undefines + includes;
+            string toolCmd = "--show " + location.Filename + " -- clang++ -x c++ " + archStr + defines + includes;
 
             if (ParseLocation(toolCmd, location.Filename, location.Line, location.Column))
             {
