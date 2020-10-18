@@ -72,6 +72,8 @@ namespace StructLayout
         public Brush Background { set; get; }
         public ShapeCategory Category { set; get; }
         public Point[] Points { set; get; }
+        public Point TextPosition { set; get; }
+        public FormattedText Text { set; get; }
     }
 
     public class LayoutNode

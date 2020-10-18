@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -152,14 +153,20 @@ namespace StructLayout
     {
         const uint CACHELINE_SIZE = 64;
 
-        const double BaseNodeWidth  = 75;
+        const double BaseNodeWidth  = 25;
         const double BaseNodeHeight = 25;
+
+        const double textRenderMinWidth = 15;
+        const double textRenderMinHeight = 15;
 
         const double MarginLeft   = 50;
         const double MarginRight  = 50;
         const double MarginTop    = 25;
         const double MarginBottom = 25;
-        const double paddingSize  = 5; 
+        const double paddingSize  = 5;
+
+        private Typeface Font = new Typeface("Verdana");
+        private Pen gridPen   = new Pen(new SolidColorBrush(Color.FromArgb(100, 0, 0, 0)), 1);
 
         private double NodeWidth   = BaseNodeWidth;
         private double NodeHeight  = BaseNodeHeight;
@@ -175,6 +182,7 @@ namespace StructLayout
 
         private VisualHost baseVisual    = new VisualHost();
         private VisualHost gridVisual    = new VisualHost();
+        private VisualHost textVisual    = new VisualHost();
         private VisualHost overlayVisual = new VisualHost();
 
         private uint DisplayGridColumns = 4;
@@ -246,8 +254,9 @@ namespace StructLayout
             uint lastOffset = endOffset - 1;
             uint startCol = GetCol(node.Offset);
             uint startRow = GetRow(node.Offset);
-            uint endCol = GetCol(endOffset);
             uint lastRow = GetRow(lastOffset);
+            uint endCol = GetCol(endOffset);
+            uint endRow = GetRow(endOffset);
 
             //real padding 
             var paddings = node.RenderData.Paddings;
@@ -266,9 +275,26 @@ namespace StructLayout
             paddings[(int)RenderData.PaddingSide.InnerBottom] = 1 + ((parentEndCol != 0 && lastRow == parentLastRow)? parentPaddings[(int)RenderData.PaddingSide.InnerBottom] : 0);
 
             //Compute max indentation
-            //TODO ~ ramonv ~ fix this check the corners
-            uint thisPaddingH = 5;
-            uint thisPaddingV = 5;
+
+            uint thisPaddingH = 0;
+            uint thisPaddingV = 0;
+
+            if (startRow == lastRow)
+            {
+                thisPaddingH = node.Size == 1 ? paddings[(int)RenderData.PaddingSide.InnerLeft] + paddings[(int)RenderData.PaddingSide.InnerRight] : Math.Max(paddings[(int)RenderData.PaddingSide.InnerLeft],paddings[(int)RenderData.PaddingSide.InnerRight]);
+                thisPaddingV = paddings[(int)RenderData.PaddingSide.OuterTop] + paddings[(int)RenderData.PaddingSide.OuterBottom];
+            }
+            else
+            {
+                uint maxPaddingHTop   = (startCol + 1) == DisplayGridColumns? paddings[(int)RenderData.PaddingSide.InnerLeft] + paddings[(int)RenderData.PaddingSide.OuterRight] : Math.Max(paddings[(int)RenderData.PaddingSide.InnerLeft], paddings[(int)RenderData.PaddingSide.OuterRight]);
+                uint maxPaddingHBottom = startCol == 0? paddings[(int)RenderData.PaddingSide.OuterLeft] + paddings[(int)RenderData.PaddingSide.InnerRight] : Math.Max(paddings[(int)RenderData.PaddingSide.OuterLeft], paddings[(int)RenderData.PaddingSide.InnerRight]);
+                thisPaddingH = Math.Max(maxPaddingHTop, maxPaddingHBottom);
+
+                uint OTIB = endCol != 0 && endRow == startRow + 1 ? paddings[(int)RenderData.PaddingSide.OuterTop] + paddings[(int)RenderData.PaddingSide.InnerBottom] : Math.Max(paddings[(int)RenderData.PaddingSide.OuterTop], paddings[(int)RenderData.PaddingSide.InnerBottom]);
+                uint ITOB = startCol != 0 && lastRow <= startRow + 1 ? paddings[(int)RenderData.PaddingSide.InnerTop] + paddings[(int)RenderData.PaddingSide.OuterBottom] : Math.Max(paddings[(int)RenderData.PaddingSide.InnerTop], paddings[(int)RenderData.PaddingSide.OuterBottom]);
+                uint ITIB = endCol != 0 && startCol != 0 && node.Size < 2*DisplayGridColumns && lastRow == startRow+2? paddings[(int)RenderData.PaddingSide.InnerTop] + paddings[(int)RenderData.PaddingSide.InnerBottom] : Math.Max(paddings[(int)RenderData.PaddingSide.InnerTop], paddings[(int)RenderData.PaddingSide.InnerBottom]);
+                thisPaddingV = Math.Max(Math.Max(OTIB,ITOB),ITIB);
+            }
 
             MaxPaddingH = Math.Max(MaxPaddingH, thisPaddingH); 
             MaxPaddingV = Math.Max(MaxPaddingV, thisPaddingV);
@@ -286,6 +312,78 @@ namespace StructLayout
             foreach (LayoutNode child in node.Children)
             {
                 ComputeRenderData(child);
+            }
+        }
+
+        private string GetNodeLabel(LayoutNode node)
+        {
+            return node.Name.Length > 0 ? node.Name : ( node.Type.Length > 0? node.Type : node.Category.ToString() );
+        }
+
+        private void ComputeTextLabelImpl(LayoutNode node, double posX, double posY, double sizeX, double sizeY)
+        {
+            if (sizeX >= textRenderMinWidth && sizeY >= textRenderMinHeight)
+            {
+                node.RenderData.Text = new FormattedText(GetNodeLabel(node), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Font, 12, Colors.GetCategoryForeground(), VisualTreeHelper.GetDpi(this).PixelsPerDip);
+                node.RenderData.Text.MaxTextWidth = Math.Min(sizeX, node.RenderData.Text.Width);
+                node.RenderData.Text.MaxTextHeight = NodeHeight;
+                node.RenderData.TextPosition = new Point(posX + (sizeX - node.RenderData.Text.Width) * 0.5, posY + (sizeY - node.RenderData.Text.Height) * 0.5);
+            }
+        }
+
+        private void ComputeTextLabel(LayoutNode node)
+        {
+            Point[] p = node.RenderData.Points;
+            node.RenderData.Text = null;
+
+            switch (node.RenderData.Category)
+            {
+                case RenderData.ShapeCategory.Simple:
+                    ComputeTextLabelImpl(node,p[0].X, p[0].Y, p[1].X, p[1].Y);
+                    break;
+
+                case RenderData.ShapeCategory.Split:
+                    double sizeA = p[3].X - p[1].X;
+                    double sizeB = p[2].X - p[0].X;
+
+                    if (sizeA >= sizeB)
+                    {
+                        ComputeTextLabelImpl(node, p[1].X, p[0].Y, sizeA, p[4].X);
+                    }
+                    else
+                    {
+                        ComputeTextLabelImpl(node, p[0].X, p[2].Y, sizeB, p[4].Y);
+                    }
+                    break;
+
+                case RenderData.ShapeCategory.Blob:
+                    uint startRow = GetRow(node.Offset);
+                    uint lastRow = GetRow(node.Offset + node.Size - 1);
+                    
+                    uint startCol = GetCol(node.Offset);
+                    uint endCol = GetCol(node.Offset + node.Size);
+
+                    if (startRow +1 == lastRow && startCol != 0 && endCol != 0)
+                    {
+                        //no full line
+                        if (DisplayGridColumns - startCol >= endCol)
+                        {
+                            ComputeTextLabelImpl(node, p[0].X, p[0].Y, p[2].X - p[0].X, p[2].Y - p[0].Y);
+                        }
+                        else
+                        {
+                            ComputeTextLabelImpl(node, p[6].X, p[6].Y, p[4].X - p[6].X, p[4].Y - p[6].Y);
+                        }
+                    }
+                    else
+                    {
+                        //center to the lines that take the whole alignment
+                        double startY = startCol == 0? p[0].Y : p[6].Y;
+                        double endY   = endCol   == 0? p[5].Y : p[2].Y;
+
+                        ComputeTextLabelImpl(node, p[5].X, startY, p[1].X-p[5].X, endY-startY);
+                    }
+                    break;
             }
         }
 
@@ -308,9 +406,9 @@ namespace StructLayout
             if (startRow == lastRow)
             {
                 node.RenderData.Category = RenderData.ShapeCategory.Simple;
-                node.RenderData.Points = new Point[2] {
+                node.RenderData.Points = new Point[2] { 
                     new Point { X = MarginLeft + paddingIL + (startCol * NodeWidth), Y = MarginTop + paddingOT + (startRow * NodeHeight) }, //offset
-                    new Point { X = size * NodeWidth - (paddingIL + paddingIR), Y = NodeHeight - (paddingOT + paddingOB) }, //size
+                    new Point { X = size * NodeWidth - (paddingIL + paddingIR), Y = NodeHeight - (paddingOT + paddingOB) } //size
                 };
             }
             else
@@ -358,6 +456,8 @@ namespace StructLayout
                         };
                 }
             }
+
+            ComputeTextLabel(node);
         } 
             
 
@@ -374,8 +474,8 @@ namespace StructLayout
                 }
 
                 //compute based on shape
-                NodeWidth  = BaseNodeWidth + paddingSize * MaxPaddingH;
-                NodeHeight = BaseNodeHeight + paddingSize * MaxPaddingV;
+                NodeWidth  = BaseNodeWidth + (paddingSize * MaxPaddingH);
+                NodeHeight = BaseNodeHeight + (paddingSize * MaxPaddingV);
 
                 ComputeRenderData(Root);
             } 
@@ -421,14 +521,13 @@ namespace StructLayout
         {
             RenderBase();
             RefreshCanvasVisual(gridVisual);
+            RenderLabels();
             RenderOverlay();
         }
 
         private void RenderNode(DrawingContext drawingContext, LayoutNode node)
         {
             RenderBasicShape(drawingContext, node, node.RenderData.Background);
-
-            //TODO ~ Ramonv ~ add label render
 
             if (!node.Collapsed)
             {
@@ -441,26 +540,22 @@ namespace StructLayout
 
         private void RenderGridShape(DrawingContext drawingContext)
         {
-            var pen = new Pen(Brushes.Black,1);
-
             uint numCols = DisplayGridColumns;
             uint numRows = DisplayGridRows;
 
             for (uint c = 0; c <= numCols;++c)
             {
                 double h = MarginLeft + (c * NodeWidth);
-                drawingContext.DrawLine(pen, new Point(h,0), new Point(h,canvas.Height-MarginBottom));
+                drawingContext.DrawLine(gridPen, new Point(h, 0), new Point(h,canvas.Height-MarginBottom));
             }
 
             for (uint r = 0; r <= numRows;++r)
             {
                 double h = MarginTop+(r*NodeHeight);
-                drawingContext.DrawLine(pen, new Point(0, h), new Point(canvas.Width-MarginRight, h));
+                drawingContext.DrawLine(gridPen, new Point(0, h), new Point(canvas.Width-MarginRight, h));
             }
 
             //Draw Labels
-
-
 
             /*
              * 
@@ -513,6 +608,29 @@ namespace StructLayout
             }
         }
 
+        private void RenderLabelSimple(DrawingContext drawingContext, LayoutNode node)
+        {
+            if (node.RenderData.Text != null && node.RenderData.TextPosition != null)
+            {
+                drawingContext.DrawText(node.RenderData.Text, node.RenderData.TextPosition);
+            }
+        }
+
+        private void RenderLabel(DrawingContext drawingContext, LayoutNode node)
+        {
+            if (node.Collapsed)
+            {
+                RenderLabelSimple(drawingContext, node);
+            }
+            else
+            {  
+                foreach(LayoutNode child in node.Children)
+                {
+                    RenderLabel(drawingContext, child);
+                }
+            }
+        }
+
         private void RenderBase()
         {
             using (DrawingContext drawingContext = baseVisual.Visual.RenderOpen())
@@ -525,6 +643,20 @@ namespace StructLayout
 
             //force a canvas redraw
             RefreshCanvasVisual(baseVisual);
+        }
+
+        private void RenderLabels()
+        {
+            using (DrawingContext drawingContext = textVisual.Visual.RenderOpen())
+            {
+                if (Root != null)
+                {
+                    RenderLabel(drawingContext, Root);
+                }
+            }
+
+            //force a canvas redraw
+            RefreshCanvasVisual(textVisual);
         }
 
         private void RenderGrid()

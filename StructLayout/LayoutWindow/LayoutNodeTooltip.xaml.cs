@@ -76,8 +76,7 @@ namespace StructLayout
             }
 
             sizeTxt.Text = "Size: " + node.Size;
-            //alignTxt.Text = "Align: " + node.Align;
-            alignTxt.Text = "InnerTop: "+ node.RenderData.Paddings[(int)RenderData.PaddingSide.InnerTop]; //TODO ~ Ramonv ~ remove 
+            alignTxt.Text = "Align: " + node.Align;
         }
         /*
         private void RefreshTypeStack()

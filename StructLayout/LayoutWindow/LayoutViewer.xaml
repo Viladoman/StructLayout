@@ -31,10 +31,10 @@
     
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="0">
             <WrapPanel>
                 <Label FontWeight="Bold">Display alignment:</Label>
                 <RadioButton x:Name="daoStruct" GroupName="daoGroup" Checked="dao_Checked" IsChecked="True">Struct</RadioButton>
@@ -43,7 +43,7 @@
                 <TextBox Width="50" Height="20" TextAlignment="Center"  x:Name="displayAlignmentValue" MaxLength="3" PreviewTextInput="NumberValidationTextBox" Visibility="{Binding IsChecked,ElementName=daoCustom,Converter={StaticResource b2v}}"/>
             </WrapPanel>
         </Grid>
-        <local:CustomScrollViewer Grid.Row="0" x:Name="scrollViewer" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible">
+        <local:CustomScrollViewer Grid.Row="1" x:Name="scrollViewer" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible">
             <Canvas x:Name="canvas" VerticalAlignment="Top" HorizontalAlignment="Left" Focusable="True"/>
         </local:CustomScrollViewer>
     </Grid>

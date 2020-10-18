@@ -85,6 +85,8 @@ namespace StructLayout
 
         private bool IsMSBuildStringInvalid(string input)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             if (input.Contains('$'))
             {
                 OutputLog.Log("Dropped " + input + ". It contains an unknown MSBuild macro");
@@ -95,6 +97,8 @@ namespace StructLayout
 
         private List<string> ProcessMSBuildStringToList(string input)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             var list = input.Split(';').ToList(); //Split
             list.RemoveAll(s => IsMSBuildStringInvalid(s)); //Validate
             return list;
@@ -102,6 +106,8 @@ namespace StructLayout
 
         private List<string> ProcessMSBuildPaths(string input, Dictionary<string, string> MSBuildMacros)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             string replaced = MultipleReplace(input, MSBuildMacros);
             return ProcessMSBuildStringToList(replaced);
         }
