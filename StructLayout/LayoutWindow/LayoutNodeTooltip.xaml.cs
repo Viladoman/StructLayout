@@ -20,11 +20,11 @@ namespace StructLayout
     /// </summary>
     public partial class LayoutNodeTooltip : UserControl
     {
-        private LayoutNode node = null;
+        private LayoutNode Node { set; get; }
         public LayoutNode ReferenceNode
         {
-            set { node = value; OnNode(); }
-            get { return node; }
+            set { Node = value; OnNode(); }
+            get { return Node; }
         }
 
         public LayoutNodeTooltip()
@@ -34,69 +34,86 @@ namespace StructLayout
 
         private void OnNode()
         {
-            if (node != null)
+            if (Node != null)
             {
                 RefreshBasicProfile();
-                //RefreshTypeStack();
+                RefreshTypeStack();
                 RefreshInteractionText();
             }
         }
 
         private void RefreshBasicProfile()
         {
-            if (node.Name.Length > 0)
+            if (Node.Name.Length > 0)
             {
-                headerTxt.Text = node.Name;
+                headerTxt.Text = Node.Name;
 
                 subheaderTxt.Visibility = Visibility.Visible;
-                subheaderTxt.Text = node.Type;
+                subheaderTxt.Text = Node.Type;
             }
-            else if (node.Type.Length > 0)
+            else if (Node.Type.Length > 0)
             {
-                headerTxt.Text = node.Type;
+                headerTxt.Text = Node.Type;
                 subheaderTxt.Visibility = Visibility.Visible;
-                subheaderTxt.Text = node.Category.ToString();
+                subheaderTxt.Text = Node.Category.ToString();
             }
             else
             {
-                headerTxt.Text = node.Category.ToString();
+                headerTxt.Text = Node.Category.ToString();
                 subheaderTxt.Visibility = Visibility.Collapsed;
             }
 
             //LayoutData
 
-            var localOffset = node.Parent == null ? node.Offset : node.Offset - node.Parent.Offset;
-            if (localOffset == node.Offset)
+            var localOffset = Node.Parent == null ? Node.Offset : Node.Offset - Node.Parent.Offset;
+            if (localOffset == Node.Offset)
             {
-                offsetTxt.Text = "Offset: "+node.Offset;
+                offsetTxt.Text = "Offset: "+ Node.Offset;
             }
             else
             {
-                offsetTxt.Text = "Offset: "+node.Offset+" (Local: "+localOffset+")";
+                offsetTxt.Text = "Offset: "+ Node.Offset+" (Local: "+localOffset+")";
             }
 
-            sizeTxt.Text = "Size: " + node.Size;
-            alignTxt.Text = "Align: " + node.Align;
+            sizeTxt.Text = "Size: " + Node.Size;
+            alignTxt.Text = "Align: " + Node.Align;
         }
-        /*
+
+        private void BuildTypeStack(LayoutNode node)
+        {
+            var entry = new TextBlock();
+            entry.Text = "- " + (node.Type.Length > 0? node.Type : node.Category.ToString());
+            typeStack.Children.Add(entry);
+            if (node.Parent != null)
+            {
+                BuildTypeStack(node.Parent);
+            }
+        }
+
         private void RefreshTypeStack()
         {
             typeStack.Children.Clear();
 
-            if (node.Parent == null)
+            if (Node.Parent == null)
             {
                 typeBorder.Visibility = Visibility.Collapsed;
                 typeStack.Visibility = Visibility.Collapsed;
             }
             else
             {
-                //TODO ~ ramonv ~ to be implemented
+                typeBorder.Visibility = Visibility.Visible;
+                typeStack.Visibility = Visibility.Visible;
+                typeStack.Children.Clear();
+                var title = new TextBlock();
+                title.Text = "Parent Stack";
+                typeStack.Children.Add(title);
+                BuildTypeStack(Node.Parent);
             }
         }
-        */
+
         private void RefreshInteractionText()
         {
-            if (node.Children.Count == 0)
+            if (Node.Children.Count == 0)
             {
                 interactionBorder.Visibility = Visibility.Collapsed;
                 interactionPanel.Visibility = Visibility.Collapsed;

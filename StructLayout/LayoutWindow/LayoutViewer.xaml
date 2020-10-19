@@ -18,15 +18,56 @@
             <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.Foreground}}" />
             <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.Background}}" />
         </Style>
+        <Style TargetType="TextBox" x:Key="TextBoxAlign">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.Foreground}}" />
+            <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.Background}}" />
+            <Setter Property="Visibility" Value="Hidden"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ElementName=displayAlignementComboBox, Path=SelectedIndex}" Value="2">
+                    <Setter Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
         <Style TargetType="Label">
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.Foreground}}" />
         </Style>
-        <Style TargetType="TextBox">
+        <Style TargetType="Button" x:Key="StackButton">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.Foreground}}" />
+            <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.Background}}" />
+            <Setter Property="Visibility" Value="Collapsed"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverForeground}}" />
+                    <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverBackground}}" />
+                </Trigger>
+                <DataTrigger Binding="{Binding ElementName=displayModeComboBox, Path=SelectedIndex}" Value="0">
+                    <Setter Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <!--
+        <Style TargetType="ComboBox">
             <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.Foreground}}"/>
             <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.Background}}"/>
         </Style>
-
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.Foreground}}"/>
+            <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.Background}}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.Foreground}}" />
+                    <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.Background}}" />
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverForeground}}" />
+                    <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverBackground}}" />
+                </Trigger>
+                
+            </Style.Triggers>
+        </Style>
+-->
     </UserControl.Resources>
     
     <Grid>
@@ -35,13 +76,43 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid Grid.Row="0">
-            <WrapPanel>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <WrapPanel Grid.Column="0">
                 <Label FontWeight="Bold">Display alignment:</Label>
-                <RadioButton x:Name="daoStruct" GroupName="daoGroup" Checked="dao_Checked" IsChecked="True">Struct</RadioButton>
-                <RadioButton x:Name="daoCache"  GroupName="daoGroup" Checked="dao_Checked">Cacheline</RadioButton>
-                <RadioButton x:Name="daoCustom" GroupName="daoGroup" Checked="dao_Checked">Custom</RadioButton>
-                <TextBox Width="50" Height="20" TextAlignment="Center"  x:Name="displayAlignmentValue" MaxLength="3" PreviewTextInput="NumberValidationTextBox" Visibility="{Binding IsChecked,ElementName=daoCustom,Converter={StaticResource b2v}}"/>
+                <ComboBox x:Name="displayAlignementComboBox" Width="90" SelectionChanged="DisplayAlignmentComboBox_SelectionChanged"/>
+                <TextBox Width="50" Height="20" TextAlignment="Center"  x:Name="displayAlignmentValue" MaxLength="3" PreviewTextInput="NumberValidationTextBox">
+                    <TextBox.Style>
+                        <Style TargetType="TextBox" BasedOn="{StaticResource TextBoxAlign}" />
+                    </TextBox.Style>
+                </TextBox>
+
+                <Label FontWeight="Bold">Mode:</Label>
+                <ComboBox x:Name="displayModeComboBox" Width="65" SelectionChanged="DisplayModeComboBox_SelectionChanged"/>
             </WrapPanel>
+
+            <WrapPanel Grid.Column="1">
+<!--                <Label FontWeight="Bold">Size:</Label>
+                <Slider VerticalAlignment="Center" x:Name="sliderZoom" Maximum="1" Width="100"/>
+                -->
+
+                <Button Click="ButtonExpandAll_Click">
+                    Expand All
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource StackButton}"/>
+                    </Button.Style>
+                </Button>
+                <Button Click="ButtonCollapseAll_Click">
+                    Collapse All
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource StackButton}"/>
+                    </Button.Style>
+                </Button>
+            </WrapPanel>
+            
         </Grid>
         <local:CustomScrollViewer Grid.Row="1" x:Name="scrollViewer" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible">
             <Canvas x:Name="canvas" VerticalAlignment="Top" HorizontalAlignment="Left" Focusable="True"/>

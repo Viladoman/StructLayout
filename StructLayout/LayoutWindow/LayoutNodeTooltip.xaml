@@ -14,10 +14,8 @@
             <TextBlock x:Name="offsetTxt" />
             <TextBlock x:Name="sizeTxt" />
             <TextBlock x:Name="alignTxt" />
-            <!--
             <Border x:Name="typeBorder" BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,8" />
             <StackPanel x:Name="typeStack" />
-            -->
             <Border x:Name="interactionBorder" BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,8" />
             <WrapPanel x:Name="interactionPanel">
                 <TextBlock x:Name="interactionTxt" FontStyle="Italic" />

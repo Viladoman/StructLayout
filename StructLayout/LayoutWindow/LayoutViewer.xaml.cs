@@ -1,19 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace StructLayout
 {
@@ -151,6 +143,19 @@ namespace StructLayout
 
     public partial class LayoutViewer : UserControl
     {
+        enum DisplayAlignmentType
+        {
+            Struct, 
+            Cacheline, 
+            Custom
+        }
+
+        enum DisplayMode
+        {
+             Stack, 
+             Flat
+        }
+
         const uint CACHELINE_SIZE = 64;
 
         const double BaseNodeWidth  = 25;
@@ -195,6 +200,12 @@ namespace StructLayout
 
             SetDisplayGridColumns(8);
 
+            displayAlignementComboBox.ItemsSource = Enum.GetValues(typeof(DisplayAlignmentType)).Cast<DisplayAlignmentType>();
+            displayAlignementComboBox.SelectedIndex = 0;
+
+            displayModeComboBox.ItemsSource = Enum.GetValues(typeof(DisplayMode)).Cast<DisplayMode>();
+            displayModeComboBox.SelectedIndex = 0;
+
             scrollViewer.Loaded += ScrollViewer_OnLoaded;
             scrollViewer.On2DMouseScroll += ScrollViewer_On2DMouseScroll;
             scrollViewer.MouseMove += ScrollViewer_OnMouseMove;
@@ -209,7 +220,7 @@ namespace StructLayout
             Root = root;
             SetHoverNode(null);
 
-            uint displayAlignment = Root != null && daoStruct.IsChecked == true? root.Align : DisplayGridColumns;
+            uint displayAlignment = Root != null && GetSelectedDisplayAlignment() == DisplayAlignmentType.Struct? root.Align : DisplayGridColumns;
 
             if (!SetDisplayGridColumns(displayAlignment))
             {
@@ -218,6 +229,16 @@ namespace StructLayout
                 RenderGrid();
                 RefreshShapes();
             }
+        }
+
+        DisplayAlignmentType GetSelectedDisplayAlignment()
+        {
+            return displayAlignementComboBox.SelectedItem != null? (DisplayAlignmentType)displayAlignementComboBox.SelectedItem : DisplayAlignmentType.Struct;
+        }
+
+        DisplayMode GetSelectedDisplayMode()
+        {
+            return displayModeComboBox.SelectedItem != null ? (DisplayMode)displayModeComboBox.SelectedItem : DisplayMode.Stack;
         }
 
         private void SetHoverNode(LayoutNode node)
@@ -240,7 +261,7 @@ namespace StructLayout
             }
         }
 
-        private void PrepareRenderData(LayoutNode node)
+        private void PrepareRenderDataStack(LayoutNode node)
         {
             //Padding
             uint endOffsetParent = node.Parent.Offset + node.Parent.Size;
@@ -262,17 +283,17 @@ namespace StructLayout
             var paddings = node.RenderData.Paddings;
             var parentPaddings = node.Parent.RenderData.Paddings;
 
-            paddings[(int)RenderData.PaddingSide.OuterLeft]   = 1 + parentPaddings[(int)RenderData.PaddingSide.OuterLeft];
-            paddings[(int)RenderData.PaddingSide.OuterRight]  = 1 + parentPaddings[(int)RenderData.PaddingSide.OuterRight];
+            paddings[(int)RenderData.PaddingSide.OuterLeft] = 1 + parentPaddings[(int)RenderData.PaddingSide.OuterLeft];
+            paddings[(int)RenderData.PaddingSide.OuterRight] = 1 + parentPaddings[(int)RenderData.PaddingSide.OuterRight];
 
-            paddings[(int)RenderData.PaddingSide.InnerLeft]   = 1 + (startCol == 0? parentPaddings[(int)RenderData.PaddingSide.OuterLeft]  : (node.Offset == node.Parent.Offset ? parentPaddings[(int)RenderData.PaddingSide.InnerLeft] : 0));
-            paddings[(int)RenderData.PaddingSide.InnerRight]  = 1 + (endCol   == 0? parentPaddings[(int)RenderData.PaddingSide.OuterRight] : (endOffset == endOffsetParent ?      parentPaddings[(int)RenderData.PaddingSide.InnerRight] : 0));
+            paddings[(int)RenderData.PaddingSide.InnerLeft] = 1 + (startCol == 0 ? parentPaddings[(int)RenderData.PaddingSide.OuterLeft] : (node.Offset == node.Parent.Offset ? parentPaddings[(int)RenderData.PaddingSide.InnerLeft] : 0));
+            paddings[(int)RenderData.PaddingSide.InnerRight] = 1 + (endCol == 0 ? parentPaddings[(int)RenderData.PaddingSide.OuterRight] : (endOffset == endOffsetParent ? parentPaddings[(int)RenderData.PaddingSide.InnerRight] : 0));
 
-            paddings[(int)RenderData.PaddingSide.OuterTop]    = 1 + (startRow == parentStartRow ? parentPaddings[(int)RenderData.PaddingSide.OuterTop] : ((parentStartCol != 0 && node.Offset <= node.Parent.Offset + DisplayGridColumns)? parentPaddings[(int)RenderData.PaddingSide.InnerTop] : 0));
-            paddings[(int)RenderData.PaddingSide.InnerTop]    = 1 + ((parentStartCol != 0 && startRow == parentStartRow) ? parentPaddings[(int)RenderData.PaddingSide.InnerTop] : 0); 
+            paddings[(int)RenderData.PaddingSide.OuterTop] = 1 + (startRow == parentStartRow ? parentPaddings[(int)RenderData.PaddingSide.OuterTop] : ((parentStartCol != 0 && node.Offset <= node.Parent.Offset + DisplayGridColumns) ? parentPaddings[(int)RenderData.PaddingSide.InnerTop] : 0));
+            paddings[(int)RenderData.PaddingSide.InnerTop] = 1 + ((parentStartCol != 0 && startRow == parentStartRow) ? parentPaddings[(int)RenderData.PaddingSide.InnerTop] : 0);
 
-            paddings[(int)RenderData.PaddingSide.OuterBottom] = 1 + (lastRow == parentLastRow ? parentPaddings[(int)RenderData.PaddingSide.OuterBottom] : ((parentEndCol != 0 && lastOffset >= parentLastOffset - DisplayGridColumns)? parentPaddings[(int)RenderData.PaddingSide.InnerBottom] : 0));
-            paddings[(int)RenderData.PaddingSide.InnerBottom] = 1 + ((parentEndCol != 0 && lastRow == parentLastRow)? parentPaddings[(int)RenderData.PaddingSide.InnerBottom] : 0);
+            paddings[(int)RenderData.PaddingSide.OuterBottom] = 1 + (lastRow == parentLastRow ? parentPaddings[(int)RenderData.PaddingSide.OuterBottom] : ((parentEndCol != 0 && lastOffset >= parentLastOffset - DisplayGridColumns) ? parentPaddings[(int)RenderData.PaddingSide.InnerBottom] : 0));
+            paddings[(int)RenderData.PaddingSide.InnerBottom] = 1 + ((parentEndCol != 0 && lastRow == parentLastRow) ? parentPaddings[(int)RenderData.PaddingSide.InnerBottom] : 0);
 
             //Compute max indentation
 
@@ -281,29 +302,43 @@ namespace StructLayout
 
             if (startRow == lastRow)
             {
-                thisPaddingH = node.Size == 1 ? paddings[(int)RenderData.PaddingSide.InnerLeft] + paddings[(int)RenderData.PaddingSide.InnerRight] : Math.Max(paddings[(int)RenderData.PaddingSide.InnerLeft],paddings[(int)RenderData.PaddingSide.InnerRight]);
+                thisPaddingH = node.Size == 1 ? paddings[(int)RenderData.PaddingSide.InnerLeft] + paddings[(int)RenderData.PaddingSide.InnerRight] : Math.Max(paddings[(int)RenderData.PaddingSide.InnerLeft], paddings[(int)RenderData.PaddingSide.InnerRight]);
                 thisPaddingV = paddings[(int)RenderData.PaddingSide.OuterTop] + paddings[(int)RenderData.PaddingSide.OuterBottom];
             }
             else
             {
-                uint maxPaddingHTop   = (startCol + 1) == DisplayGridColumns? paddings[(int)RenderData.PaddingSide.InnerLeft] + paddings[(int)RenderData.PaddingSide.OuterRight] : Math.Max(paddings[(int)RenderData.PaddingSide.InnerLeft], paddings[(int)RenderData.PaddingSide.OuterRight]);
-                uint maxPaddingHBottom = startCol == 0? paddings[(int)RenderData.PaddingSide.OuterLeft] + paddings[(int)RenderData.PaddingSide.InnerRight] : Math.Max(paddings[(int)RenderData.PaddingSide.OuterLeft], paddings[(int)RenderData.PaddingSide.InnerRight]);
+                uint maxPaddingHTop = (startCol + 1) == DisplayGridColumns ? paddings[(int)RenderData.PaddingSide.InnerLeft] + paddings[(int)RenderData.PaddingSide.OuterRight] : Math.Max(paddings[(int)RenderData.PaddingSide.InnerLeft], paddings[(int)RenderData.PaddingSide.OuterRight]);
+                uint maxPaddingHBottom = startCol == 0 ? paddings[(int)RenderData.PaddingSide.OuterLeft] + paddings[(int)RenderData.PaddingSide.InnerRight] : Math.Max(paddings[(int)RenderData.PaddingSide.OuterLeft], paddings[(int)RenderData.PaddingSide.InnerRight]);
                 thisPaddingH = Math.Max(maxPaddingHTop, maxPaddingHBottom);
 
                 uint OTIB = endCol != 0 && endRow == startRow + 1 ? paddings[(int)RenderData.PaddingSide.OuterTop] + paddings[(int)RenderData.PaddingSide.InnerBottom] : Math.Max(paddings[(int)RenderData.PaddingSide.OuterTop], paddings[(int)RenderData.PaddingSide.InnerBottom]);
                 uint ITOB = startCol != 0 && lastRow <= startRow + 1 ? paddings[(int)RenderData.PaddingSide.InnerTop] + paddings[(int)RenderData.PaddingSide.OuterBottom] : Math.Max(paddings[(int)RenderData.PaddingSide.InnerTop], paddings[(int)RenderData.PaddingSide.OuterBottom]);
-                uint ITIB = endCol != 0 && startCol != 0 && node.Size < 2*DisplayGridColumns && lastRow == startRow+2? paddings[(int)RenderData.PaddingSide.InnerTop] + paddings[(int)RenderData.PaddingSide.InnerBottom] : Math.Max(paddings[(int)RenderData.PaddingSide.InnerTop], paddings[(int)RenderData.PaddingSide.InnerBottom]);
-                thisPaddingV = Math.Max(Math.Max(OTIB,ITOB),ITIB);
+                uint ITIB = endCol != 0 && startCol != 0 && node.Size < 2 * DisplayGridColumns && lastRow == startRow + 2 ? paddings[(int)RenderData.PaddingSide.InnerTop] + paddings[(int)RenderData.PaddingSide.InnerBottom] : Math.Max(paddings[(int)RenderData.PaddingSide.InnerTop], paddings[(int)RenderData.PaddingSide.InnerBottom]);
+                thisPaddingV = Math.Max(Math.Max(OTIB, ITOB), ITIB);
             }
 
-            MaxPaddingH = Math.Max(MaxPaddingH, thisPaddingH); 
+            MaxPaddingH = Math.Max(MaxPaddingH, thisPaddingH);
             MaxPaddingV = Math.Max(MaxPaddingV, thisPaddingV);
 
             foreach (LayoutNode child in node.Children)
             {
-                PrepareRenderData(child);
+                PrepareRenderDataStack(child);
             }
         }
+
+        private void PrepareRenderDataFlat(LayoutNode node)
+        {
+            var paddings = node.RenderData.Paddings;
+            foreach (RenderData.PaddingSide side in (RenderData.PaddingSide[])Enum.GetValues(typeof(RenderData.PaddingSide)))
+            {
+                paddings[(int)side] = 0;
+            }
+
+            foreach (LayoutNode child in node.Children)
+            {
+                PrepareRenderDataFlat(child);
+            }
+        } 
 
         private void ComputeRenderData(LayoutNode node)
         {
@@ -460,6 +495,16 @@ namespace StructLayout
             ComputeTextLabel(node);
         } 
             
+        private void RefreshNodeSize()
+        {
+            if (Root != null)
+            {
+                NodeWidth = BaseNodeWidth + (paddingSize * MaxPaddingH);
+                NodeHeight = BaseNodeHeight + (paddingSize * MaxPaddingV);
+
+                ComputeRenderData(Root);
+            }
+        }
 
         private void RefreshNodeRenderData()
         {
@@ -468,16 +513,27 @@ namespace StructLayout
                 MaxPaddingH = 0;
                 MaxPaddingV = 0;
 
-                foreach (LayoutNode child in Root.Children)
+                switch (GetSelectedDisplayMode())
                 {
-                    PrepareRenderData(child);
+                    case DisplayMode.Stack:
+                        {
+                            foreach (LayoutNode child in Root.Children)
+                            {
+                                PrepareRenderDataStack(child);
+                            }
+                            CollapseNode(Root);
+                            ExpandNode(Root);
+                        }
+                        break;
+                    case DisplayMode.Flat:
+                        {
+                            PrepareRenderDataFlat(Root);
+                            ExpandAllNodes(Root);
+                        }
+                        break;
                 }
 
-                //compute based on shape
-                NodeWidth  = BaseNodeWidth + (paddingSize * MaxPaddingH);
-                NodeHeight = BaseNodeHeight + (paddingSize * MaxPaddingV);
-
-                ComputeRenderData(Root);
+                RefreshNodeSize();
             } 
         }
 
@@ -556,23 +612,19 @@ namespace StructLayout
             }
 
             //Draw Labels
-
-            /*
-             * 
-             *    //Render text
-            if (screenWidth >= textRenderMinWidth)
+            for (uint c = 0; c < numCols; ++c)
             {
-                var UIText = new FormattedText(node.Label, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Font, 12, Common.Colors.GetCategoryForeground(), VisualTreeHelper.GetDpi(this).PixelsPerDip);
-                UIText.MaxTextWidth = Math.Min(screenWidth, UIText.Width);
-                UIText.MaxTextHeight = NodeHeight;
+                var txt = new FormattedText(c.ToString("X"), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Font, 12, scrollViewer.Foreground, VisualTreeHelper.GetDpi(this).PixelsPerDip);
+                drawingContext.DrawText(txt, new Point(MarginLeft + (c * NodeWidth) + (NodeWidth - txt.Width) * 0.5, (MarginTop - txt.Height) * 0.5));
+            }
 
-                double textPosX = (pixelEnd + pixelStart - UIText.Width) * 0.5;
-                double textPosY = posY + (NodeHeight - UIText.Height) * 0.5;
-
-                drawingContext.DrawText(UIText, new Point(textPosX, textPosY));
-
-            }*/
-
+            //Draw Labels
+            for (uint r = 0; r < numRows; ++r)
+            {
+                uint val = r * DisplayGridColumns;
+                var txt = new FormattedText("0x" + val.ToString("X"), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Font, 12, scrollViewer.Foreground, VisualTreeHelper.GetDpi(this).PixelsPerDip);
+                drawingContext.DrawText(txt, new Point((MarginLeft - txt.Width) * 0.5, MarginTop + (r * NodeHeight) + (NodeHeight - txt.Height) * 0.5));
+            }
         }
 
         private double GetPadding(LayoutNode node, RenderData.PaddingSide flag)
@@ -690,20 +742,15 @@ namespace StructLayout
             canvas.Children.Remove(visual);
             canvas.Children.Add(visual);
         }
-        private void ExpandAllNodesImpl(LayoutNode node)
+        private void ExpandAllNodes(LayoutNode node)
         {
-            node.Collapsed = false;
-            foreach (LayoutNode child in node.Children)
+            if (node.Children.Count > 0)
             {
-                ExpandAllNodesImpl(child);
-            }
-        }
-
-        private void ExpandAllNodes()
-        {
-            if (Root != null)
-            {
-                ExpandAllNodesImpl(Root);
+                node.Collapsed = false;
+                foreach (LayoutNode child in node.Children)
+                {
+                    ExpandAllNodes(child);
+                }
             }
         }
 
@@ -841,26 +888,28 @@ namespace StructLayout
         {
             if (displayAlignmentValue.Text.Length > 0)
             {
-                uint value = Math.Min(Convert.ToUInt32(displayAlignmentValue.Text), 200);
+                uint value = Math.Max(1,Math.Min(Convert.ToUInt32(displayAlignmentValue.Text), 256));
                 SetDisplayGridColumns(value);
             }
         }
 
-        private void dao_Checked(object sender, RoutedEventArgs e)
+        private void DisplayAlignmentComboBox_SelectionChanged(object sender, object e)
         {
-            if (daoStruct.IsChecked == true)
+            DisplayAlignmentType type = GetSelectedDisplayAlignment();
+            switch(type)
             {
-                SetDisplayGridColumns(Root == null ? DisplayGridColumns : Root.Align );
-            } 
-            else if (daoCache.IsChecked == true)
-            {
-                SetDisplayGridColumns(CACHELINE_SIZE);
+                case DisplayAlignmentType.Struct:    SetDisplayGridColumns(Root == null ? DisplayGridColumns : Root.Align);  break;
+                case DisplayAlignmentType.Cacheline: SetDisplayGridColumns(CACHELINE_SIZE); break;
+                case DisplayAlignmentType.Custom:    DisplayAlign_Changed(null, null); break;
             }
-            else if (daoCustom.IsChecked == true)
-            {
-                //Set the value inside the custom box
-                DisplayAlign_Changed(null, null);
-            }
+        }
+
+        private void DisplayModeComboBox_SelectionChanged(object sender, object e)
+        {
+            RefreshNodeRenderData();
+            SetupCanvas();
+            RenderGrid();
+            RefreshShapes();
         }
 
         private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
@@ -868,5 +917,23 @@ namespace StructLayout
             Regex regex = new Regex("[^0-9]+");
             e.Handled = regex.IsMatch(e.Text);
         }
+
+        private void ButtonCollapseAll_Click(object sender, object e)
+        {
+            if (Root != null)
+            {
+                CollapseNode(Root);
+                RefreshShapes();
+            }
+        } 
+
+        private void ButtonExpandAll_Click(object sender, object e)
+        {
+            if (Root != null)
+            {
+                ExpandAllNodes(Root);
+                RefreshShapes();
+            }
+        } 
     }
 }
