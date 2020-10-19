@@ -5,6 +5,9 @@
         <DisplayName>StructLayout</DisplayName>
         <Description xml:space="preserve">C++ struct memory layout viewer</Description>
         <MoreInfo>https://github.com/Viladoman/StructLayout</MoreInfo>
+        <Icon>StructLayout.png</Icon>
+        <PreviewImage>StructLayout.png</PreviewImage>
+        <Tags>cpp memory struct class debugging cache cacheline layout</Tags>
     </Metadata>
     <Installation>
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.0, 17.0)" />

@@ -184,6 +184,7 @@ namespace StructLayout
         private ToolTip tooltip = new ToolTip { Content = new LayoutNodeTooltip() };
 
         private Pen nodeBorderPen = new Pen(Colors.GetCategoryForeground(), 2);
+        private Brush overlayBrush = Brushes.White.Clone(); 
 
         private VisualHost baseVisual    = new VisualHost();
         private VisualHost gridVisual    = new VisualHost();
@@ -197,6 +198,8 @@ namespace StructLayout
         {
             InitializeComponent();
             this.DataContext = this;
+
+            overlayBrush.Opacity = 0.3;
 
             SetDisplayGridColumns(8);
 
@@ -726,9 +729,6 @@ namespace StructLayout
             {
                 if (Hover != null)
                 {
-                    var overlayBrush = Brushes.White.Clone(); ///TODO ~ ramonv move outside
-                    overlayBrush.Opacity = 0.3;
-
                     RenderBasicShape(drawingContext, Hover, overlayBrush);
                 }
             }

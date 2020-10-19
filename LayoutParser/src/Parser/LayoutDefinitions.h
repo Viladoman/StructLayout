@@ -28,7 +28,6 @@ namespace Layout
     struct Node
     { 
         Node() : nature(Category::Root),offset(0u),size(1u),align(1u){}
-        ~Node() { for(Node* child : children) { delete child; } }         //TODO ~ ramonv ~ bad destsruction pattern
 
         std::string  name;
         std::string  type;

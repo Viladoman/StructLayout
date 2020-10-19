@@ -33,6 +33,17 @@ namespace StructLayout
             ServiceProvider = package;
         }
 
+        private void SaveActiveDocument()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            //Get full file path
+            var applicationObject = ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
+            Assumes.Present(applicationObject);
+
+            applicationObject.ActiveDocument.Save();
+        }
+
         private DocumentLocation GetCurrentLocation()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -49,6 +60,7 @@ namespace StructLayout
 
             IVsTextView view;
             textManager.GetActiveView2(1, null, (uint)_VIEWFRAMETYPE.vftCodeWindow, out view);
+            if (view == null) return null;
 
             view.GetCaretPos(out int line, out int col);
 
@@ -86,6 +98,11 @@ namespace StructLayout
         private bool IsMSBuildStringInvalid(string input)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (input.Length == 0)
+            {
+                return true;
+            }
 
             if (input.Contains('$'))
             {
@@ -182,15 +199,7 @@ namespace StructLayout
             return ret;
         }
 
-        public void DisplayLayout(LayoutNode node)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            LayoutWindow window = FocusLayoutWindow();
-            window.SetLayout(node);
-        }
-
-        public LayoutWindow FocusLayoutWindow()
+        public LayoutWindow GetLayoutWindow()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -203,14 +212,24 @@ namespace StructLayout
                 throw new NotSupportedException("Cannot create tool window");
             }
 
-            window.ProxyShow();
-
             return window;
+        }
+
+        public void FocusWindow(LayoutWindow window)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (window != null)
+            {
+                window.ProxyShow();
+            }
         }
 
         public void ParseAtCurrentLocation()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
+
+            SaveActiveDocument();
 
             DocumentLocation location = GetCurrentLocation();
             if (location == null)
@@ -226,7 +245,16 @@ namespace StructLayout
                 return;
             }
 
-            DisplayLayout(parser.Parse(properties, location));
+            LayoutNode layout = parser.Parse(properties, location);
+
+            var win = GetLayoutWindow();
+            win.SetLayout(layout);
+
+            //TODO ~ ramonv ~ only when no errors happened
+            if (layout != null)
+            {
+                FocusWindow(win);
+            }
         }
     }
 }

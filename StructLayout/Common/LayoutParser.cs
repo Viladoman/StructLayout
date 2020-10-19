@@ -179,6 +179,8 @@ namespace StructLayout
 
         public void ProcessLog()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             uint size = 0;
             IntPtr result = GetLog(ref size);
             if (size > 0)
@@ -186,7 +188,7 @@ namespace StructLayout
                 byte[] managedArray = new byte[size];
                 Marshal.Copy(result, managedArray, 0, (int)size);
                 string val = Encoding.UTF8.GetString(managedArray);
-                OutputLog.Log(val);
+                OutputLog.Log("Execution Log:\n"+val);
             }
         }
 
@@ -208,17 +210,23 @@ namespace StructLayout
             string archStr = projProperties != null && projProperties.Target == ProjectProperties.TargetType.x86 ? "-m32" : "-m64";
             string toolCmd = location.Filename + " -- clang++ -x c++ " + archStr + defines + includes;
 
+            OutputLog.Focus();
             OutputLog.Log("Looking for structures at " + location.Filename + ":" + location.Line + ":" + location.Column+"...");
 
-            //TODO ~ ramonv ~ add option to display the libtooling command line
+            OutputLog.Log("SENT: " + toolCmd); //TODO ~ ramonv ~ remove this //make it optional
 
             //TODO ~ ramonv ~ perform this operation ASYNC
-            bool success = ParseLocation(toolCmd, location.Filename, location.Line, location.Column);
+            //var watch = System.Diagnostics.Stopwatch.StartNew();
+            bool valid = ParseLocation(toolCmd, location.Filename, location.Line, location.Column);
+            //watch.Stop();
+            //const long TicksPerMicrosecond = (TimeSpan.TicksPerMillisecond / 1000);
+            //ulong microseconds = (ulong)(watch.ElapsedTicks / TicksPerMicrosecond);
+            //OutputLog.Log("Score file processed in " + Common.UIConverters.GetTimeStr(microseconds));
 
             //TODO ~ ramonv ~ perform this as async future
             ProcessLog();
 
-            if (success)
+            if (valid)
             {
                 //capture data
                 uint size = 0;
@@ -234,11 +242,7 @@ namespace StructLayout
 
                 OutputLog.Log("Found structure "+ret.Type);
             }
-            else
-            {
-                OutputLog.Log("Unable to find any structure.");
-            }
-
+            
             Clear();
 
             return ret;

@@ -111,6 +111,10 @@
     </Content>
     <Content Include="LayoutWindow\Resources\LayoutWindowCommand.png" />
     <Content Include="Editor\Resources\ParseCommand.png" />
+    <Content Include="StructLayout.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <VSCTCompile Include="StructLayoutPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
     </VSCTCompile>

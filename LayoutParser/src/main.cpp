@@ -48,6 +48,8 @@ namespace Utils
         std::vector<const char*> args = Utils::GenerateFakeCommandLine(commandLineArgs);
         if (Parser::Parse(static_cast<int>(args.size()),&args[0]))
         { 
+            //TODO ~ ramonv ~ return error type instead of bool ( ERROR PARSING, FOUND NOTHING, FOUND ) 
+
             if (IO::ToDataBuffer(Parser::GetLayout()))
             { 
                 return true;

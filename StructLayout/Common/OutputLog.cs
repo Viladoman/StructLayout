@@ -1,5 +1,7 @@
 ﻿namespace StructLayout
 {
+    using EnvDTE;
+    using EnvDTE80;
     using Microsoft;
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
@@ -12,6 +14,19 @@
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             CreatePane(serviceProvider, Guid.NewGuid(), "Struct Layout", true, false);
+        }
+
+        public static void Clear()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            pane.Clear();
+        }
+
+        public static void Focus()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            pane.Hide();
+            pane.Activate();
         }
 
         public static void Log(string text)

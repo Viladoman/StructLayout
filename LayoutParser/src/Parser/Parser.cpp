@@ -36,6 +36,19 @@ namespace ClangParser
     namespace Helpers
     {
         inline bool IsMSLayout(const clang::ASTContext& context) { return context.getTargetInfo().getCXXABI().isMicrosoft(); }
+
+        void DestroyTree(Layout::Node* node)
+        { 
+            if (node)
+            { 
+                for(Layout::Node* child : node->children) 
+                { 
+                    DestroyTree(child);
+                } 
+
+                delete node;
+            }
+        }
     }
 
     // ----------------------------------------------------------------------------------------------------------
@@ -75,7 +88,11 @@ namespace ClangParser
 
         void SetFilter(const Parser::LocationFilter& filter){ locationFilter = filter; }
 
-        void Clear() { bestTree = Layout::Tree(); } //TODO ~ ramonv ~ this leaks memory 
+        void Clear() 
+        { 
+            Helpers::DestroyTree(bestTree.root);
+            bestTree = Layout::Tree(); 
+        }
 
         const Layout::Tree& GetLayout() const { return bestTree; }
 
@@ -305,6 +322,8 @@ struct ToolFactory : public clang::tooling::FrontendActionFactory
     std::unique_ptr<clang::FrontendAction> create() override { return std::make_unique<ClangParser::Action>(); }
 };
 
+ToolFactory g_toolFactory;
+
 namespace Parser
 { 
     void SetFilter(const LocationFilter& filter)
@@ -326,7 +345,8 @@ namespace Parser
 
         clang::tooling::CommonOptionsParser optionsParser(argc, argv, seeCategory); 
         clang::tooling::ClangTool tool(optionsParser.getCompilations(), optionsParser.getSourcePathList());
-        const int retCode = tool.run(new ToolFactory()); 
+
+        const int retCode = tool.run(&g_toolFactory); 
         return retCode == 0;
 	}
 
