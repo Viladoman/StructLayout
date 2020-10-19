@@ -135,6 +135,9 @@ namespace StructLayout
         public static extern IntPtr GetData(ref uint size);
 
         [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr GetLog(ref uint size);
+
+        [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern void Clear();
 
         private LayoutNode ReadNode(BinaryReader reader)
@@ -143,7 +146,6 @@ namespace StructLayout
             node.Type = reader.ReadString();
             node.Name = reader.ReadString();
 
-            //TODO ~ ramonv ~ have a thought on what to do when numbers bigger than uint arrive
             node.Offset = (uint)reader.ReadInt64();
             node.Size = (uint)reader.ReadInt64();
             node.Align = (uint)reader.ReadInt64();
@@ -175,6 +177,18 @@ namespace StructLayout
             FinalizeNodeRecursive(node);
         }
 
+        public void ProcessLog()
+        {
+            uint size = 0;
+            IntPtr result = GetLog(ref size);
+            if (size > 0)
+            {
+                byte[] managedArray = new byte[size];
+                Marshal.Copy(result, managedArray, 0, (int)size);
+                string val = Encoding.UTF8.GetString(managedArray);
+                OutputLog.Log(val);
+            }
+        }
 
         public LayoutNode Parse(ProjectProperties projProperties, DocumentLocation location)
         {
@@ -186,23 +200,25 @@ namespace StructLayout
                 return null;
             }
 
-            //llvm outs is not going through console
-            //var sw = new StringWriter();
-            //Console.SetOut(sw);
-            //Console.SetError(sw);
-            //Console.WriteLine("Hello world.");
-
-            //TODO ~ ramonv ~ pass in context
-
             LayoutNode ret = null;
 
             string includes  = GenerateCommandStr("-I",projProperties.IncludeDirectories);
             string defines   = GenerateCommandStr("-D",projProperties.PrepocessorDefinitions);
             
             string archStr = projProperties != null && projProperties.Target == ProjectProperties.TargetType.x86 ? "-m32" : "-m64";
-            string toolCmd = "--show " + location.Filename + " -- clang++ -x c++ " + archStr + defines + includes;
+            string toolCmd = location.Filename + " -- clang++ -x c++ " + archStr + defines + includes;
 
-            if (ParseLocation(toolCmd, location.Filename, location.Line, location.Column))
+            OutputLog.Log("Looking for structures at " + location.Filename + ":" + location.Line + ":" + location.Column+"...");
+
+            //TODO ~ ramonv ~ add option to display the libtooling command line
+
+            //TODO ~ ramonv ~ perform this operation ASYNC
+            bool success = ParseLocation(toolCmd, location.Filename, location.Line, location.Column);
+
+            //TODO ~ ramonv ~ perform this as async future
+            ProcessLog();
+
+            if (success)
             {
                 //capture data
                 uint size = 0;
@@ -216,12 +232,14 @@ namespace StructLayout
                     FinalizeNode(ret);
                 }
 
-                Clear();
+                OutputLog.Log("Found structure "+ret.Type);
             }
             else
             {
-                OutputLog.Log("Unable to find the struct.");
+                OutputLog.Log("Unable to find any structure.");
             }
+
+            Clear();
 
             return ret;
 

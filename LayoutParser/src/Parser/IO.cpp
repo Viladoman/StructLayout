@@ -6,7 +6,8 @@
 namespace IO
 { 
     using TBuffer = std::vector<char>;
-    TBuffer g_buffer;
+    TBuffer g_dataBuffer;
+    TBuffer g_logBuffer;
 
     namespace Utils
     {
@@ -67,25 +68,43 @@ namespace IO
     // -----------------------------------------------------------------------------------------------------------------
     void Clear()
     { 
-        g_buffer.clear();
+        g_dataBuffer.clear();
+        g_logBuffer.clear();
     }
 
     // -----------------------------------------------------------------------------------------------------------------
-    bool ToBuffer(const Layout::Tree& tree)
+    bool ToDataBuffer(const Layout::Tree& tree)
     { 
-        Clear();
+        g_dataBuffer.clear();
         if (tree.root)
         {
-            Utils::BinarizeNode(g_buffer,*(tree.root));
+            Utils::BinarizeNode(g_dataBuffer,*(tree.root));
             return true;
         }
         return false;
     } 
 
     // -----------------------------------------------------------------------------------------------------------------
-    char* GetRawBuffer(unsigned int& size)
+    char* GetDataBuffer(unsigned int& size)
     { 
-        size = static_cast<unsigned int>(g_buffer.size());
-        return g_buffer.empty()? nullptr : &g_buffer[0];
+        size = static_cast<unsigned int>(g_dataBuffer.size());
+        return g_dataBuffer.empty()? nullptr : &g_dataBuffer[0];
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+    void ToLogBuffer(const char* str, unsigned int len)
+    {
+        while(*str)
+        { 
+            g_logBuffer.push_back(*str);
+            ++str;
+        }
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+    char* GetLogBuffer(unsigned int& size)
+    {
+        size = static_cast<unsigned int>(g_logBuffer.size());
+        return g_logBuffer.empty()? nullptr : &g_logBuffer[0];
     }
 }

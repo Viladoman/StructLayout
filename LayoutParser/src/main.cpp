@@ -45,17 +45,10 @@ namespace Utils
     bool Parse(const char* commandLineArgs)
     { 
         IO::Clear();
-
-        //FILE *fmemopen(void *restrict buf, size_t size, const char *restrict mode);
-
-        //THIS WORKS here - not in VS - VS steals all logs 
-        //FILE* stream;
-        //freopen_s( &stream, "D:/Code/Clang/freopen.out", "w", stdout );
-
         std::vector<const char*> args = Utils::GenerateFakeCommandLine(commandLineArgs);
         if (Parser::Parse(static_cast<int>(args.size()),&args[0]))
         { 
-            if (IO::ToBuffer(Parser::GetLayout()))
+            if (IO::ToDataBuffer(Parser::GetLayout()))
             { 
                 return true;
             }
@@ -69,7 +62,12 @@ extern "C"
 {
     DLLEXPORT char* GetData(unsigned int* size)
     { 
-        return IO::GetRawBuffer(*size);
+        return IO::GetDataBuffer(*size);
+    }
+
+    DLLEXPORT char* GetLog(unsigned int* size)
+    {
+        return IO::GetLogBuffer(*size);
     }
 
     DLLEXPORT bool ParseLocation(const char* commandLineArgs, const char* filename, const unsigned int row, const unsigned int col)
@@ -77,14 +75,6 @@ extern "C"
         Parser::SetFilter(Parser::LocationFilter{filename,row,col});
         return Utils::Parse(commandLineArgs);
     }
-
-    /*
-    DLLEXPORT bool ParserType(const char* commandLineArgs, const char* typeStr)
-    { 
-        //TODO ~ ramonv ~ to be implemented
-        return Utils::Parse(commandLineArgs);
-    }
-    */
 
     DLLEXPORT void Clear()
     {

@@ -29,6 +29,7 @@
 #pragma warning(pop)    
 
 #include "LayoutDefinitions.h"
+#include "IO.h"
 
 namespace ClangParser 
 {
@@ -72,28 +73,6 @@ namespace ClangParser
             }
         }
 
-        std::string DumpHuman() const
-        {
-            std::string output; 
-
-            //for (const auto& layout : m_layouts)
-            //{
-            //    output += "-----------------------------------------------------\n";
-            //    AppendHuman(output,layout.second.root, 0, 0);
-            //}
-
-            if (bestTree.root == nullptr)
-            { 
-                llvm::outs() << "Nothing Found!\n";
-            }
-            else 
-            { 
-                AppendHuman(output,bestTree.root, 0, 0);
-            }
-
-            return output; 
-        }
-
         void SetFilter(const Parser::LocationFilter& filter){ locationFilter = filter; }
 
         void Clear() { bestTree = Layout::Tree(); } //TODO ~ ramonv ~ this leaks memory 
@@ -101,38 +80,6 @@ namespace ClangParser
         const Layout::Tree& GetLayout() const { return bestTree; }
 
     private:
-
-        void AppendHuman(std::string& output, const Layout::Node* node, const Layout::TAmount offset, const int indent) const
-        {
-            const Layout::TAmount thisOffset = offset + node->offset;
-
-            output += std::to_string(thisOffset);
-            if (thisOffset < 10)   output += " ";
-            if (thisOffset < 100)  output += " ";
-            if (thisOffset < 1000) output += " ";
-            output += "| ";
-
-            for (int i=0;i<indent;++i) output += "  ";
-
-            std::string name = node->type + " " + node->name;
-
-            switch(node->nature)
-            {
-            case Layout::Category::VTablePtr:  name = "vtable pointer";  break;
-            case Layout::Category::VFTablePtr: name = "vftable pointer"; break;
-            case Layout::Category::VBTablePtr: name = "vbtable pointer"; break;
-            case Layout::Category::VtorDisp:   name = "vtorDisp";        break;
-            default: break;
-            }
-
-            output += name + " ( size: " + std::to_string(node->size) + " | align: " + std::to_string(node->align) + ")\n";
-
-            for (const Layout::Node* child : node->children)
-            {
-                AppendHuman(output,child,thisOffset,indent+1);
-            }
-        }
-
         Layout::Node* ComputeStruct(const clang::ASTContext& context, const clang::CXXRecordDecl* declaration, const bool includeVirtualBases)
         {
             Layout::Node* node = new Layout::Node();
@@ -348,11 +295,9 @@ namespace
 
     //commands
     llvm::cl::opt<std::string> OutputFilename("output", llvm::cl::desc("Specify output filename"), llvm::cl::value_desc("filename"), llvm::cl::cat(seeCategory));
-    llvm::cl::opt<bool>        HumanPrint("show", llvm::cl::desc("Prints the layouts in human readable form"), llvm::cl::cat(seeCategory));
 
     //aliases
     llvm::cl::alias ShortOutputFilenameOption("o",  llvm::cl::desc("Alias for -output"),  llvm::cl::aliasopt(OutputFilename));
-    llvm::cl::alias ShortHumanPrintOption("s",     llvm::cl::desc("Alias for -show"), llvm::cl::aliasopt(HumanPrint));
 } 
 
 struct ToolFactory : public clang::tooling::FrontendActionFactory 
@@ -367,29 +312,21 @@ namespace Parser
         ClangParser::g_layouts.SetFilter(filter); 
     }
         
+    void ConsoleLog(llvm::StringRef str)
+    { 
+        IO::ToLogBuffer(str.str().c_str(),str.str().length());
+    }
+
 	bool Parse(int argc, const char* argv[])
 	{ 
-        /* TEST */
+        llvm::outs().SetCustomConsole(&ConsoleLog);
+        llvm::outs().SetUnbuffered();
+        llvm::errs().SetCustomConsole(&ConsoleLog);
+        llvm::errs().SetUnbuffered();
 
-        //this does not work because it does not replace the target
-        //placement new maybe? 
-
-        //llvm::raw_ostream *out = &llvm::outs();
-        //std::error_code EC;
-        //out = new llvm::raw_fd_ostream("test.txt", EC, llvm::sys::fs::F_None);      
-
-        /* END */
-
-        clang::tooling::CommonOptionsParser optionsParser(argc, argv, seeCategory);
+        clang::tooling::CommonOptionsParser optionsParser(argc, argv, seeCategory); 
         clang::tooling::ClangTool tool(optionsParser.getCompilations(), optionsParser.getSourcePathList());
-        const int retCode = tool.run(new ToolFactory());
-
-        //Keep but only for temp debugging
-        if (HumanPrint)
-        {
-            llvm::outs() << ClangParser::g_layouts.DumpHuman();
-        }
-
+        const int retCode = tool.run(new ToolFactory()); 
         return retCode == 0;
 	}
 
@@ -400,6 +337,6 @@ namespace Parser
 
     void Clear()
     { 
-        return ClangParser::g_layouts.Clear();
+        ClangParser::g_layouts.Clear();
     }
 }

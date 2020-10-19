@@ -8,6 +8,10 @@ namespace Layout
 namespace IO
 { 
 	void Clear();
-	bool ToBuffer(const Layout::Tree& tree);
-	char* GetRawBuffer(unsigned int& size);
+
+	bool ToDataBuffer(const Layout::Tree& tree);
+	char* GetDataBuffer(unsigned int& size);
+
+    void ToLogBuffer(const char* str, unsigned int len);
+    char* GetLogBuffer(unsigned int& size);
 }
