@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -189,17 +190,17 @@ namespace StructLayout
             }
         }
 
-        public LayoutNode Parse(ProjectProperties projProperties, DocumentLocation location)
+        public async Task<LayoutNode> ParseAsync(ProjectProperties projProperties, DocumentLocation location)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            //TODO ~ ramonv ~ shortcut this or queue if we are already processing something
 
             if (location.Filename == null || location.Filename.Length == 0)
             {
                 OutputLog.Error("No file provided for parsing");
                 return null;
             }
-
-            LayoutNode ret = null;
 
             string includes  = GenerateCommandStr("-I",projProperties.IncludeDirectories);
             string defines   = GenerateCommandStr("-D",projProperties.PrepocessorDefinitions);
@@ -216,17 +217,9 @@ namespace StructLayout
                 OutputLog.Log("COMMAND LINE: " + toolCmd);
             }
 
-            //TODO ~ ramonv ~ perform this operation ASYNC
-            //var watch = System.Diagnostics.Stopwatch.StartNew();
-            bool valid = ParseLocation(toolCmd, location.Filename, location.Line, location.Column);
-            //watch.Stop();
-            //const long TicksPerMicrosecond = (TimeSpan.TicksPerMillisecond / 1000);
-            //ulong microseconds = (ulong)(watch.ElapsedTicks / TicksPerMicrosecond);
-            //OutputLog.Log("Score file processed in " + Common.UIConverters.GetTimeStr(microseconds));
+            var valid = await System.Threading.Tasks.Task.Run(() => ParseLocation(toolCmd, location.Filename, location.Line, location.Column));
 
-            //TODO ~ ramonv ~ perform this as async future
-            ProcessLog();
-
+            LayoutNode layout = null;
             if (valid)
             {
                 //capture data
@@ -240,11 +233,11 @@ namespace StructLayout
 
                     using (BinaryReader reader = new BinaryReader(new MemoryStream(managedArray)))
                     {
-                        ret = ReadNode(reader);
-                        FinalizeNode(ret);
+                        layout = ReadNode(reader);
+                        FinalizeNode(layout);
                     }
 
-                    OutputLog.Log("Found structure " + ret.Type);
+                    OutputLog.Log("Found structure " + layout.Type);
                 }
                 else
                 {
@@ -258,8 +251,7 @@ namespace StructLayout
 
             Clear();
 
-            return ret;
-
+            return layout;
         }
 
         private string GenerateCommandStr(string prefix, List<string> args)

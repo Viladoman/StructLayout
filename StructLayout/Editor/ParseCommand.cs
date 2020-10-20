@@ -88,8 +88,8 @@ namespace StructLayout
         /// <param name="e">Event args.</param>
         private void Execute(object sender, EventArgs e)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-            EditorProcessor.Instance.ParseAtCurrentLocation();
+            //fire and forget
+            _ = EditorProcessor.Instance.ParseAtCurrentLocationAsync(); 
         }
     }
 }

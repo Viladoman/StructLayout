@@ -229,9 +229,9 @@ namespace StructLayout
             }
         }
 
-        public void ParseAtCurrentLocation()
+        public async System.Threading.Tasks.Task ParseAtCurrentLocationAsync()
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             SaveActiveDocument();
 
@@ -253,12 +253,10 @@ namespace StructLayout
             parser.ExtraArgs = settings.OptionParserExtraArguments;
             parser.PrintCommandLine = settings.OptionParserShowCommandLine;
 
-            LayoutNode layout = parser.Parse(properties, location);
+            var layout = await parser.ParseAsync(properties, location);
 
             var win = GetLayoutWindow();
             win.SetLayout(layout);
-
-            //TODO ~ ramonv ~ only when no errors happened
             FocusWindow(win);
         }
     }
