@@ -15,7 +15,7 @@ namespace Parser
 
 	void SetFilter(const LocationFilter& context);
 
-	bool Parse(int argc, const char* argv[]);
+	bool Parse(const char* filename, int argc, const char* argv[]);
 	const Layout::Tree& GetLayout();
 	void Clear();
 }

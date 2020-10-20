@@ -303,27 +303,14 @@ namespace ClangParser
         ASTConsumerPointer CreateASTConsumer(clang::CompilerInstance&, llvm::StringRef) override { return std::make_unique<Consumer>(); }
     };
 }
-
+/*
 namespace 
 {
     //group
     llvm::cl::OptionCategory seeCategory("See++ Layout Options");
     llvm::cl::extrahelp SeeCategoryHelp(R"( Exports the struct/class memory layout )");
-
-    //commands
-    llvm::cl::opt<std::string> OutputFilename("output", llvm::cl::desc("Specify output filename"), llvm::cl::value_desc("filename"), llvm::cl::cat(seeCategory));
-
-    //aliases
-    llvm::cl::alias ShortOutputFilenameOption("o",  llvm::cl::desc("Alias for -output"),  llvm::cl::aliasopt(OutputFilename));
 } 
-
-struct ToolFactory : public clang::tooling::FrontendActionFactory 
-{
-    std::unique_ptr<clang::FrontendAction> create() override { return std::make_unique<ClangParser::Action>(); }
-};
-
-ToolFactory g_toolFactory;
-
+*/
 namespace Parser
 { 
     void SetFilter(const LocationFilter& filter)
@@ -336,17 +323,53 @@ namespace Parser
         IO::ToLogBuffer(str.str().c_str(),str.str().length());
     }
 
-	bool Parse(int argc, const char* argv[])
+	bool Parse(const char* filename, int argc, const char* argv[])
 	{ 
         llvm::outs().SetCustomConsole(&ConsoleLog);
         llvm::outs().SetUnbuffered();
         llvm::errs().SetCustomConsole(&ConsoleLog);
         llvm::errs().SetUnbuffered();
+        
+        //Parse command line 
+        std::vector<std::string> SourcePaths; 
+        SourcePaths.push_back(filename);
 
-        clang::tooling::CommonOptionsParser optionsParser(argc, argv, seeCategory); 
-        clang::tooling::ClangTool tool(optionsParser.getCompilations(), optionsParser.getSourcePathList());
+        std::unique_ptr<clang::tooling::CompilationDatabase> Compilations;
+        std::string ErrorMessage;
+        Compilations = clang::tooling::FixedCompilationDatabase::loadFromCommandLine(argc, argv, ErrorMessage);
 
-        const int retCode = tool.run(&g_toolFactory); 
+        if (!ErrorMessage.empty()) 
+        { 
+            ErrorMessage.append("\n");
+            llvm::errs() << ErrorMessage;
+        }
+
+        if (!Compilations) 
+        {    
+            Compilations = clang::tooling::CompilationDatabase::autoDetectFromSource(filename, ErrorMessage);
+            
+            if (!Compilations) 
+            {
+                llvm::errs() << "Error while trying to load a compilation database:\n" << ErrorMessage << "Running without flags.\n";
+                Compilations.reset(new clang::tooling::FixedCompilationDatabase(".", std::vector<std::string>()));
+            }
+        }
+
+        /*
+        auto AdjustingCompilations = std::make_unique<clang::tooling::ArgumentsAdjustingCompilations>(std::move(Compilations));
+        clang::tooling::ArgumentsAdjuster Adjuster = clang::tooling::getInsertArgumentAdjuster(ArgsBefore, clang::tooling::ArgumentInsertPosition::BEGIN);
+        Adjuster = clang::tooling::combineAdjusters(std::move(Adjuster), clang::tooling::getInsertArgumentAdjuster(ArgsAfter, clang::tooling::ArgumentInsertPosition::END));
+        AdjustingCompilations->appendArgumentsAdjuster(Adjuster);
+        Compilations = std::move(AdjustingCompilations);
+        */
+
+        clang::tooling::ClangTool tool(*Compilations,SourcePaths);
+
+        //TODO ~ ramonv ~ find a way to handle before and after args - this can't be used due to its static members in CommonOptionsParser
+        //clang::tooling::CommonOptionsParser optionsParser(argc, argv, seeCategory/*, llvm::cl::OneOrMore*/); 
+        //clang::tooling::ClangTool tool(optionsParser.getCompilations(), optionsParser.getSourcePathList());
+
+        const int retCode = tool.run(clang::tooling::newFrontendActionFactory<ClangParser::Action>().get()); 
         return retCode == 0;
 	}
 

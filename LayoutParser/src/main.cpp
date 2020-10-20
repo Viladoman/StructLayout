@@ -42,18 +42,14 @@ namespace Utils
         return ret;
     } 
 
-    bool Parse(const char* commandLineArgs)
+    bool Parse(const char* filename, const char* commandLineArgs)
     { 
         IO::Clear();
         std::vector<const char*> args = Utils::GenerateFakeCommandLine(commandLineArgs);
-        if (Parser::Parse(static_cast<int>(args.size()),&args[0]))
+        if (Parser::Parse(filename, static_cast<int>(args.size()),&args[0]))
         { 
-            //TODO ~ ramonv ~ return error type instead of bool ( ERROR PARSING, FOUND NOTHING, FOUND ) 
-
-            if (IO::ToDataBuffer(Parser::GetLayout()))
-            { 
-                return true;
-            }
+            IO::ToDataBuffer(Parser::GetLayout()); 
+            return true;
         }
 
         return false;
@@ -75,7 +71,7 @@ extern "C"
     DLLEXPORT bool ParseLocation(const char* commandLineArgs, const char* filename, const unsigned int row, const unsigned int col)
     {  
         Parser::SetFilter(Parser::LocationFilter{filename,row,col});
-        return Utils::Parse(commandLineArgs);
+        return Utils::Parse(filename, commandLineArgs);
     }
 
     DLLEXPORT void Clear()
