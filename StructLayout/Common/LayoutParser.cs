@@ -62,15 +62,9 @@ namespace StructLayout
             Count
         }
 
-        public RenderData()
-        {
-            Category = ShapeCategory.Invalid;
-            Paddings = new uint[Enum.GetNames(typeof(PaddingSide)).Length];
-        }
-
-        public uint[] Paddings { set; get; }
+        public uint[] Paddings { set; get; } = new uint[Enum.GetNames(typeof(PaddingSide)).Length];
         public Brush Background { set; get; }
-        public ShapeCategory Category { set; get; }
+        public ShapeCategory Category { set; get; } = ShapeCategory.Invalid;
         public Point[] Points { set; get; }
         public Point TextPosition { set; get; }
         public FormattedText Text { set; get; }
@@ -128,6 +122,9 @@ namespace StructLayout
 
     public class LayoutParser
     {
+        public string ExtraArgs { get; set; } = "";
+        public bool PrintCommandLine { get; set; } = false;
+
         [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool ParseLocation(string commandline, string fullFilename, uint row, uint col);
 
@@ -206,14 +203,18 @@ namespace StructLayout
 
             string includes  = GenerateCommandStr("-I",projProperties.IncludeDirectories);
             string defines   = GenerateCommandStr("-D",projProperties.PrepocessorDefinitions);
-            
+            string extra     = ExtraArgs.Length == 0? "" : " " + ExtraArgs;
+
             string archStr = projProperties != null && projProperties.Target == ProjectProperties.TargetType.x86 ? "-m32" : "-m64";
-            string toolCmd = location.Filename + " -- clang++ -x c++ " + archStr + defines + includes;
+            string toolCmd = location.Filename + " -- clang++ -x c++ " + archStr + defines + includes + extra;
 
             OutputLog.Focus();
             OutputLog.Log("Looking for structures at " + location.Filename + ":" + location.Line + ":" + location.Column+"...");
 
-            OutputLog.Log("SENT: " + toolCmd); //TODO ~ ramonv ~ remove this //make it optional
+            if (PrintCommandLine)
+            {
+                OutputLog.Log("COMMAND LINE: " + toolCmd);
+            }
 
             //TODO ~ ramonv ~ perform this operation ASYNC
             //var watch = System.Diagnostics.Stopwatch.StartNew();
@@ -231,18 +232,30 @@ namespace StructLayout
                 //capture data
                 uint size = 0;
                 IntPtr result = GetData(ref size);
-                byte[] managedArray = new byte[size];
-                Marshal.Copy(result, managedArray, 0, (int)size);
 
-                using (BinaryReader reader = new BinaryReader(new MemoryStream(managedArray)))
+                if (size > 0)
                 {
-                    ret = ReadNode(reader);
-                    FinalizeNode(ret);
-                }
+                    byte[] managedArray = new byte[size];
+                    Marshal.Copy(result, managedArray, 0, (int)size);
 
-                OutputLog.Log("Found structure "+ret.Type);
+                    using (BinaryReader reader = new BinaryReader(new MemoryStream(managedArray)))
+                    {
+                        ret = ReadNode(reader);
+                        FinalizeNode(ret);
+                    }
+
+                    OutputLog.Log("Found structure " + ret.Type);
+                }
+                else
+                {
+                    OutputLog.Log("No structure found at the given location.");
+                }
             }
-            
+            else
+            {
+                OutputLog.Error("Unable to scan the given location.");
+            }
+
             Clear();
 
             return ret;

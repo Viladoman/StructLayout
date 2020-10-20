@@ -33,6 +33,10 @@ namespace StructLayout
             ServiceProvider = package;
         }
 
+        public GeneralSettingsPageGrid GetGeneralSettings()
+        {
+            return (GeneralSettingsPageGrid)Package.GetDialogPage(typeof(GeneralSettingsPageGrid));
+        }
         private void SaveActiveDocument()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -245,16 +249,17 @@ namespace StructLayout
                 return;
             }
 
+            GeneralSettingsPageGrid settings = GetGeneralSettings();
+            parser.ExtraArgs = settings.OptionParserExtraArguments;
+            parser.PrintCommandLine = settings.OptionParserShowCommandLine;
+
             LayoutNode layout = parser.Parse(properties, location);
 
             var win = GetLayoutWindow();
             win.SetLayout(layout);
 
             //TODO ~ ramonv ~ only when no errors happened
-            if (layout != null)
-            {
-                FocusWindow(win);
-            }
+            FocusWindow(win);
         }
     }
 }

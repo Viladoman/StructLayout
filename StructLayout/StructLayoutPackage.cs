@@ -25,6 +25,7 @@ namespace StructLayout
     /// </remarks>
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(StructLayoutPackage.PackageGuidString)]
+    [ProvideOptionPage(typeof(GeneralSettingsPageGrid), "Struct Layout", "General", 0, 0, true)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideToolWindow(typeof(LayoutWindow))]
     public sealed class StructLayoutPackage : AsyncPackage

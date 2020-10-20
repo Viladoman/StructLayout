@@ -65,6 +65,9 @@
     <Compile Include="Editor\ParseCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StructLayoutPackage.cs" />
+    <Compile Include="StructLayoutSettings.cs">
+      <SubType>Component</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">

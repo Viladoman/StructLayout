@@ -599,6 +599,11 @@ namespace StructLayout
 
         private void RenderGridShape(DrawingContext drawingContext)
         {
+            if (Root == null)
+            {
+                return;
+            }
+
             uint numCols = DisplayGridColumns;
             uint numRows = DisplayGridRows;
 

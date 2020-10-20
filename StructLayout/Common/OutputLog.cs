@@ -1,12 +1,10 @@
-﻿namespace StructLayout
-{
-    using EnvDTE;
-    using EnvDTE80;
-    using Microsoft;
-    using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
-    using System;
+﻿using Microsoft;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using System;
 
+namespace StructLayout
+{
     public static class OutputLog
     {
         private static IVsOutputWindowPane pane;
@@ -25,8 +23,8 @@
         public static void Focus()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-            pane.Hide();
             pane.Activate();
+            //TODO ~ ramonv ~ this does not work
         }
 
         public static void Log(string text)
@@ -51,6 +49,7 @@
         private static void CreatePane(IServiceProvider serviceProvider, Guid paneGuid, string title, bool visible, bool clearWithSolution)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
+
             IVsOutputWindow output = (IVsOutputWindow)serviceProvider.GetService(typeof(SVsOutputWindow));
             Assumes.Present(output);
 
