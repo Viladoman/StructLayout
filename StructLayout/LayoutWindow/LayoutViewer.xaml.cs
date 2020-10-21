@@ -143,17 +143,23 @@ namespace StructLayout
 
     public partial class LayoutViewer : UserControl
     {
-        enum DisplayAlignmentType
+        private enum DisplayAlignmentType
         {
             Struct, 
             Cacheline, 
             Custom
         }
 
-        enum DisplayMode
+        private enum DisplayMode
         {
              Stack, 
              Flat
+        }
+
+        public enum GridBase
+        {
+            Decimal,
+            Hexadecimal,
         }
 
         const uint CACHELINE_SIZE = 64;
@@ -622,7 +628,8 @@ namespace StructLayout
             //Draw Labels
             for (uint c = 0; c < numCols; ++c)
             {
-                var txt = new FormattedText(c.ToString("X"), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Font, 12, scrollViewer.Foreground, VisualTreeHelper.GetDpi(this).PixelsPerDip);
+                var label = c.ToString("X");
+                var txt = new FormattedText(label, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Font, 12, scrollViewer.Foreground, VisualTreeHelper.GetDpi(this).PixelsPerDip);
                 drawingContext.DrawText(txt, new Point(MarginLeft + (c * NodeWidth) + (NodeWidth - txt.Width) * 0.5, (MarginTop - txt.Height) * 0.5));
             }
 
@@ -630,7 +637,8 @@ namespace StructLayout
             for (uint r = 0; r < numRows; ++r)
             {
                 uint val = r * DisplayGridColumns;
-                var txt = new FormattedText("0x" + val.ToString("X"), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Font, 12, scrollViewer.Foreground, VisualTreeHelper.GetDpi(this).PixelsPerDip);
+                var label = "0x" + val.ToString("X");
+                var txt = new FormattedText(label, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Font, 12, scrollViewer.Foreground, VisualTreeHelper.GetDpi(this).PixelsPerDip);
                 drawingContext.DrawText(txt, new Point((MarginLeft - txt.Width) * 0.5, MarginTop + (r * NodeHeight) + (NodeHeight - txt.Height) * 0.5));
             }
         }

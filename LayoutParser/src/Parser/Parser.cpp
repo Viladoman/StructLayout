@@ -303,14 +303,7 @@ namespace ClangParser
         ASTConsumerPointer CreateASTConsumer(clang::CompilerInstance&, llvm::StringRef) override { return std::make_unique<Consumer>(); }
     };
 }
-/*
-namespace 
-{
-    //group
-    llvm::cl::OptionCategory seeCategory("See++ Layout Options");
-    llvm::cl::extrahelp SeeCategoryHelp(R"( Exports the struct/class memory layout )");
-} 
-*/
+
 namespace Parser
 { 
     void SetFilter(const LocationFilter& filter)
@@ -355,19 +348,7 @@ namespace Parser
             }
         }
 
-        /*
-        auto AdjustingCompilations = std::make_unique<clang::tooling::ArgumentsAdjustingCompilations>(std::move(Compilations));
-        clang::tooling::ArgumentsAdjuster Adjuster = clang::tooling::getInsertArgumentAdjuster(ArgsBefore, clang::tooling::ArgumentInsertPosition::BEGIN);
-        Adjuster = clang::tooling::combineAdjusters(std::move(Adjuster), clang::tooling::getInsertArgumentAdjuster(ArgsAfter, clang::tooling::ArgumentInsertPosition::END));
-        AdjustingCompilations->appendArgumentsAdjuster(Adjuster);
-        Compilations = std::move(AdjustingCompilations);
-        */
-
         clang::tooling::ClangTool tool(*Compilations,SourcePaths);
-
-        //TODO ~ ramonv ~ find a way to handle before and after args - this can't be used due to its static members in CommonOptionsParser
-        //clang::tooling::CommonOptionsParser optionsParser(argc, argv, seeCategory/*, llvm::cl::OneOrMore*/); 
-        //clang::tooling::ClangTool tool(optionsParser.getCompilations(), optionsParser.getSourcePathList());
 
         const int retCode = tool.run(clang::tooling::newFrontendActionFactory<ClangParser::Action>().get()); 
         return retCode == 0;

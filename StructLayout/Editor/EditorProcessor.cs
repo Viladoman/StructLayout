@@ -37,6 +37,7 @@ namespace StructLayout
         {
             return (GeneralSettingsPageGrid)Package.GetDialogPage(typeof(GeneralSettingsPageGrid));
         }
+
         private void SaveActiveDocument()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -45,7 +46,11 @@ namespace StructLayout
             var applicationObject = ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
             Assumes.Present(applicationObject);
 
-            applicationObject.ActiveDocument.Save();
+            Document doc = applicationObject.ActiveDocument;
+            if (doc != null && !doc.ReadOnly)
+            {
+                doc.Save();
+            }
         }
 
         private DocumentLocation GetCurrentLocation()
@@ -87,18 +92,6 @@ namespace StructLayout
             return applicationObject.Solution;
         }
 
-        private  string MultipleReplace(string text, Dictionary<string,string> replacements)
-        {
-            string ret = text;
-            foreach (KeyValuePair<string, string> entry in replacements)
-            {
-                ret = ret.Replace(entry.Key,entry.Value);
-            }
-            return ret; 
-
-            //return Regex.Replace(text, "(" + String.Join("|", replacements.Keys.ToArray()) + ")",  delegate (Match m) { return replacements[m.Value]; } );
-        }
-
         private bool IsMSBuildStringInvalid(string input)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -116,26 +109,43 @@ namespace StructLayout
             return false;
         }
 
-        private List<string> ProcessMSBuildStringToList(string input)
+        private void AppendMSBuildStringToList(List<string> list, string input)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            var list = input.Split(';').ToList(); //Split
-            list.RemoveAll(s => IsMSBuildStringInvalid(s)); //Validate
-            return list;
-        }
+            var split = input.Split(';').ToList(); //Split
+            split.RemoveAll(s => IsMSBuildStringInvalid(s)); //Validate
 
-        private List<string> ProcessMSBuildPaths(string input, Dictionary<string, string> MSBuildMacros)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            string replaced = MultipleReplace(input, MSBuildMacros);
-            return ProcessMSBuildStringToList(replaced);
+            foreach(string str in split)
+            {
+                if (!list.Contains(str))
+                {
+                    list.Add(str);
+                }
+            }
         }
 
         private string GetPathDirectory(string input)
         {
             return (Path.HasExtension(input) ? Path.GetDirectoryName(input) : input) + '\\';           
+        }
+
+        private void AppendProjectProperties(ProjectProperties properties, VCCLCompilerTool cl, VCNMakeTool nmake, VCPlatform platform)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (cl != null)
+            {
+                AppendMSBuildStringToList(properties.IncludeDirectories,     platform.Evaluate(cl.AdditionalIncludeDirectories));
+                AppendMSBuildStringToList(properties.ForceIncludes,          platform.Evaluate(cl.ForcedIncludeFiles));
+                AppendMSBuildStringToList(properties.PrepocessorDefinitions, platform.Evaluate(cl.PreprocessorDefinitions));
+            }
+            else if (nmake != null)
+            {
+                AppendMSBuildStringToList(properties.IncludeDirectories,     platform.Evaluate(nmake.IncludeSearchPath));
+                AppendMSBuildStringToList(properties.ForceIncludes,          platform.Evaluate(nmake.ForcedIncludes));
+                AppendMSBuildStringToList(properties.PrepocessorDefinitions, platform.Evaluate(nmake.PreprocessorDefinitions));
+            }
         }
 
         private ProjectProperties GetProjectData()
@@ -154,66 +164,46 @@ namespace StructLayout
             VCConfiguration config = prj.ActiveConfiguration;
             if (config == null) return null;
 
+            VCPlatform platform = config.Platform;
+            if (platform == null) return null;
+
             var vctools = config.Tools as IVCCollection;
             var midl = vctools.Item("VCMidlTool") as VCMidlTool;
-            var cl = vctools.Item("VCCLCompilerTool") as VCCLCompilerTool;
-            var nmake = vctools.Item("VCNMakeTool") as VCNMakeTool;
-
-            if (cl == null && nmake == null)
-            {
-                //TODO ~ ramonv ~ fallback to something different and custom
-                // Not supported atm 
-                return null;
-            }
 
             ProjectProperties ret = new ProjectProperties();
             ret.Target = midl != null && midl.TargetEnvironment == midlTargetEnvironment.midlTargetWin32 ? ProjectProperties.TargetType.x86 : ProjectProperties.TargetType.x64;
 
-            //build MSBuildMacros for replacement
-            var MSBuildMacros = new Dictionary<string, string>();
+            //Include dirs / files and preprocessor
+            AppendMSBuildStringToList(ret.IncludeDirectories, platform.Evaluate(platform.IncludeDirectories));
+            AppendProjectProperties(ret, vctools.Item("VCCLCompilerTool") as VCCLCompilerTool, vctools.Item("VCNMakeTool") as VCNMakeTool, platform);
+       
+            //Get settings from the single file 
 
-            MSBuildMacros.Add(@"$(Configuration)",    config.Name);
-            MSBuildMacros.Add(@"$(IntDir)",           config.IntermediateDirectory);
-            MSBuildMacros.Add(@"$(OutDir)",           config.OutputDirectory);
-            MSBuildMacros.Add(@"$(TargetDir)",        config.OutputDirectory);
+            //TODO ~ ramonv ~ think of a way to handle .cpp files too when .h are parsed
+            var applicationObject = ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
+            Assumes.Present(applicationObject);
+            ProjectItem item = applicationObject.ActiveDocument.ProjectItem;
+            VCFile vcfile = item.Object as VCFile;
 
-            MSBuildMacros.Add(@"$(SolutionPath)",     solution.FullName);
-            MSBuildMacros.Add(@"$(SolutionDir)",      GetPathDirectory(solution.FullName));
-            MSBuildMacros.Add(@"$(SolutionExt)",      Path.GetExtension(solution.FullName));
-            MSBuildMacros.Add(@"$(SolutionFileName)", Path.GetFileName(solution.FullName));
-            //MSBuildMacros.Add(@"$(SolutionName)", );
+            IVCCollection fileCfgs = (IVCCollection)vcfile.FileConfigurations;
+            VCFileConfiguration fileConfig = fileCfgs.Item(config.Name) as VCFileConfiguration;
 
-            MSBuildMacros.Add(@"$(ProjectPath)",      project.FullName);
-            MSBuildMacros.Add(@"$(ProjectDir)",       GetPathDirectory(project.FullName));
-            MSBuildMacros.Add(@"$(ProjectExt)",       Path.GetExtension(project.FullName));
-            MSBuildMacros.Add(@"$(ProjectFileName)",  Path.GetFileName(project.FullName));
-            MSBuildMacros.Add(@"$(ProjectName)",      project.Name);
-
-            if (cl != null)
-            {
-                ret.IncludeDirectories = ProcessMSBuildPaths(cl.AdditionalIncludeDirectories, MSBuildMacros);
-                ret.PrepocessorDefinitions = ProcessMSBuildStringToList(cl.PreprocessorDefinitions);
-            }
-            else
-            {
-                ret.IncludeDirectories = ProcessMSBuildPaths(nmake.IncludeSearchPath, MSBuildMacros);
-                ret.PrepocessorDefinitions = ProcessMSBuildStringToList(nmake.PreprocessorDefinitions); 
-            }
+            AppendProjectProperties(ret, fileConfig.Tool as VCCLCompilerTool, fileConfig.Tool as VCNMakeTool, platform);
 
             return ret;
         }
 
-        public LayoutWindow GetLayoutWindow()
+        public LayoutWindow GetLayoutWindow(bool create = true)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             // Get the instance number 0 of this tool window. This window is single instance so this instance
             // is actually the only one.
             // The last flag is set to true so that if the tool window does not exists it will be created.
-            LayoutWindow window = Package.FindToolWindow(typeof(LayoutWindow), 0, true) as LayoutWindow;
+            LayoutWindow window = Package.FindToolWindow(typeof(LayoutWindow), 0, create) as LayoutWindow;
             if ((null == window) || (null == window.GetFrame()))
             {
-                throw new NotSupportedException("Cannot create tool window");
+                return null;
             }
 
             return window;
@@ -232,6 +222,10 @@ namespace StructLayout
         public async System.Threading.Tasks.Task ParseAtCurrentLocationAsync()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            //TODO ~ ramonv ~ add parsing queue
+
+            OutputLog.Clear();
 
             SaveActiveDocument();
 
@@ -252,12 +246,22 @@ namespace StructLayout
             GeneralSettingsPageGrid settings = GetGeneralSettings();
             parser.ExtraArgs = settings.OptionParserExtraArguments;
             parser.PrintCommandLine = settings.OptionParserShowCommandLine;
+            parser.ShowWarnings = settings.OptionParserShowWarnings;
+
+            //TODO ~ ramonv ~ notify the window about the parsing start
+            /*
+            var prewin = GetLayoutWindow(false);
+            prewin.SetProcessing();
+            */
 
             var layout = await parser.ParseAsync(properties, location);
 
-            var win = GetLayoutWindow();
+            var win = GetLayoutWindow(true);
             win.SetLayout(layout);
-            FocusWindow(win);
+            if (layout != null)
+            {
+                FocusWindow(win);
+            }
         }
     }
 }

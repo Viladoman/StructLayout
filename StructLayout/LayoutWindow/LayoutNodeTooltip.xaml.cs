@@ -65,6 +65,8 @@ namespace StructLayout
 
             //LayoutData
 
+            //TODO ~ ramonv ~ add padding - % padding - realsize
+
             var localOffset = Node.Parent == null ? Node.Offset : Node.Offset - Node.Parent.Offset;
             if (localOffset == Node.Offset)
             {

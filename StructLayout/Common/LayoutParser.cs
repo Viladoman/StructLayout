@@ -34,8 +34,9 @@ namespace StructLayout
             x64,
         }
 
-        public List<string> IncludeDirectories { set; get; }
-        public List<string> PrepocessorDefinitions { set; get; }
+        public List<string> IncludeDirectories { set; get; } = new List<string>();
+        public List<string> ForceIncludes { set; get; } = new List<string>();
+        public List<string> PrepocessorDefinitions { set; get; } = new List<string>();
         public TargetType Target { set; get; }
     }
 
@@ -87,6 +88,7 @@ namespace StructLayout
             VFTablePtr,
             VBTablePtr,
             VtorDisp,
+            Union,
             Padding,
         };
 
@@ -125,6 +127,7 @@ namespace StructLayout
     {
         public string ExtraArgs { get; set; } = "";
         public bool PrintCommandLine { get; set; } = false;
+        public bool ShowWarnings { get; set; } = false;
 
         [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool ParseLocation(string commandline, string fullFilename, uint row, uint col);
@@ -169,8 +172,27 @@ namespace StructLayout
             }
         }
 
+        public void AddUnionNodes(LayoutNode node)
+        {
+            foreach (LayoutNode child in node.Children)
+            {
+                //TODO ~ ramonv ~ to be implemetned
+                //serach for overlapping children with same start offset
+            }
+
+            //replace with union node if needed
+
+            //continue recursion
+            foreach (LayoutNode child in node.Children)
+            {
+                AddUnionNodes(child);
+            }
+        }
+
         public void FinalizeNode(LayoutNode node)
         {
+            AddUnionNodes(node);
+
             node.Collapsed = false;
             FinalizeNodeRecursive(node);
         }
@@ -202,12 +224,14 @@ namespace StructLayout
                 return null;
             }
 
-            string includes  = GenerateCommandStr("-I",projProperties.IncludeDirectories);
+            string includes  = GenerateCommandStr("-I",projProperties.IncludeDirectories, "\"");
+            string forceInc  = GenerateCommandStr("-include", projProperties.ForceIncludes, "\"");
             string defines   = GenerateCommandStr("-D",projProperties.PrepocessorDefinitions);
+            string flags     = ShowWarnings? "" : " -w";
             string extra     = ExtraArgs.Length == 0? "" : " " + ExtraArgs;
 
             string archStr = projProperties != null && projProperties.Target == ProjectProperties.TargetType.x86 ? "-m32" : "-m64";
-            string toolCmd = location.Filename + " -- clang++ -x c++ " + archStr + defines + includes + extra;
+            string toolCmd = location.Filename + " -- -x c++ " + archStr + flags + defines + includes + forceInc + extra;
 
             OutputLog.Focus();
             OutputLog.Log("Looking for structures at " + location.Filename + ":" + location.Line + ":" + location.Column+"...");
@@ -217,7 +241,15 @@ namespace StructLayout
                 OutputLog.Log("COMMAND LINE: " + toolCmd);
             }
 
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
             var valid = await System.Threading.Tasks.Task.Run(() => ParseLocation(toolCmd, location.Filename, location.Line, location.Column));
+
+            watch.Stop();
+            const long TicksPerMicrosecond = (TimeSpan.TicksPerMillisecond / 1000);
+            string timeStr = " ("+GetTimeStr((ulong)(watch.ElapsedTicks / TicksPerMicrosecond))+")";
+
+            ProcessLog();
 
             LayoutNode layout = null;
             if (valid)
@@ -237,16 +269,16 @@ namespace StructLayout
                         FinalizeNode(layout);
                     }
 
-                    OutputLog.Log("Found structure " + layout.Type);
+                    OutputLog.Log("Found structure " + layout.Type + "." + timeStr);
                 }
                 else
                 {
-                    OutputLog.Log("No structure found at the given location.");
+                    OutputLog.Log("No structure found at the given location." + timeStr);
                 }
             }
             else
             {
-                OutputLog.Error("Unable to scan the given location.");
+                OutputLog.Error("Unable to scan the given location." + timeStr);
             }
 
             Clear();
@@ -254,18 +286,37 @@ namespace StructLayout
             return layout;
         }
 
-        private string GenerateCommandStr(string prefix, List<string> args)
+        private string GenerateCommandStr(string prefix, List<string> args, string wrapper = "")
         {
             string ret = "";
             if (args != null)
             {
                 foreach (string value in args)
                 {
-                    ret += " "+ prefix + value;
+                    ret += " "+ prefix + wrapper + value + wrapper;
                 }
             }
 
             return ret; 
+        }
+
+        static public string GetTimeStr(ulong uSeconds)
+        {
+            ulong ms = uSeconds / 1000;
+            ulong us = uSeconds - (ms * 1000);
+            ulong sec = ms / 1000;
+            ms = ms - (sec * 1000);
+            ulong min = sec / 60;
+            sec = sec - (min * 60);
+            ulong hour = min / 60;
+            min = min - (hour * 60);
+
+            if (hour > 0) { return hour + " h " + min + " m"; }
+            if (min > 0) { return min + " m " + sec + " s"; }
+            if (sec > 0) { return sec + "." + ms.ToString().PadLeft(4, '0') + " s"; }
+            if (ms > 0) { return ms + "." + us.ToString().PadLeft(4, '0') + " ms"; }
+            if (us > 0) { return us + " μs"; }
+            return "< 1 μs";
         }
     }
 }
