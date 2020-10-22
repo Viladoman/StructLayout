@@ -168,6 +168,8 @@ namespace StructLayout
             if (platform == null) return null;
 
             var vctools = config.Tools as IVCCollection;
+            if (vctools == null) return null;
+
             var midl = vctools.Item("VCMidlTool") as VCMidlTool;
 
             ProjectProperties ret = new ProjectProperties();
@@ -175,20 +177,24 @@ namespace StructLayout
 
             //Include dirs / files and preprocessor
             AppendMSBuildStringToList(ret.IncludeDirectories, platform.Evaluate(platform.IncludeDirectories));
+            //TODO ~ ramonv ~ Exclude directories
+
             AppendProjectProperties(ret, vctools.Item("VCCLCompilerTool") as VCCLCompilerTool, vctools.Item("VCNMakeTool") as VCNMakeTool, platform);
-       
-            //Get settings from the single file 
 
-            //TODO ~ ramonv ~ think of a way to handle .cpp files too when .h are parsed
-            var applicationObject = ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
-            Assumes.Present(applicationObject);
-            ProjectItem item = applicationObject.ActiveDocument.ProjectItem;
-            VCFile vcfile = item.Object as VCFile;
+            try
+            {
+                //Get settings from the single file (this might fail badly if there are no settings to catpure)
+                var applicationObject = ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
+                Assumes.Present(applicationObject);
+                ProjectItem item = applicationObject.ActiveDocument.ProjectItem;
+                VCFile vcfile = item.Object as VCFile;
 
-            IVCCollection fileCfgs = (IVCCollection)vcfile.FileConfigurations;
-            VCFileConfiguration fileConfig = fileCfgs.Item(config.Name) as VCFileConfiguration;
+                IVCCollection fileCfgs = (IVCCollection)vcfile.FileConfigurations;
+                VCFileConfiguration fileConfig = fileCfgs.Item(config.Name) as VCFileConfiguration;
 
-            AppendProjectProperties(ret, fileConfig.Tool as VCCLCompilerTool, fileConfig.Tool as VCNMakeTool, platform);
+                AppendProjectProperties(ret, fileConfig.Tool as VCCLCompilerTool, fileConfig.Tool as VCNMakeTool, platform);
+            }
+            catch (Exception) {}
 
             return ret;
         }

@@ -197,6 +197,8 @@ namespace StructLayout
 
         private void FixOverlaps(LayoutNode node)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             if (node.Type.Length > 0 && node.Type.StartsWith("union"))
             {
                 node.Category = LayoutNode.LayoutCategory.Union;
@@ -242,6 +244,8 @@ namespace StructLayout
 
         public void FinalizeNode(LayoutNode node)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             FixOverlaps(node);
 
             node.Collapsed = false;
@@ -278,8 +282,8 @@ namespace StructLayout
                 return ret;
             }
 
-            string includes  = GenerateCommandStr("-I",projProperties.IncludeDirectories, "\"");
-            string forceInc  = GenerateCommandStr("-include", projProperties.ForceIncludes, "\"");
+            string includes  = GenerateCommandStr("-I",projProperties.IncludeDirectories);
+            string forceInc  = GenerateCommandStr("-include", projProperties.ForceIncludes);
             string defines   = GenerateCommandStr("-D",projProperties.PrepocessorDefinitions);
             string flags     = ShowWarnings? "" : " -w";
             string extra     = ExtraArgs.Length == 0? "" : " " + ExtraArgs;
@@ -342,14 +346,14 @@ namespace StructLayout
             return ret;
         }
 
-        private string GenerateCommandStr(string prefix, List<string> args, string wrapper = "")
+        private string GenerateCommandStr(string prefix, List<string> args)
         {
             string ret = "";
             if (args != null)
             {
                 foreach (string value in args)
                 {
-                    ret += " "+ prefix + wrapper + value + wrapper;
+                    ret += " " + prefix + value;
                 }
             }
 

@@ -18,6 +18,10 @@
 
             SetDefaultStatus();
         }
+        public void SetDefaultStatus()
+        {
+            statusText.Text = "Inspecting: <none>";
+        }
 
         public void SetProcessing()
         {
@@ -39,11 +43,6 @@
             }
 
             viewer.SetLayout(result.Layout);
-        }
-
-        private void SetDefaultStatus()
-        {
-            statusText.Text = "Tip: USe the context menu in the text editor to inspect a struct definition ( or Alt+L )";
-        }     
+        }   
     }
 }

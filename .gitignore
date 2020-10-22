@@ -10,6 +10,9 @@
 # Generated when a Git operation is conflicting.
 *.orig
 
+# DLLs
+.dll
+
 # VSIX
 StructLayout/.vs/
 StructLayout/bin/
