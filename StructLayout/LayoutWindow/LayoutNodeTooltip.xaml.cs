@@ -37,6 +37,7 @@ namespace StructLayout
             if (Node != null)
             {
                 RefreshBasicProfile();
+                RefreshUnionStack();
                 RefreshTypeStack();
                 RefreshInteractionText();
             }
@@ -67,18 +68,37 @@ namespace StructLayout
 
             //TODO ~ ramonv ~ add padding - % padding - realsize
 
+            layout1Txt.Text = "Offset: " + GetFullValueStr(Node.Offset) + " - Size: "  + GetFullValueStr(Node.Size) + " - Align: " + GetFullValueStr(Node.Align);
+
             var localOffset = Node.Parent == null ? Node.Offset : Node.Offset - Node.Parent.Offset;
-            if (localOffset == Node.Offset)
+            layout2Txt.Visibility = localOffset == Node.Offset ? Visibility.Collapsed : Visibility.Visible;
+            layout2Txt.Text = "Local Offset: " + GetFullValueStr(localOffset);
+        }
+
+        private void RefreshUnionStack()
+        {
+            extraStack.Children.Clear();
+
+            if (Node.Extra.Count > 0)
             {
-                offsetTxt.Text = "Offset: "+ Node.Offset;
+                extraBorder.Visibility = Visibility.Visible;
+                extraStack.Visibility = Visibility.Visible;
+                var title = new TextBlock();
+                title.Text = Node.Category == LayoutNode.LayoutCategory.Union? "Contains:" : "Empty Base Optimization:";
+                extraStack.Children.Add(title);
+
+                foreach(LayoutNode child in Node.Extra)
+                {
+                    var desc = new TextBlock();
+                    desc.Text = "- " + (child.Type.Length > 0 ? child.Type : child.Category.ToString()) + (child.Name.Length > 0? " " + child.Name : "") + " ( size: " + GetFullValueStr(child.Size) + " )";
+                    extraStack.Children.Add(desc);
+                }
             }
             else
             {
-                offsetTxt.Text = "Offset: "+ Node.Offset+" (Local: "+localOffset+")";
+                extraBorder.Visibility = Visibility.Collapsed;
+                extraStack.Visibility = Visibility.Collapsed;
             }
-
-            sizeTxt.Text = "Size: " + Node.Size;
-            alignTxt.Text = "Align: " + Node.Align;
         }
 
         private void BuildTypeStack(LayoutNode node)
@@ -105,7 +125,6 @@ namespace StructLayout
             {
                 typeBorder.Visibility = Visibility.Visible;
                 typeStack.Visibility = Visibility.Visible;
-                typeStack.Children.Clear();
                 var title = new TextBlock();
                 title.Text = "Parent Stack";
                 typeStack.Children.Add(title);
@@ -115,7 +134,7 @@ namespace StructLayout
 
         private void RefreshInteractionText()
         {
-            if (Node.Children.Count == 0)
+            if (Node.Children.Count == 0 || Node.Category == LayoutNode.LayoutCategory.Union)
             {
                 interactionBorder.Visibility = Visibility.Collapsed;
                 interactionPanel.Visibility = Visibility.Collapsed;
@@ -126,6 +145,10 @@ namespace StructLayout
                 interactionPanel.Visibility = Visibility.Visible;
                 interactionTxt.Text = "Left Mouse Click to Expand/Collapse";
             }
+        }
+        public static string GetFullValueStr(uint value)
+        {
+            return value < 10? value.ToString() : value + " ( 0x" + value.ToString("X") + " )";
         }
     }
 }

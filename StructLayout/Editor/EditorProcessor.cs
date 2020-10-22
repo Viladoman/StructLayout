@@ -47,7 +47,7 @@ namespace StructLayout
             Assumes.Present(applicationObject);
 
             Document doc = applicationObject.ActiveDocument;
-            if (doc != null && !doc.ReadOnly)
+            if (doc != null && !doc.ReadOnly && !doc.Saved)
             {
                 doc.Save();
             }
@@ -223,8 +223,6 @@ namespace StructLayout
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            //TODO ~ ramonv ~ add parsing queue
-
             OutputLog.Clear();
 
             SaveActiveDocument();
@@ -248,19 +246,28 @@ namespace StructLayout
             parser.PrintCommandLine = settings.OptionParserShowCommandLine;
             parser.ShowWarnings = settings.OptionParserShowWarnings;
 
+            //TODO ~ ramonv ~ add parsing queue to avoid multiple queries at the same time
+
             //TODO ~ ramonv ~ notify the window about the parsing start
-            /*
-            var prewin = GetLayoutWindow(false);
-            prewin.SetProcessing();
-            */
+            
+            LayoutWindow prewin = GetLayoutWindow(false);
+            if (prewin != null) 
+            { 
+                prewin.SetProcessing();
+            } 
 
-            var layout = await parser.ParseAsync(properties, location);
+            var result = await parser.ParseAsync(properties, location);
 
-            var win = GetLayoutWindow(true);
-            win.SetLayout(layout);
-            if (layout != null)
+            //Only create or focus the window if we have a valid result
+            LayoutWindow win = GetLayoutWindow(result.Status == ParseResult.StatusCode.Found);
+            if (win != null)
             {
-                FocusWindow(win);
+                win.SetResult(result);
+
+                if (result.Status == ParseResult.StatusCode.Found)
+                {
+                    FocusWindow(win);
+                }
             }
         }
     }

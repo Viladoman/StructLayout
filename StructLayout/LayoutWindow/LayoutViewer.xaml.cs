@@ -229,7 +229,7 @@ namespace StructLayout
             Root = root;
             SetHoverNode(null);
 
-            uint displayAlignment = Root != null && GetSelectedDisplayAlignment() == DisplayAlignmentType.Struct? root.Align : DisplayGridColumns;
+            uint displayAlignment = Root != null && GetSelectedDisplayAlignment() == DisplayAlignmentType.Struct? Root.Align : DisplayGridColumns;
 
             if (!SetDisplayGridColumns(displayAlignment))
             {
@@ -239,13 +239,12 @@ namespace StructLayout
                 RefreshShapes();
             }
         }
-
-        DisplayAlignmentType GetSelectedDisplayAlignment()
+        private DisplayAlignmentType GetSelectedDisplayAlignment()
         {
             return displayAlignementComboBox.SelectedItem != null? (DisplayAlignmentType)displayAlignementComboBox.SelectedItem : DisplayAlignmentType.Struct;
         }
 
-        DisplayMode GetSelectedDisplayMode()
+        private DisplayMode GetSelectedDisplayMode()
         {
             return displayModeComboBox.SelectedItem != null ? (DisplayMode)displayModeComboBox.SelectedItem : DisplayMode.Stack;
         }
@@ -530,8 +529,6 @@ namespace StructLayout
                             {
                                 PrepareRenderDataStack(child);
                             }
-                            CollapseNode(Root);
-                            ExpandNode(Root);
                         }
                         break;
                     case DisplayMode.Flat:
@@ -920,6 +917,13 @@ namespace StructLayout
         private void DisplayModeComboBox_SelectionChanged(object sender, object e)
         {
             RefreshNodeRenderData();
+
+            if (Root != null && GetSelectedDisplayMode() == DisplayMode.Stack)
+            {
+                CollapseNode(Root);
+                ExpandNode(Root);
+            }
+
             SetupCanvas();
             RenderGrid();
             RefreshShapes();

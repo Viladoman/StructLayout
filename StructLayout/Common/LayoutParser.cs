@@ -90,37 +90,60 @@ namespace StructLayout
             VtorDisp,
             Union,
             Padding,
+            
         };
 
-        public LayoutNode()
-        {
-            Children = new List<LayoutNode>();
-            RenderData = new RenderData();
-            Collapsed = true;
-        }
-
-        public string Type { set; get; }
-        public string Name { set; get; }
+        public string Type { set; get; } = "";
+        public string Name { set; get; } = "";
 
         public uint Offset { set; get; }
         public uint Size { set; get; }
         public uint Align { set; get; }
 
-        public bool Collapsed { set; get; }
+        public bool Collapsed { set; get; } = true;
 
         public LayoutCategory Category { set; get; }
 
         public LayoutNode Parent { set; get; }
-        public List<LayoutNode> Children { get; }
+        public List<LayoutNode> Children { set; get; } = new List<LayoutNode>();
+        public List<LayoutNode> Extra { set; get; } = new List<LayoutNode>();
 
         //Render params
-        public RenderData RenderData { set; get; }
+        public RenderData RenderData { set; get; } = new RenderData();
 
         public void AddChild(LayoutNode childNode)
         {
             Children.Add(childNode);
             childNode.Parent = this;
         }
+
+        public bool IsBaseCategory()
+        {
+            switch (Category)
+            {
+                case LayoutNode.LayoutCategory.NVPrimaryBase:
+                case LayoutNode.LayoutCategory.NVBase:
+                case LayoutNode.LayoutCategory.VBase:
+                case LayoutNode.LayoutCategory.VPrimaryBase:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+    }
+
+    public class ParseResult
+    {
+        public enum StatusCode
+        {
+            InvalidInput,
+            ParseFailed,
+            NotFound,
+            Found
+        }
+
+        public LayoutNode Layout { set; get; }
+        public StatusCode Status { set; get; }
     }
 
     public class LayoutParser
@@ -172,26 +195,54 @@ namespace StructLayout
             }
         }
 
-        public void AddUnionNodes(LayoutNode node)
+        private void FixOverlaps(LayoutNode node)
         {
-            foreach (LayoutNode child in node.Children)
+            if (node.Type.Length > 0 && node.Type.StartsWith("union"))
             {
-                //TODO ~ ramonv ~ to be implemetned
-                //serach for overlapping children with same start offset
+                node.Category = LayoutNode.LayoutCategory.Union;
+                node.Extra    = node.Children;
+                node.Children = new List<LayoutNode>();
             }
+            
+            if (node.Category != LayoutNode.LayoutCategory.Union)
+            {
+                for (int i = 1; i < node.Children.Count;)
+                {
+                    var thisNode = node.Children[i];
+                    var prevNode = node.Children[i - 1];
 
-            //replace with union node if needed
-
+                    if (thisNode.Offset == prevNode.Offset)
+                    {
+                        if (prevNode.IsBaseCategory() && prevNode.Size == 1)
+                        {
+                            //Empty base optimization
+                            node.Extra.Add(prevNode);
+                            node.Children.RemoveAt(i - 1);
+                        }
+                        else
+                        {
+                            //Found unknown overlap 
+                            OutputLog.Log("Found type overlap without known explanation");
+                            ++i;
+                        }
+                    }
+                    else
+                    {
+                        ++i;
+                    }
+                }
+            }
+            
             //continue recursion
             foreach (LayoutNode child in node.Children)
             {
-                AddUnionNodes(child);
+                FixOverlaps(child);
             }
         }
 
         public void FinalizeNode(LayoutNode node)
         {
-            AddUnionNodes(node);
+            FixOverlaps(node);
 
             node.Collapsed = false;
             FinalizeNodeRecursive(node);
@@ -212,16 +263,19 @@ namespace StructLayout
             }
         }
 
-        public async Task<LayoutNode> ParseAsync(ProjectProperties projProperties, DocumentLocation location)
+        public async Task<ParseResult> ParseAsync(ProjectProperties projProperties, DocumentLocation location)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            ParseResult ret = new ParseResult(); 
 
             //TODO ~ ramonv ~ shortcut this or queue if we are already processing something
 
             if (location.Filename == null || location.Filename.Length == 0)
             {
                 OutputLog.Error("No file provided for parsing");
-                return null;
+                ret.Status = ParseResult.StatusCode.InvalidInput;
+                return ret;
             }
 
             string includes  = GenerateCommandStr("-I",projProperties.IncludeDirectories, "\"");
@@ -251,7 +305,6 @@ namespace StructLayout
 
             ProcessLog();
 
-            LayoutNode layout = null;
             if (valid)
             {
                 //capture data
@@ -265,25 +318,28 @@ namespace StructLayout
 
                     using (BinaryReader reader = new BinaryReader(new MemoryStream(managedArray)))
                     {
-                        layout = ReadNode(reader);
-                        FinalizeNode(layout);
+                        ret.Layout = ReadNode(reader);
+                        FinalizeNode(ret.Layout);
                     }
 
-                    OutputLog.Log("Found structure " + layout.Type + "." + timeStr);
+                    OutputLog.Log("Found structure " + ret.Layout.Type + "." + timeStr);
+                    ret.Status = ParseResult.StatusCode.Found;
                 }
                 else
                 {
                     OutputLog.Log("No structure found at the given location." + timeStr);
+                    ret.Status = ParseResult.StatusCode.NotFound;
                 }
             }
             else
             {
                 OutputLog.Error("Unable to scan the given location." + timeStr);
+                ret.Status = ParseResult.StatusCode.ParseFailed;
             }
 
             Clear();
 
-            return layout;
+            return ret;
         }
 
         private string GenerateCommandStr(string prefix, List<string> args, string wrapper = "")

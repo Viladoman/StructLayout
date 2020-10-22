@@ -24,7 +24,6 @@ namespace StructLayout
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             pane.Activate();
-            //TODO ~ ramonv ~ this does not work
         }
 
         public static void Log(string text)

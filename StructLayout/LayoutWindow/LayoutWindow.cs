@@ -31,11 +31,18 @@ namespace StructLayout
             this.Content = new LayoutWindowControl();
         }
 
-        public void SetLayout(LayoutNode node)
+        public void SetProcessing()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            (this.Content as LayoutWindowControl).SetLayout(node);
+            (this.Content as LayoutWindowControl).SetProcessing();
+        }
+
+        public void SetResult(ParseResult result)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            (this.Content as LayoutWindowControl).SetResult(result);
         }
     }
 }

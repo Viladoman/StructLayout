@@ -21,7 +21,7 @@
         <Style TargetType="TextBox" x:Key="TextBoxAlign">
             <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.Foreground}}" />
             <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.Background}}" />
-            <Setter Property="Visibility" Value="Hidden"/>
+            <Setter Property="Visibility" Value="Collapsed"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding ElementName=displayAlignementComboBox, Path=SelectedIndex}" Value="2">
                     <Setter Property="Visibility" Value="Visible"/>
@@ -76,12 +76,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-
-            <WrapPanel Grid.Column="0">
+            <WrapPanel >
                 <Label FontWeight="Bold">Display alignment:</Label>
                 <ComboBox x:Name="displayAlignementComboBox" Width="90" SelectionChanged="DisplayAlignmentComboBox_SelectionChanged"/>
                 <TextBox Width="50" Height="20" TextAlignment="Center"  x:Name="displayAlignmentValue" MaxLength="3" PreviewTextInput="NumberValidationTextBox">
@@ -92,27 +87,21 @@
 
                 <Label FontWeight="Bold">Mode:</Label>
                 <ComboBox x:Name="displayModeComboBox" Width="65" SelectionChanged="DisplayModeComboBox_SelectionChanged"/>
-            </WrapPanel>
 
-            <WrapPanel Grid.Column="1">
-<!--                <Label FontWeight="Bold">Size:</Label>
-                <Slider VerticalAlignment="Center" x:Name="sliderZoom" Maximum="1" Width="100"/>
-                -->
-
-                <Button Click="ButtonExpandAll_Click">
+                <Button Click="ButtonExpandAll_Click" Margin="10 0 0 0">
                     Expand All
                     <Button.Style>
                         <Style TargetType="Button" BasedOn="{StaticResource StackButton}"/>
                     </Button.Style>
                 </Button>
-                <Button Click="ButtonCollapseAll_Click">
+                <Button Click="ButtonCollapseAll_Click" Margin="5 0 0 0">
                     Collapse All
                     <Button.Style>
                         <Style TargetType="Button" BasedOn="{StaticResource StackButton}"/>
                     </Button.Style>
                 </Button>
+
             </WrapPanel>
-            
         </Grid>
         <local:CustomScrollViewer Grid.Row="1" x:Name="scrollViewer" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible">
             <Canvas x:Name="canvas" VerticalAlignment="Top" HorizontalAlignment="Left" Focusable="True"/>

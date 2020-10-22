@@ -11,9 +11,10 @@
             <TextBlock x:Name="headerTxt" FontWeight="Bold" FontSize="18" Margin="0,0,0,5"/>
             <TextBlock x:Name="subheaderTxt" FontSize="14"/>
             <Border x:Name="layoutBorder" BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,8" />
-            <TextBlock x:Name="offsetTxt" />
-            <TextBlock x:Name="sizeTxt" />
-            <TextBlock x:Name="alignTxt" />
+            <TextBlock x:Name="layout1Txt" />
+            <TextBlock x:Name="layout2Txt" />
+            <Border x:Name="extraBorder" BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,8" />
+            <StackPanel x:Name="extraStack" />
             <Border x:Name="typeBorder" BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,8" />
             <StackPanel x:Name="typeStack" />
             <Border x:Name="interactionBorder" BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,8" />

@@ -12,6 +12,11 @@
              d:DesignHeight="300" d:DesignWidth="300"
              Name="MyToolWindow">
     <Grid>
-        <local:LayoutViewer x:Name="viewer" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <local:LayoutViewer Grid.Row ="0" x:Name="viewer" />
+        <TextBlock Grid.Row ="1" x:Name="statusText" VerticalAlignment="Center" FontWeight="Bold" Margin="10 0 0 0"/>
     </Grid>
 </UserControl>

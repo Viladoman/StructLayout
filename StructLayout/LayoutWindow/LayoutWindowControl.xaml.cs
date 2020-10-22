@@ -15,11 +15,35 @@
         public LayoutWindowControl()
         {
             this.InitializeComponent();
+
+            SetDefaultStatus();
         }
 
-        public void SetLayout(LayoutNode node)
+        public void SetProcessing()
         {
-            viewer.SetLayout(node);
+            statusText.Text = "Processing...";
         }
+
+        public void SetResult(ParseResult result)
+        {
+            statusText.Text = "Inspecting: "+ (result.Layout == null ? "<none>" : result.Layout.Type) + " - ";
+
+            //add details
+            switch (result.Status)
+            {
+                case ParseResult.StatusCode.InvalidInput: statusText.Text += "Invalid Input"; break;
+                case ParseResult.StatusCode.ParseFailed:  statusText.Text += "Parse Error"; break;
+                case ParseResult.StatusCode.NotFound:     statusText.Text += "Nothing found at the given position"; break;
+                case ParseResult.StatusCode.Found:        statusText.Text += "Size: "+ LayoutNodeTooltip.GetFullValueStr(result.Layout.Size)+" - Align: "+ LayoutNodeTooltip.GetFullValueStr(result.Layout.Align); break;
+                default: SetDefaultStatus(); break;
+            }
+
+            viewer.SetLayout(result.Layout);
+        }
+
+        private void SetDefaultStatus()
+        {
+            statusText.Text = "Tip: USe the context menu in the text editor to inspect a struct definition ( or Alt+L )";
+        }     
     }
 }

@@ -23,11 +23,12 @@ namespace StructLayout
         [DisplayName("Show warnings")]
         [Description("If true it will display the C++ warnings found while parsing the file")]
         public bool OptionParserShowWarnings { set; get; } = false;
-
+        /*
         [Category("Viewer")]
         [DisplayName("Grid Number Base")]
         [Description("Base for the numbers in the viewer grid rows and columns")]
         public LayoutViewer.GridBase OptionViewerGridBase { set; get; } = LayoutViewer.GridBase.Hexadecimal;
+        */
     }
 }
 
