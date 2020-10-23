@@ -125,6 +125,16 @@ namespace StructLayout
             }
         }
 
+        private void RemoveMSBuildStringFromList(List<string> list, string input)
+        {
+            var split = input.Split(';').ToList(); //Split
+
+            foreach (string str in split)
+            {
+                list.Remove(str);
+            }
+        }
+
         private string GetPathDirectory(string input)
         {
             return (Path.HasExtension(input) ? Path.GetDirectoryName(input) : input) + '\\';           
@@ -177,8 +187,6 @@ namespace StructLayout
 
             //Include dirs / files and preprocessor
             AppendMSBuildStringToList(ret.IncludeDirectories, platform.Evaluate(platform.IncludeDirectories));
-            //TODO ~ ramonv ~ Exclude directories
-
             AppendProjectProperties(ret, vctools.Item("VCCLCompilerTool") as VCCLCompilerTool, vctools.Item("VCNMakeTool") as VCNMakeTool, platform);
 
             try
@@ -195,6 +203,9 @@ namespace StructLayout
                 AppendProjectProperties(ret, fileConfig.Tool as VCCLCompilerTool, fileConfig.Tool as VCNMakeTool, platform);
             }
             catch (Exception) {}
+
+            //Exclude directories 
+            RemoveMSBuildStringFromList(ret.IncludeDirectories, platform.Evaluate(platform.ExcludeDirectories));
 
             return ret;
         }
