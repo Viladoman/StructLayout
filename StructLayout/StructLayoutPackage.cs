@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
 
 namespace StructLayout
@@ -24,6 +25,7 @@ namespace StructLayout
     /// </para>
     /// </remarks>
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
+    [ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
     [Guid(StructLayoutPackage.PackageGuidString)]
     [ProvideOptionPage(typeof(GeneralSettingsPageGrid), "Struct Layout", "General", 0, 0, true)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
@@ -51,8 +53,8 @@ namespace StructLayout
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             OutputLog.Initialize(this);
+            Settings.SettingsManager.Instance.Initialize(this);
             EditorProcessor.Instance.Initialize(this);
-
             await LayoutWindowCommand.InitializeAsync(this);
             await ParseCommand.InitializeAsync(this);
         }

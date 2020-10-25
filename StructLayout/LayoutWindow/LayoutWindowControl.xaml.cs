@@ -44,5 +44,10 @@
 
             viewer.SetLayout(result.Layout);
         }   
+
+        public void OpenSettings(object a, object e)
+        {
+            Settings.SettingsManager.Instance.OpenSettingsWindow();
+        }
     }
 }

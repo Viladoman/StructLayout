@@ -49,6 +49,11 @@
     <Compile Include="Common\LayoutColors.cs" />
     <Compile Include="Common\LayoutParser.cs" />
     <Compile Include="Common\OutputLog.cs" />
+    <Compile Include="Settings\SettingsControl.xaml.cs">
+      <DependentUpon>SettingsControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Settings\SettingsWindow.cs" />
+    <Compile Include="Settings\SolutionSettings.cs" />
     <Compile Include="Common\WindowProxy.cs" />
     <Compile Include="Editor\EditorProcessor.cs" />
     <Compile Include="LayoutWindow\LayoutNodeTooltip.xaml.cs">
@@ -104,6 +109,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="LayoutWindow\LayoutWindowControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Settings\SettingsControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

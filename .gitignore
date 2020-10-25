@@ -11,7 +11,7 @@
 *.orig
 
 # DLLs
-.dll
+*.dll
 
 # VSIX
 StructLayout/.vs/
@@ -33,3 +33,4 @@ Prototype/
 TestProject/.vs/
 TestProject/tmp/
 TestProject/bin/
+TestProject/StructLayoutSettings.json
