@@ -205,7 +205,7 @@ namespace StructLayout
                 AppendMSBuildStringToList(ret.IncludeDirectories, platform.Evaluate(customSettings.AdditionalIncludeDirs));
                 AppendMSBuildStringToList(ret.ForceIncludes, platform.Evaluate(customSettings.AdditionalForceIncludes));
                 AppendMSBuildStringToList(ret.PrepocessorDefinitions, platform.Evaluate(customSettings.AdditionalPreprocessorDefinitions));
-                ret.ExtraArguments = customSettings.AdditionalCommandLine;
+                ret.ExtraArguments = platform.Evaluate(customSettings.AdditionalCommandLine);
                 ret.ShowWarnings = customSettings.EnableWarnings;
             }
 

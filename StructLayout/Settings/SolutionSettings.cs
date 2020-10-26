@@ -49,6 +49,7 @@ namespace StructLayout
         private SolutionEvents solutionEvents; //Super important if not copied the events get disposed and never triggered
         public SolutionSettings Settings { get; set; }
         private string Filename{ set; get; }
+        private Common.FileWatcher Watcher { set; get; }  = new Common.FileWatcher();
 
         private IServiceProvider ServiceProvider { set; get; }
 
@@ -63,6 +64,8 @@ namespace StructLayout
             solutionEvents = applicationObject.Events.SolutionEvents;
             solutionEvents.AfterClosing += RefreshFilename;
             solutionEvents.Opened += RefreshFilename;
+
+            Watcher.FileWatchedChanged += Load;
 
             RefreshFilename();
         }
@@ -90,10 +93,10 @@ namespace StructLayout
         {
             if (Filename != str)
             {
-                //TODO ~ Remove watcher
+                Watcher.Unwatch();
                 Filename = str;
                 Load();
-                //TODO ~ Set watcher
+                Watcher.Watch(Filename);
             }
         }
 

@@ -18,6 +18,5 @@ namespace StructLayout
 
             this.Content = new SettingsControl(this, settings == null? new SolutionSettings() : settings);
         }
-
     }
 }
