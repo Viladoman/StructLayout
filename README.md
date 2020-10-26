@@ -44,6 +44,18 @@ When a Layout request is made the extension does the following:
 
 Because each solution might need different extra parameters and different needs, the parser options with the extra parameters are stored in a file called **StructLayoutSettings.json** next to the solution. This options can be accessed by pressing the *Options* button in the Struct Layout Tool Window's bottom left corner.
 
+The additional include directories, force includes and preprocessor definitions can be typed in following the same format as the Visual Studio properties (*;* separated).
+Example:
+```
+includePathA;${SolutionDir}Folder/;${ProjectDir}...
+```
+
+The extra arguments will be appended as they are after a Macro replacement pass.
+Example:
+```
+-std=c++17 -ftime-trace -I${SolutionDir}Folder/
+```
+
 > :warning: If the project is using PCHs, due to the fact that most of the struct definitions are in header files, the precompiled headers might need to be forced included. 
 
 > :warning: Some big projects use Unity builds or similar. This might lead to ill-formed dependency trees in some files, leading to parsing errors when attempting to parse a single unit.
