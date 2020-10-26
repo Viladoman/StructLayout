@@ -47,7 +47,7 @@
 
         public void OpenSettings(object a, object e)
         {
-            Settings.SettingsManager.Instance.OpenSettingsWindow();
+            SettingsManager.Instance.OpenSettingsWindow();
         }
     }
 }

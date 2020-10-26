@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace StructLayout.Settings
+namespace StructLayout
 {
-    class SettingsWindow : Window
+    public class SettingsWindow : Window
     {
         public SettingsWindow(SolutionSettings settings)
         {
@@ -16,7 +16,7 @@ namespace StructLayout.Settings
             SizeToContent = SizeToContent.Height;
             Width =  900;
 
-            this.Content = new SettingsControl(settings == null? new SolutionSettings() : settings);
+            this.Content = new SettingsControl(this, settings == null? new SolutionSettings() : settings);
         }
 
     }

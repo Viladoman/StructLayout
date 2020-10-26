@@ -135,11 +135,6 @@ namespace StructLayout
             }
         }
 
-        private string GetPathDirectory(string input)
-        {
-            return (Path.HasExtension(input) ? Path.GetDirectoryName(input) : input) + '\\';           
-        }
-
         private void AppendProjectProperties(ProjectProperties properties, VCCLCompilerTool cl, VCNMakeTool nmake, VCPlatform platform)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -204,6 +199,16 @@ namespace StructLayout
             }
             catch (Exception) {}
 
+            SolutionSettings customSettings = SettingsManager.Instance.Settings;
+            if (customSettings != null)
+            {
+                AppendMSBuildStringToList(ret.IncludeDirectories, platform.Evaluate(customSettings.AdditionalIncludeDirs));
+                AppendMSBuildStringToList(ret.ForceIncludes, platform.Evaluate(customSettings.AdditionalForceIncludes));
+                AppendMSBuildStringToList(ret.PrepocessorDefinitions, platform.Evaluate(customSettings.AdditionalPreprocessorDefinitions));
+                ret.ExtraArguments = customSettings.AdditionalCommandLine;
+                ret.ShowWarnings = customSettings.EnableWarnings;
+            }
+
             //Exclude directories 
             RemoveMSBuildStringFromList(ret.IncludeDirectories, platform.Evaluate(platform.ExcludeDirectories));
 
@@ -259,14 +264,10 @@ namespace StructLayout
             }
 
             GeneralSettingsPageGrid settings = GetGeneralSettings();
-            parser.ExtraArgs = settings.OptionParserExtraArguments;
             parser.PrintCommandLine = settings.OptionParserShowCommandLine;
-            parser.ShowWarnings = settings.OptionParserShowWarnings;
 
             //TODO ~ ramonv ~ add parsing queue to avoid multiple queries at the same time
-
-            //TODO ~ ramonv ~ notify the window about the parsing start
-            
+           
             LayoutWindow prewin = GetLayoutWindow(false);
             if (prewin != null) 
             { 

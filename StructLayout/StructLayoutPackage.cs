@@ -53,7 +53,7 @@ namespace StructLayout
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             OutputLog.Initialize(this);
-            Settings.SettingsManager.Instance.Initialize(this);
+            SettingsManager.Instance.Initialize(this);
             EditorProcessor.Instance.Initialize(this);
             await LayoutWindowCommand.InitializeAsync(this);
             await ParseCommand.InitializeAsync(this);

@@ -14,7 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace StructLayout.Settings
+namespace StructLayout
 {
     /// <summary>
     /// Interaction logic for SettingsControl.xaml
@@ -22,9 +22,11 @@ namespace StructLayout.Settings
     public partial class SettingsControl : UserControl
     {
         public SolutionSettings Options { set; get; }
+        private SettingsWindow Win { set; get; }
 
-        public SettingsControl(SolutionSettings settings)
+        public SettingsControl(SettingsWindow window, SolutionSettings settings)
         {
+            Win = window;
             Options = settings;
             InitializeComponent();
             CreateGrid();
@@ -90,6 +92,7 @@ namespace StructLayout.Settings
         public void ButtonCancel_OnSave(object o, object e)
         {
             ApplyChanges();
+            Win.Close();
         }
     }
 }

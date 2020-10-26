@@ -37,6 +37,9 @@ namespace StructLayout
         public List<string> IncludeDirectories { set; get; } = new List<string>();
         public List<string> ForceIncludes { set; get; } = new List<string>();
         public List<string> PrepocessorDefinitions { set; get; } = new List<string>();
+        public string ExtraArguments { set; get; } = "";
+        public bool ShowWarnings { set; get; } = false;
+
         public TargetType Target { set; get; }
     }
 
@@ -148,9 +151,7 @@ namespace StructLayout
 
     public class LayoutParser
     {
-        public string ExtraArgs { get; set; } = "";
         public bool PrintCommandLine { get; set; } = false;
-        public bool ShowWarnings { get; set; } = false;
 
         [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool ParseLocation(string commandline, string fullFilename, uint row, uint col);
@@ -273,8 +274,6 @@ namespace StructLayout
 
             ParseResult ret = new ParseResult(); 
 
-            //TODO ~ ramonv ~ shortcut this or queue if we are already processing something
-
             if (location.Filename == null || location.Filename.Length == 0)
             {
                 OutputLog.Error("No file provided for parsing");
@@ -285,8 +284,8 @@ namespace StructLayout
             string includes  = GenerateCommandStr("-I",projProperties.IncludeDirectories);
             string forceInc  = GenerateCommandStr("-include", projProperties.ForceIncludes);
             string defines   = GenerateCommandStr("-D",projProperties.PrepocessorDefinitions);
-            string flags     = ShowWarnings? "" : " -w";
-            string extra     = ExtraArgs.Length == 0? "" : " " + ExtraArgs;
+            string flags     = projProperties.ShowWarnings? "" : " -w";
+            string extra     = projProperties.ExtraArguments.Length == 0? "" : " " + projProperties.ExtraArguments;
 
             string archStr = projProperties != null && projProperties.Target == ProjectProperties.TargetType.x86 ? "-m32" : "-m64";
             string toolCmd = location.Filename + " -- -x c++ " + archStr + flags + defines + includes + forceInc + extra;

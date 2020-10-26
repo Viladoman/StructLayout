@@ -11,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StructLayout.Settings
+namespace StructLayout
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class UIDescription : Attribute
@@ -22,18 +22,17 @@ namespace StructLayout.Settings
 
     public class SolutionSettings
     {
-        //TODO ~ ramonv ~ placeholder texts
         //Parser Settings
-        [UIDescription(Label = "Extra Preprocessor Defintions", Tooltip = "Additional preprocessor definitions on top of the auto extracted form the project configuration. (this fields allows $(SolutionDir) style macros)")]
+        [UIDescription(Label = "Extra Preprocessor Defintions", Tooltip = "Additional preprocessor definitions on top of the auto extracted form the project configuration. (This fields allows $(SolutionDir) style macros)")]
         public string AdditionalPreprocessorDefinitions { set; get; } = "";
 
-        [UIDescription(Label = "Extra Include Dirs", Tooltip = "Additional include directories on top of the auto extracted form the project configuration. (this fields allows $(SolutionDir) style macros)")]
+        [UIDescription(Label = "Extra Include Dirs", Tooltip = "Additional include directories on top of the auto extracted form the project configuration. (This fields allows $(SolutionDir) style macros)")]
         public string AdditionalIncludeDirs { set; get; } = "";
 
-        [UIDescription(Label = "Extra Force Includes", Tooltip = "Additional files to force include on top of the auto extracted form the project configuration. (this fields allows $(SolutionDir) style macros)")]
+        [UIDescription(Label = "Extra Force Includes", Tooltip = "Additional files to force include on top of the auto extracted form the project configuration. (This fields allows $(SolutionDir) style macros)")]
         public string AdditionalForceIncludes { set; get; } = "";
 
-        [UIDescription(Label = "Extra Parser Args", Tooltip = "Additional command line arguments passed in to the clang parser")]
+        [UIDescription(Label = "Extra Parser Args", Tooltip = "Additional command line arguments passed in to the clang parser. (This fields allows $(SolutionDir) style macros)")]
         public string AdditionalCommandLine { set; get; } = "";
 
         [UIDescription(Label = "Enable Warnings", Tooltip = "If true, the clang parser will output the warnings found.")]
@@ -91,10 +90,10 @@ namespace StructLayout.Settings
         {
             if (Filename != str)
             {
-                //Remove watcher
+                //TODO ~ Remove watcher
                 Filename = str;
                 Load();
-                //Set watcher
+                //TODO ~ Set watcher
             }
         }
 
