@@ -1,4 +1,81 @@
 # StructLayout
 Visual Studio Extension for C++ struct memory layout visualization
 
-# **WORK IN PROGRESS**
+[Download latest from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=RamonViladomat.StructLayout)
+
+## Motivation
+
+//TODO
+
+## Features
+
+//TODO
+
+## How it works
+
+Struct Layout uses Clang LibTooling internally to parse the C++ files and extract the memory layout information.
+
+When a Layout request is made the extension does the following steps: 
++ Retrieve the active document and cursor position. 
++ Extract the relevant file and project properties (cl or nmake)
+  1. Indlude directories
+  2. Force includes
+  3. Preprocessor definitions
+  4. Exclude directories
++ Add the extra paramaters from the extension options
++ Trigger the LayoutParser (Clang libtooling application) with all the arguments gathered
++ Visualize the results or print in the Struct Layout Output Pane any issues found. 
+
+## Options & Configurations
+
+//TODO
+
+## Building the VSIX 
+
+Struct Layout uses llvm and clang libtooling to parse the C++ files and extract the requested memory layouts. This means that the C# VSIX extensions uses an unmanaged DLL with the libtooling that we will need to compile first. 
+
+### Generate the LayoutParser.dll
+
+#### Download llvm-project
+First step would be to get the llvm-project with clang. 
+There is more detailed information on how to set it up at the [Getting Started with Clang](https://clang.llvm.org/get_started.html) page.
+
+**Important:** Because Visual Studio operates on 32bits, it is important to generate the llvm projects for 32bits or the dll won't be compatible.
+
+if the llvm-project folder is located in the repository root folder, the LayoutParser project should pick up all include directories and libraries correctly. 
+
+#### Modify 
+In order to be able to retrieve the stdout/stderr from llvm, I little modication has been made to llvm::raw_fd_ostream. 
+The modifications are the following:
+
+**raw_ostream.h:**
+```
+line 431:
+  typedef void (*TCustomConsole)(StringRef);
+  TCustomConsole customConsole = nullptr;
+line 496: 
+  void SetCustomConsole(TCustomConsole console){ customConsole = console; }
+```
+
+**raw_ostream.cpp:**
+```
+line 742:
+  if (customConsole)
+  {
+      customConsole(StringRef(Ptr, Size));
+      return;
+  }
+```
+
+Local copies for reference can be found at the *ClangMods* folder.
+
+#### Build LayoutParser.dll
+Open the LayoutParser solution found at *LayoutParser/LayoutParser.sln* and build on *x86|Release*. This will already copy the generated dll to the StructLayout VSIX folder. 
+
+### Generate the VSIX 
+Open and build the solution found at *StructLayout/StructLayout.sln*.
+There is also a sample project for testing at *TestProject/TestProject.sln*.
+
+## References
+- [Visual Studio 2019](https://visualstudio.microsoft.com/vs/)
+- [LLVM](http://llvm.org/)
