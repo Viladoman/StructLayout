@@ -587,7 +587,7 @@ namespace StructLayout
             RenderOverlay();
         }
 
-        private void RenderNode(DrawingContext drawingContext, LayoutNode node)
+        private void RenderNodeStack(DrawingContext drawingContext, LayoutNode node)
         {
             RenderBasicShape(drawingContext, node, node.RenderData.Background);
 
@@ -595,7 +595,22 @@ namespace StructLayout
             {
                 foreach (LayoutNode child in node.Children)
                 {
-                    RenderNode(drawingContext, child);
+                    RenderNodeStack(drawingContext, child);
+                }
+            }
+        }
+
+        private void RenderNodeFlat(DrawingContext drawingContext, LayoutNode node)
+        {
+            if (node.Children.Count == 0)
+            {
+                RenderBasicShape(drawingContext, node, node.RenderData.Background);
+            }
+            else
+            {
+                foreach (LayoutNode child in node.Children)
+                {
+                    RenderNodeFlat(drawingContext, child);
                 }
             }
         }
@@ -702,7 +717,11 @@ namespace StructLayout
             {
                 if (Root != null)
                 {
-                    RenderNode(drawingContext, Root);
+                    switch (GetSelectedDisplayMode())
+                    {
+                        case DisplayMode.Stack: RenderNodeStack(drawingContext, Root); break;
+                        case DisplayMode.Flat:  RenderNodeFlat(drawingContext, Root); break;
+                    }
                 }
             }
 
@@ -805,26 +824,31 @@ namespace StructLayout
             return false;
         }
 
+        private bool IsOffsetInside(LayoutNode node, uint offset)
+        {
+            return (node.Offset <= offset && (node.Offset + node.Size) > offset);
+        }
+
         private LayoutNode GetNodeAtPositionImpl(LayoutNode node, Point localPos, uint offset)
         {
-            if (node.Offset > offset || (node.Offset + node.Size) <= offset || !IsPointInside(node.RenderData, localPos))
+            if (IsOffsetInside(node,offset) && IsPointInside(node.RenderData, localPos))
             {
-                return null;
-            }
-
-            if (!node.Collapsed)
-            {
-                foreach (LayoutNode child in node.Children)
+                if (!node.Collapsed)
                 {
-                    LayoutNode found = GetNodeAtPositionImpl(child, localPos, offset);
-                    if (found != null)
+                    foreach (LayoutNode child in node.Children)
                     {
-                        return found;
+                        LayoutNode found = GetNodeAtPositionImpl(child, localPos, offset);
+                        if (found != null)
+                        {
+                            return found;
+                        }
                     }
                 }
+
+                return (GetSelectedDisplayMode() == DisplayMode.Stack || node.Children.Count == 0)? node : null;
             }
 
-            return node;
+            return null;
         }
 
         private LayoutNode GetNodeAtPosition(Point localPos)
@@ -844,6 +868,7 @@ namespace StructLayout
 
             uint offset = GetOffset(row, column);
 
+            //TODO ~ ramonv ~ Flat and Stack 
             return GetNodeAtPositionImpl(Root,localPos,offset);
         }
 
