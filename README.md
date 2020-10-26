@@ -11,15 +11,19 @@ In C++, the structure layout can be affected by different factors. In order to p
 
 Right click on top of any C++ struct definition and select *Show Struct Layout* (or press **Alt+L**) in order to visualize the memory layout.
 
-//TODO ~ gif 
+![Interaction](https://github.com/Viladoman/StructLayout/wiki/data/StructLayoutTrigger.gif?raw=true)
 
 ### Stack Mode
 
-//TODO ~ screenshot
+In this visualization mode the types with children are stacked in order to allow navigation in and out and get a better sense of overall structure. 
+
+![Stack screenshot](https://github.com/Viladoman/StructLayout/wiki/data/Stack.png?raw=true)
 
 ### Flat Mode
 
-//TODO ~ screenshot
+The flat mode removes all parents and only shows up the end types in memory, skipping all groups. This produces a more compact view. 
+
+![Flat screenshot](https://github.com/Viladoman/StructLayout/wiki/data/Flat.png?raw=true)
 
 ## How it works
 
