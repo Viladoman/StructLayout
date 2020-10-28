@@ -37,6 +37,7 @@ namespace StructLayout
         public List<string> IncludeDirectories { set; get; } = new List<string>();
         public List<string> ForceIncludes { set; get; } = new List<string>();
         public List<string> PrepocessorDefinitions { set; get; } = new List<string>();
+        public string WorkingDirectory { set; get; } = "";
         public string ExtraArguments { set; get; } = "";
         public bool ShowWarnings { set; get; } = false;
 
@@ -281,14 +282,20 @@ namespace StructLayout
                 return ret;
             }
 
+            //SetLog(str => OutputLog.Log(str));
+
+            AdjustPaths(projProperties.IncludeDirectories);
+            AdjustPaths(projProperties.ForceIncludes);
+
             string includes  = GenerateCommandStr("-I",projProperties.IncludeDirectories);
             string forceInc  = GenerateCommandStr("-include", projProperties.ForceIncludes);
             string defines   = GenerateCommandStr("-D",projProperties.PrepocessorDefinitions);
+            string workDir   = projProperties.WorkingDirectory.Length == 0 ? "" : " -working-directory=" + AdjustPath(projProperties.WorkingDirectory);
             string flags     = projProperties.ShowWarnings? "" : " -w";
             string extra     = projProperties.ExtraArguments.Length == 0? "" : " " + projProperties.ExtraArguments;
 
             string archStr = projProperties != null && projProperties.Target == ProjectProperties.TargetType.x86 ? "-m32" : "-m64";
-            string toolCmd = location.Filename + " -- -x c++ " + archStr + flags + defines + includes + forceInc + extra;
+            string toolCmd = location.Filename + " -- -x c++ " + archStr + flags + defines + includes + forceInc + workDir + extra;
 
             OutputLog.Focus();
             OutputLog.Log("Looking for structures at " + location.Filename + ":" + location.Line + ":" + location.Column+"...");
@@ -343,6 +350,19 @@ namespace StructLayout
             Clear();
 
             return ret;
+        }
+
+        private string AdjustPath(string input)
+        {
+            return input.Contains(' ')? '"' + input + '"' : input;
+        }
+
+        private void AdjustPaths(List<string> list)
+        {
+            for(int i=0;i<list.Count;++i)
+            {
+                list[i] = AdjustPath(list[i]);
+            }
         }
 
         private string GenerateCommandStr(string prefix, List<string> args)

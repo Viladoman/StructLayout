@@ -180,6 +180,11 @@ namespace StructLayout
             ProjectProperties ret = new ProjectProperties();
             ret.Target = midl != null && midl.TargetEnvironment == midlTargetEnvironment.midlTargetWin32 ? ProjectProperties.TargetType.x86 : ProjectProperties.TargetType.x64;
 
+            //Working directory (always local to processed file)
+            ret.WorkingDirectory = Path.GetDirectoryName(project.FullName);
+
+            //TODO ~ ramonv ~ find a way to extract the /std value
+
             //Include dirs / files and preprocessor
             AppendMSBuildStringToList(ret.IncludeDirectories, platform.Evaluate(platform.IncludeDirectories));
             AppendProjectProperties(ret, vctools.Item("VCCLCompilerTool") as VCCLCompilerTool, vctools.Item("VCNMakeTool") as VCNMakeTool, platform);

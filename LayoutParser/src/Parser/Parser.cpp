@@ -62,6 +62,7 @@ namespace ClangParser
 
             const clang::SourceManager& manager = context.getSourceManager();
 
+            //TODO ~ ramonv ~ compare with FileID 
             llvm::StringRef filename = manager.getFilename(declaration->getLocation());
 
             if (locationFilter.filename && filename == locationFilter.filename)
@@ -81,7 +82,7 @@ namespace ClangParser
                 { 
                     bestTree.root = ComputeStruct(context, declaration, true);
                     bestTree.startLine = startLine;
-                    bestTree.startCol   = startCol;
+                    bestTree.startCol  = startCol;
                 }
             }
         }

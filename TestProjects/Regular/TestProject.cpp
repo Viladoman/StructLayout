@@ -14,6 +14,8 @@ struct TestStruct : Test::Base
     std::vector<int> collection;
 };
 
+struct EmptyStruct{};
+
 int main()
 {
     printf("HELLO STRUCT LAYOUT");

@@ -13,11 +13,17 @@ namespace Utils
         commandLine.clear();
         commandLine.push_back(""); //this fakes the app name
 
+        bool inQuotes = false;
+
         std::string* current = nullptr; 
         while(*input)
         { 
             const char c = *input;
-            if (c == ' ')
+            if (c == '"')
+            { 
+                inQuotes = !inQuotes;
+            }
+            else if (c == ' ' && !inQuotes)
             {
                 current = nullptr;
             }
