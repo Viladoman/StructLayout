@@ -30,7 +30,7 @@ llvm-project/
 Prototype/
 
 # Test Project
-TestProject/.vs/
-TestProject/tmp/
-TestProject/bin/
-TestProject/StructLayoutSettings.json
+TestProjects/Regular/.vs/
+TestProjects/Regular/tmp/
+TestProjects/Regular/bin/
+TestProjects/Regular/StructLayoutSettings.json
