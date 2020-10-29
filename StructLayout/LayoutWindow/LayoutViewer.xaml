@@ -35,13 +35,34 @@
         <Style TargetType="Button" x:Key="StackButton">
             <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.Foreground}}" />
             <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.Background}}" />
+            <Setter Property="Width"      Value="75"/>
+            <Setter Property="Visibility" Value="Collapsed" />
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverForeground}}" />
                     <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverBackground}}" />
                 </Trigger>
+                <DataTrigger Binding="{Binding ElementName=displayModeComboBox, Path=SelectedIndex}" Value="0">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
             </Style.Triggers>
         </Style>
+        <Style TargetType="Button" x:Key="FlatButton">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.Foreground}}" />
+            <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.Background}}" />
+            <Setter Property="Width"      Value="75"/>
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverForeground}}" />
+                    <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverBackground}}" />
+                </Trigger>
+                <DataTrigger Binding="{Binding ElementName=displayModeComboBox, Path=SelectedIndex}" Value="1">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
     </UserControl.Resources>
     
     <Grid>
@@ -62,19 +83,30 @@
                 <Label FontWeight="Bold">Mode:</Label>
                 <ComboBox x:Name="displayModeComboBox" Width="65" SelectionChanged="DisplayModeComboBox_SelectionChanged"/>
 
-                <Button Click="ButtonExpandAll_Click" Margin="10 0 0 0">
-                    Expand All
-                    <Button.Style>
-                        <Style TargetType="Button" BasedOn="{StaticResource StackButton}"/>
-                    </Button.Style>
-                </Button>
-                <Button Click="ButtonCollapseAll_Click" Margin="5 0 0 0">
+                <Button Click="ButtonCollapseAll_Click" Margin="10 0 0 0">
                     Collapse All
                     <Button.Style>
                         <Style TargetType="Button" BasedOn="{StaticResource StackButton}"/>
                     </Button.Style>
                 </Button>
-
+                <Button Click="ButtonExpandAll_Click" Margin="5 0 0 0">
+                    Expand All
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource StackButton}"/>
+                    </Button.Style>
+                </Button>
+                <Button Click="ButtonCollapseAll_Click" Margin="10 0 0 0">
+                    Top
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource FlatButton}"/>
+                    </Button.Style>
+                </Button>
+                <Button Click="ButtonExpandAll_Click" Margin="5 0 0 0">
+                    Bottom
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource FlatButton}"/>
+                    </Button.Style>
+                </Button>
             </WrapPanel>
         </Grid>
         <local:CustomScrollViewer Grid.Row="1" x:Name="scrollViewer" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible">
