@@ -104,8 +104,15 @@ namespace StructLayout
         {
             if (Filename != null && File.Exists(Filename))
             {
-                string jsonString = File.ReadAllText(Filename);
-                Settings = JsonConvert.DeserializeObject<SolutionSettings>(jsonString);
+                try
+                {
+                    string jsonString = File.ReadAllText(Filename);
+                    Settings = JsonConvert.DeserializeObject<SolutionSettings>(jsonString);
+                }
+                catch(Exception e)
+                {
+                    OutputLog.Error(e.Message);
+                }
             }
         }
 
@@ -113,8 +120,15 @@ namespace StructLayout
         {
             if (Filename != null && Settings != null)
             {
-                string jsonString = JsonConvert.SerializeObject(Settings, Formatting.Indented);
-                File.WriteAllText(Filename, jsonString);
+                try
+                {
+                    string jsonString = JsonConvert.SerializeObject(Settings, Formatting.Indented);
+                    File.WriteAllText(Filename, jsonString);
+                }
+                catch (Exception e)
+                {
+                    OutputLog.Error(e.Message);
+                }
             }
         }
 
