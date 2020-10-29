@@ -868,7 +868,6 @@ namespace StructLayout
 
             uint offset = GetOffset(row, column);
 
-            //TODO ~ ramonv ~ Flat and Stack 
             return GetNodeAtPositionImpl(Root,localPos,offset);
         }
 

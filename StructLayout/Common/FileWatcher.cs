@@ -103,7 +103,7 @@ namespace StructLayout.Common
 
                 ThreadHelper.JoinableTaskFactory.Run(async delegate {
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    OutputLog.Log("File change detected.");
+                    OutputLog.Log("External file change detected for "+Path.GetFileName(WatcherFullPath));
                     FileWatchedChanged?.Invoke();
                 });
 
