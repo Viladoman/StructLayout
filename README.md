@@ -21,7 +21,10 @@ In this visualization mode the types with children are stacked in order to allow
 
 ### Flat Mode
 
-The flat mode removes all parents and only shows up the end types in memory, skipping all groups. This produces a more compact view. 
+The flat mode skips all groups and only shows one layer, producing a more compact view. 
+In flat mode we can toggle between: 
+- **Top** : only the struct direct members.
+- **Bottom**: types without any children.
 
 ![Flat screenshot](https://github.com/Viladoman/StructLayout/wiki/data/Flat.png?raw=true)
 
