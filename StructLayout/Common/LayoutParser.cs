@@ -34,6 +34,14 @@ namespace StructLayout
             x64,
         }
 
+        public enum StandardVersion
+        {
+            Default, 
+            Cpp14,
+            Cpp17,
+            Latest,
+        }
+
         public List<string> IncludeDirectories { set; get; } = new List<string>();
         public List<string> ForceIncludes { set; get; } = new List<string>();
         public List<string> PrepocessorDefinitions { set; get; } = new List<string>();
@@ -41,7 +49,8 @@ namespace StructLayout
         public string ExtraArguments { set; get; } = "";
         public bool ShowWarnings { set; get; } = false;
 
-        public TargetType Target { set; get; }
+        public TargetType Target { set; get; } = TargetType.x64;
+        public StandardVersion Standard { set; get; } = StandardVersion.Default;
     }
 
     public class RenderData
@@ -294,8 +303,10 @@ namespace StructLayout
             string flags     = projProperties.ShowWarnings? "" : " -w";
             string extra     = projProperties.ExtraArguments.Length == 0? "" : " " + projProperties.ExtraArguments;
 
-            string archStr = projProperties != null && projProperties.Target == ProjectProperties.TargetType.x86 ? "-m32" : "-m64";
-            string toolCmd = AdjustPath(location.Filename) + " -- -x c++ " + archStr + flags + defines + includes + forceInc + workDir + extra;
+            string standard  = GetStandardFlag(projProperties.Standard);
+            string archStr   = projProperties != null && projProperties.Target == ProjectProperties.TargetType.x86 ? "-m32" : "-m64";
+
+            string toolCmd = AdjustPath(location.Filename) + " -- -x c++ " + archStr + standard + flags + defines + includes + forceInc + workDir + extra;
 
             OutputLog.Focus();
             OutputLog.Log("Looking for structures at " + location.Filename + ":" + location.Line + ":" + location.Column+"...");
@@ -350,6 +361,17 @@ namespace StructLayout
             Clear();
 
             return ret;
+        }
+
+        private string GetStandardFlag(ProjectProperties.StandardVersion standard)
+        {
+            switch (standard)
+            {
+                case ProjectProperties.StandardVersion.Cpp14:  return " -std=c++14";
+                case ProjectProperties.StandardVersion.Cpp17:  return " -std=c++17";
+                case ProjectProperties.StandardVersion.Latest: return " -std=c++2a";
+                default: return "";
+            }
         }
 
         private string AdjustPath(string input)

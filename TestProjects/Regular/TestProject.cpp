@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <vector>
+#include <string_view>
 
 #include "TestHeader.h"
 
@@ -11,6 +12,7 @@ struct TestStruct : Test::Base
     void* ptrToData;
     int   amount;
 
+    std::string_view sv;
     std::vector<int> collection;
 };
 

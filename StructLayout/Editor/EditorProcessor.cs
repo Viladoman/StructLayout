@@ -92,6 +92,19 @@ namespace StructLayout
             return applicationObject.Solution;
         }
 
+        private ProjectProperties.StandardVersion GetStandardVersion(VCConfiguration config)
+        {
+            IVCRulePropertyStorage generalRule = config.Rules.Item("ConfigurationGeneral");
+            string value = generalRule.GetEvaluatedPropertyValue("LanguageStandard");
+
+                 if (value == "Default")      { return ProjectProperties.StandardVersion.Default; }
+            else if (value == "stdcpp14")     { return ProjectProperties.StandardVersion.Cpp14; }
+            else if (value == "stdcpp17")     { return ProjectProperties.StandardVersion.Cpp17; }
+            else if (value == "stdcpplatest") { return ProjectProperties.StandardVersion.Latest; }
+
+            return ProjectProperties.StandardVersion.Latest;
+        }
+
         private bool IsMSBuildStringInvalid(string input)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -179,11 +192,10 @@ namespace StructLayout
 
             ProjectProperties ret = new ProjectProperties();
             ret.Target = midl != null && midl.TargetEnvironment == midlTargetEnvironment.midlTargetWin32 ? ProjectProperties.TargetType.x86 : ProjectProperties.TargetType.x64;
+            ret.Standard = GetStandardVersion(config);
 
             //Working directory (always local to processed file)
             ret.WorkingDirectory = Path.GetDirectoryName(project.FullName);
-
-            //TODO ~ ramonv ~ find a way to extract the /std value
 
             //Include dirs / files and preprocessor
             AppendMSBuildStringToList(ret.IncludeDirectories, platform.Evaluate(platform.IncludeDirectories));
