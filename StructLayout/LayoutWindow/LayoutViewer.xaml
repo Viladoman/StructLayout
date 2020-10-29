@@ -35,39 +35,13 @@
         <Style TargetType="Button" x:Key="StackButton">
             <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.Foreground}}" />
             <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.Background}}" />
-            <Setter Property="Visibility" Value="Collapsed"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverForeground}}" />
                     <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverBackground}}" />
                 </Trigger>
-                <DataTrigger Binding="{Binding ElementName=displayModeComboBox, Path=SelectedIndex}" Value="0">
-                    <Setter Property="Visibility" Value="Visible"/>
-                </DataTrigger>
             </Style.Triggers>
         </Style>
-        <!--
-        <Style TargetType="ComboBox">
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.Foreground}}"/>
-            <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.Background}}"/>
-        </Style>
-        <Style TargetType="ComboBoxItem">
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.Foreground}}"/>
-            <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.Background}}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Style.Triggers>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.Foreground}}" />
-                    <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.Background}}" />
-                </Trigger>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverForeground}}" />
-                    <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverBackground}}" />
-                </Trigger>
-                
-            </Style.Triggers>
-        </Style>
--->
     </UserControl.Resources>
     
     <Grid>

@@ -21,14 +21,17 @@ namespace StructLayout
     public partial class LayoutNodeTooltip : UserControl
     {
         private LayoutNode Node { set; get; }
+        private LayoutViewer Viewer { set; get; }
+
         public LayoutNode ReferenceNode
         {
             set { Node = value; OnNode(); }
             get { return Node; }
         }
 
-        public LayoutNodeTooltip()
+        public LayoutNodeTooltip(LayoutViewer viewer)
         {
+            Viewer = viewer;
             InitializeComponent();
         }
 
@@ -134,7 +137,7 @@ namespace StructLayout
 
         private void RefreshInteractionText()
         {
-            if (Node.Children.Count == 0 || Node.Category == LayoutNode.LayoutCategory.Union)
+            if (Viewer.GetSelectedDisplayMode() == LayoutViewer.DisplayMode.Flat || Node.Children.Count == 0 || Node.Category == LayoutNode.LayoutCategory.Union)
             {
                 interactionBorder.Visibility = Visibility.Collapsed;
                 interactionPanel.Visibility = Visibility.Collapsed;

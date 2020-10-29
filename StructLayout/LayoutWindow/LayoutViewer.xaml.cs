@@ -150,7 +150,7 @@ namespace StructLayout
             Custom
         }
 
-        private enum DisplayMode
+        public enum DisplayMode
         {
              Stack, 
              Flat
@@ -187,7 +187,7 @@ namespace StructLayout
         private LayoutNode Root { set; get; }
         private LayoutNode Hover { set; get; }
 
-        private ToolTip tooltip = new ToolTip { Content = new LayoutNodeTooltip() };
+        private ToolTip tooltip = new ToolTip();
 
         private Pen nodeBorderPen = new Pen(Colors.GetCategoryForeground(), 2);
         private Brush overlayBrush = Brushes.White.Clone(); 
@@ -206,8 +206,9 @@ namespace StructLayout
             this.DataContext = this;
 
             overlayBrush.Opacity = 0.3;
-
             SetDisplayGridColumns(8);
+
+            tooltip.Content = new LayoutNodeTooltip(this);
 
             displayAlignementComboBox.ItemsSource = Enum.GetValues(typeof(DisplayAlignmentType)).Cast<DisplayAlignmentType>();
             displayAlignementComboBox.SelectedIndex = 0;
@@ -244,7 +245,7 @@ namespace StructLayout
             return displayAlignementComboBox.SelectedItem != null? (DisplayAlignmentType)displayAlignementComboBox.SelectedItem : DisplayAlignmentType.Struct;
         }
 
-        private DisplayMode GetSelectedDisplayMode()
+        public DisplayMode GetSelectedDisplayMode()
         {
             return displayModeComboBox.SelectedItem != null ? (DisplayMode)displayModeComboBox.SelectedItem : DisplayMode.Stack;
         }
@@ -534,7 +535,6 @@ namespace StructLayout
                     case DisplayMode.Flat:
                         {
                             PrepareRenderDataFlat(Root);
-                            ExpandAllNodes(Root);
                         }
                         break;
                 }
@@ -602,7 +602,7 @@ namespace StructLayout
 
         private void RenderNodeFlat(DrawingContext drawingContext, LayoutNode node)
         {
-            if (node.Children.Count == 0)
+            if (node.Children.Count == 0 || node.Collapsed == true)
             {
                 RenderBasicShape(drawingContext, node, node.RenderData.Background);
             }
@@ -845,7 +845,7 @@ namespace StructLayout
                     }
                 }
 
-                return (GetSelectedDisplayMode() == DisplayMode.Stack || node.Children.Count == 0)? node : null;
+                return (GetSelectedDisplayMode() == DisplayMode.Stack || node.Children.Count == 0 || node.Collapsed)? node : null;
             }
 
             return null;
@@ -902,7 +902,7 @@ namespace StructLayout
 
         private void ScrollViewer_OnClick(object sender, MouseButtonEventArgs e)
         {
-            if (Hover != null && Hover.Children.Count > 0)
+            if (Hover != null && Hover.Children.Count > 0 && GetSelectedDisplayMode() == DisplayMode.Stack)
             {
                 if (Hover.Collapsed)
                 {
@@ -964,6 +964,7 @@ namespace StructLayout
             if (Root != null)
             {
                 CollapseNode(Root);
+                ExpandNode(Root);
                 RefreshShapes();
             }
         } 
