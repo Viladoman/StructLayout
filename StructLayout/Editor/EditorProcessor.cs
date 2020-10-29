@@ -94,13 +94,17 @@ namespace StructLayout
 
         private ProjectProperties.StandardVersion GetStandardVersion(VCConfiguration config)
         {
-            IVCRulePropertyStorage generalRule = config.Rules.Item("ConfigurationGeneral");
-            string value = generalRule.GetEvaluatedPropertyValue("LanguageStandard");
+            try
+            {
+                IVCRulePropertyStorage generalRule = config.Rules.Item("ConfigurationGeneral");
+                string value = generalRule.GetEvaluatedPropertyValue("LanguageStandard");
 
-                 if (value == "Default")      { return ProjectProperties.StandardVersion.Default; }
-            else if (value == "stdcpp14")     { return ProjectProperties.StandardVersion.Cpp14; }
-            else if (value == "stdcpp17")     { return ProjectProperties.StandardVersion.Cpp17; }
-            else if (value == "stdcpplatest") { return ProjectProperties.StandardVersion.Latest; }
+                     if (value == "Default")      { return ProjectProperties.StandardVersion.Default; }
+                else if (value == "stdcpp14")     { return ProjectProperties.StandardVersion.Cpp14; }
+                else if (value == "stdcpp17")     { return ProjectProperties.StandardVersion.Cpp17; }
+                else if (value == "stdcpplatest") { return ProjectProperties.StandardVersion.Latest; }
+            }
+            catch(Exception){}
 
             return ProjectProperties.StandardVersion.Latest;
         }
