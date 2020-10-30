@@ -18,10 +18,15 @@ namespace StructLayout
     {
         public string Label { get; set; }
         public string Tooltip { get; set; }
+
+        public EditorUtils.EditorMode DisplayFilter { set; get; }
     }
 
     public class SolutionSettings
     {
+        [UIDescription(Label = "CMake Commands File", DisplayFilter = EditorUtils.EditorMode.CMake, Tooltip = "File location for the build commands exported by CMAKE_EXPORT_COMPILE_COMMANDS=1 (This fields allows a limited set of $(SolutionDir) style macros)")]
+        public string CMakeCommandsFile { set; get; } = "";
+
         //Parser Settings
         [UIDescription(Label = "Extra Preprocessor Defintions", Tooltip = "Additional preprocessor definitions on top of the auto extracted form the project configuration. (This fields allows $(SolutionDir) style macros)")]
         public string AdditionalPreprocessorDefinitions { set; get; } = "";

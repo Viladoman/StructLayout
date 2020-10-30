@@ -50,6 +50,7 @@
     <Compile Include="Common\LayoutColors.cs" />
     <Compile Include="Common\LayoutParser.cs" />
     <Compile Include="Common\OutputLog.cs" />
+    <Compile Include="Editor\EditorUtils.cs" />
     <Compile Include="Editor\SettingsCommand.cs" />
     <Compile Include="Settings\SettingsControl.xaml.cs">
       <DependentUpon>SettingsControl.xaml</DependentUpon>

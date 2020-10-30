@@ -24,47 +24,18 @@ namespace StructLayout
 
         LayoutParser parser = new LayoutParser();
 
-        private StructLayoutPackage Package { get; set; }
-        private IServiceProvider ServiceProvider { get; set; }
-
-        public void Initialize(StructLayoutPackage package)
-        {
-            Package = package;
-            ServiceProvider = package;
-        }
-
-        public GeneralSettingsPageGrid GetGeneralSettings()
-        {
-            return (GeneralSettingsPageGrid)Package.GetDialogPage(typeof(GeneralSettingsPageGrid));
-        }
-
-        private void SaveActiveDocument()
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            //Get full file path
-            var applicationObject = ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
-            Assumes.Present(applicationObject);
-
-            Document doc = applicationObject.ActiveDocument;
-            if (doc != null && !doc.ReadOnly && !doc.Saved)
-            {
-                doc.Save();
-            }
-        }
-
         private DocumentLocation GetCurrentLocation()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             //Get full file path
-            var applicationObject = ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
+            var applicationObject = EditorUtils.ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
             Assumes.Present(applicationObject);
 
             string filename = applicationObject.ActiveDocument.FullName;
 
             //Get text location
-            var textManager = ServiceProvider.GetService(typeof(SVsTextManager)) as IVsTextManager2;
+            var textManager = EditorUtils.ServiceProvider.GetService(typeof(SVsTextManager)) as IVsTextManager2;
             if (textManager == null) return null;
 
             IVsTextView view;
@@ -74,22 +45,6 @@ namespace StructLayout
             view.GetCaretPos(out int line, out int col);
 
             return new DocumentLocation(filename,(uint)(line+1),(uint)(col+1));
-        }
-
-        private Project GetActiveProject()
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-            var applicationObject = ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
-            Assumes.Present(applicationObject);
-            if (applicationObject.ActiveDocument == null || applicationObject.ActiveDocument.ProjectItem == null) return null;
-            return applicationObject.ActiveDocument.ProjectItem.ContainingProject;
-        }
-
-        private Solution GetActiveSolution()
-        {
-            DTE2 applicationObject = ServiceProvider.GetService(typeof(SDTE)) as DTE2;
-            Assumes.Present(applicationObject);
-            return applicationObject.Solution;
         }
 
         private ProjectProperties.StandardVersion GetStandardVersion(VCConfiguration config)
@@ -172,11 +127,21 @@ namespace StructLayout
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            Solution solution = GetActiveSolution();
-            if (solution == null) return null;
+            switch(EditorUtils.GetEditorMode())
+            {
+                case EditorUtils.EditorMode.VisualStudio: return GetProjectDataVisualStudio();
+                case EditorUtils.EditorMode.CMake:        return GetProjectDataCMake();
+                default: return null;
+            }
+        }
 
-            Project project = GetActiveProject();
-            if (project == null) return null; 
+        private ProjectProperties GetProjectDataVisualStudio()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            OutputLog.Log("Capturing configuration from VS projects...");
+
+            Project project = EditorUtils.GetActiveProject();
 
             VCProject prj = project.Object as VCProject;
             if (prj == null) return null;
@@ -204,7 +169,7 @@ namespace StructLayout
             AppendProjectProperties(ret, vctools.Item("VCCLCompilerTool") as VCCLCompilerTool, vctools.Item("VCNMakeTool") as VCNMakeTool, platform);
 
             //Get settings from the single file (this might fail badly if there are no settings to catpure)
-            var applicationObject = ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
+            var applicationObject = EditorUtils.ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
             Assumes.Present(applicationObject);
             ProjectItem item = applicationObject.ActiveDocument.ProjectItem;
             VCFile vcfile = item != null? item.Object as VCFile : null;
@@ -220,12 +185,13 @@ namespace StructLayout
             } 
             catch (Exception e) 
             { 
+                //TODO ~ ramonv ~ get the data from the vcxproj XML ( if enabled parse the solution folder ) 
                 OutputLog.Log("File specific properties not found, only project properties used ("+e.Message+")"); 
-                //TODO ~ ramonv ~ get the data from the vcxproj XML
             }
 
             AppendProjectProperties(ret, fileToolCL, fileToolNMake, platform);
 
+            //TODO ~ ramonv ~ move toa different function for reusage between VS and CMAKE
             SolutionSettings customSettings = SettingsManager.Instance.Settings;
             if (customSettings != null)
             {
@@ -242,31 +208,18 @@ namespace StructLayout
             return ret;
         }
 
-        public LayoutWindow GetLayoutWindow(bool create = true)
+        private ProjectProperties GetProjectDataCMake()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            // Get the instance number 0 of this tool window. This window is single instance so this instance
-            // is actually the only one.
-            // The last flag is set to true so that if the tool window does not exists it will be created.
-            LayoutWindow window = Package.FindToolWindow(typeof(LayoutWindow), 0, create) as LayoutWindow;
-            if ((null == window) || (null == window.GetFrame()))
-            {
-                return null;
-            }
+            OutputLog.Log("Capturing configuration from CMake...");
 
-            return window;
+            //TODO ~ ramonv ~ to be implemented
+
+            return null;
         }
 
-        public void FocusWindow(LayoutWindow window)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            if (window != null)
-            {
-                window.ProxyShow();
-            }
-        }
+      
 
         public async System.Threading.Tasks.Task ParseAtCurrentLocationAsync()
         {
@@ -274,7 +227,7 @@ namespace StructLayout
 
             OutputLog.Clear();
 
-            SaveActiveDocument();
+            EditorUtils.SaveActiveDocument();
 
             DocumentLocation location = GetCurrentLocation();
             if (location == null)
@@ -290,12 +243,12 @@ namespace StructLayout
                 return;
             }
 
-            GeneralSettingsPageGrid settings = GetGeneralSettings();
+            GeneralSettingsPageGrid settings = EditorUtils.GetGeneralSettings();
             parser.PrintCommandLine = settings.OptionParserShowCommandLine;
 
             //TODO ~ ramonv ~ add parsing queue to avoid multiple queries at the same time
            
-            LayoutWindow prewin = GetLayoutWindow(false);
+            LayoutWindow prewin = EditorUtils.GetLayoutWindow(false);
             if (prewin != null) 
             { 
                 prewin.SetProcessing();
@@ -304,14 +257,14 @@ namespace StructLayout
             var result = await parser.ParseAsync(properties, location);
 
             //Only create or focus the window if we have a valid result
-            LayoutWindow win = GetLayoutWindow(result.Status == ParseResult.StatusCode.Found);
+            LayoutWindow win = EditorUtils.GetLayoutWindow(result.Status == ParseResult.StatusCode.Found);
             if (win != null)
             {
                 win.SetResult(result);
 
                 if (result.Status == ParseResult.StatusCode.Found)
                 {
-                    FocusWindow(win);
+                    EditorUtils.FocusWindow(win);
                 }
             }
         }

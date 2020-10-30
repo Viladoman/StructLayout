@@ -34,26 +34,26 @@ namespace StructLayout
         }
         private void CreateGrid()
         {
+            EditorUtils.EditorMode editorMode = EditorUtils.GetEditorMode();
+
             PropertyInfo[] properties = typeof(SolutionSettings).GetProperties();
             foreach (PropertyInfo property in properties)
             {
+                var customAttributes = (UIDescription[])property.GetCustomAttributes(typeof(UIDescription), true);
+                UIDescription description = (customAttributes.Length > 0 && customAttributes[0] != null)? customAttributes[0] : null;
+
+                if (description != null && description.DisplayFilter != editorMode)
+                {
+                    continue;
+                }
+
                 var elementGrid = new Grid();
                 elementGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(170) });
                 elementGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1,GridUnitType.Star) });
 
                 var label = new Label();
-
-                var customAttributes = (UIDescription[])property.GetCustomAttributes(typeof(UIDescription), true);
-                if (customAttributes.Length > 0 && customAttributes[0] != null)
-                {
-                    var description = customAttributes[0];
-                    label.Content = description.Label == null ? property.Name : description.Label;
-                    label.ToolTip = description.Tooltip;
-                }
-                else
-                {
-                    label.Content = property.Name;
-                }
+                label.Content = description == null || description.Label == null ? property.Name : description.Label;
+                label.ToolTip = description == null? null : description.Tooltip;
 
                 Grid.SetColumn(label, 0);
                 elementGrid.Children.Add(label);
