@@ -91,6 +91,8 @@ namespace StructLayout
 
         private void SetFilename(string str)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             if (Filename != str)
             {
                 Watcher.Unwatch();
@@ -102,6 +104,8 @@ namespace StructLayout
 
         private void Load()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             if (Filename != null && File.Exists(Filename))
             {
                 try
@@ -118,6 +122,8 @@ namespace StructLayout
 
         public void Save()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             if (Filename != null && Settings != null)
             {
                 try

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Shell;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -84,6 +85,8 @@ namespace StructLayout
 
         private void ApplyChanges()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             var manager = SettingsManager.Instance;
             manager.Settings = Options;
             manager.Save();
@@ -91,6 +94,8 @@ namespace StructLayout
 
         public void ButtonCancel_OnSave(object o, object e)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             ApplyChanges();
             Win.Close();
         }

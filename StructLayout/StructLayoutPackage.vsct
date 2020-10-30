@@ -44,16 +44,22 @@
           If you do not want an image next to your command, remove the Icon node /> -->
       <Button guid="guidStructLayoutPackageCmdSet" id="LayoutWindowCommandId" priority="0x0100" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
-        <Icon guid="guidImages" id="bmpPic1" />
+        <Icon guid="guidImages" id="icon" />
         <Strings>
           <ButtonText>Struct Layout</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidStructLayoutPackageCmdSet1" id="cmdidParseCommand" priority="0x0100" type="Button">
         <Parent guid="guidStructLayoutPackageCmdSet1" id="EditorContextMenuGroup" />
-        <Icon guid="guidImages1" id="bmpPic1" />
+        <Icon guid="guidImages" id="icon" />
         <Strings>
           <ButtonText>Show Struct Layout</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidStructLayoutPackageCmdSet2" id="cmdidSettingsCommand" priority="0x0100" type="Button">
+        <Parent guid="guidStructLayoutPackageCmdSet2" id="StructLayoutMenuGroup" />
+        <Strings>
+          <ButtonText>Options</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -65,14 +71,27 @@
             bitmap strip containing the bitmaps and then there are the numeric ids of the elements used
             inside a button definition. An important aspect of this declaration is that the element id
             must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
-      <Bitmap guid="guidImages" href="LayoutWindow\Resources\LayoutWindowCommand.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
-      <Bitmap guid="guidImages1" href="Editor\Resources\ParseCommand.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
+      <Bitmap guid="guidImages" href="LayoutWindow\Resources\LayoutWindowCommand.png" usedList="icon, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
     </Bitmaps>
     <Groups>
       <Group guid="guidStructLayoutPackageCmdSet1" id="EditorContextMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN" />
       </Group>
+      <Group guid="guidStructLayoutPackageCmdSet2" id="StructLayoutGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EXTENSIONS" />
+      </Group>
+      <Group guid="guidStructLayoutPackageCmdSet2" id="StructLayoutMenuGroup" priority="0x0600">
+        <Parent guid="guidStructLayoutPackageCmdSet2" id="StructLayoutMenu" />
+      </Group>
     </Groups>
+    <Menus>
+      <Menu guid="guidStructLayoutPackageCmdSet2" id="StructLayoutMenu" type="Menu" priority="0x0600">
+        <Parent guid="guidStructLayoutPackageCmdSet2" id="StructLayoutGroup"/>
+        <Strings>
+          <ButtonText>Struct Layout</ButtonText>
+        </Strings>
+      </Menu>
+    </Menus>
   </Commands>
 
   <KeyBindings>
@@ -83,13 +102,18 @@
     <!-- This is the package guid. -->
     <GuidSymbol name="guidStructLayoutPackage" value="{f8311149-1f10-4946-a454-0ac3ca1e28cc}" />
 
+    <!-- HACK AS IDM_VS_MENU_EXTENSIONS is not found and it is fetch on an older file -->
+    <GuidSymbol name="guidSHLMainMenu" value="{d309f791-903f-11d0-9efc-00a0c911004f}">
+      <IDSymbol name="IDM_VS_MENU_EXTENSIONS" value="0x0091" />
+    </GuidSymbol>
+
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidStructLayoutPackageCmdSet" value="{7df6381a-21a4-4a2b-b334-faac37766f18}">
       <IDSymbol name="LayoutWindowCommandId" value="0x0100" />
     </GuidSymbol>
 
     <GuidSymbol name="guidImages" value="{37b49787-74b7-4937-b6ea-f7d8144f71fc}">
-      <IDSymbol name="bmpPic1" value="1" />
+      <IDSymbol name="icon" value="1" />
       <IDSymbol name="bmpPic2" value="2" />
       <IDSymbol name="bmpPicSearch" value="3" />
       <IDSymbol name="bmpPicX" value="4" />
@@ -101,14 +125,12 @@
       <IDSymbol value="4128" name="EditorContextMenuGroup" />
       <IDSymbol value="256" name="cmdidParseCommand" />
     </GuidSymbol>
-  
-    <GuidSymbol value="{2654e379-69fd-4d04-96ed-532e2a23442f}" name="guidImages1">
-      <IDSymbol name="bmpPic1" value="1" />
-      <IDSymbol name="bmpPic2" value="2" />
-      <IDSymbol name="bmpPicSearch" value="3" />
-      <IDSymbol name="bmpPicX" value="4" />
-      <IDSymbol name="bmpPicArrows" value="5" />
-      <IDSymbol name="bmpPicStrikethrough" value="6" />
+
+    <GuidSymbol value="{2d97936f-81d9-4101-a448-a39c1e21596a}" name="guidStructLayoutPackageCmdSet2">
+      <IDSymbol value="4128" name="StructLayoutGroup" />
+      <IDSymbol value="4129" name="StructLayoutMenu" />
+      <IDSymbol value="4130" name="StructLayoutMenuGroup" />
+      <IDSymbol value="256" name="cmdidSettingsCommand" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>
