@@ -94,17 +94,15 @@ namespace StructLayout
 
         private ProjectProperties.StandardVersion GetStandardVersion(VCConfiguration config)
         {
-            try
-            {
-                IVCRulePropertyStorage generalRule = config.Rules.Item("ConfigurationGeneral");
-                string value = generalRule.GetEvaluatedPropertyValue("LanguageStandard");
+            IVCRulePropertyStorage generalRule = config.Rules.Item("ConfigurationGeneral");
+            string value = null;
 
-                     if (value == "Default")      { return ProjectProperties.StandardVersion.Default; }
-                else if (value == "stdcpp14")     { return ProjectProperties.StandardVersion.Cpp14; }
-                else if (value == "stdcpp17")     { return ProjectProperties.StandardVersion.Cpp17; }
-                else if (value == "stdcpplatest") { return ProjectProperties.StandardVersion.Latest; }
-            }
-            catch(Exception){}
+            try { value = generalRule == null? null : generalRule.GetEvaluatedPropertyValue("LanguageStandard"); }catch(Exception){}
+            
+                 if (value == "Default")      { return ProjectProperties.StandardVersion.Default; }
+            else if (value == "stdcpp14")     { return ProjectProperties.StandardVersion.Cpp14; }
+            else if (value == "stdcpp17")     { return ProjectProperties.StandardVersion.Cpp17; }
+            else if (value == "stdcpplatest") { return ProjectProperties.StandardVersion.Latest; }
 
             return ProjectProperties.StandardVersion.Latest;
         }
@@ -205,20 +203,28 @@ namespace StructLayout
             AppendMSBuildStringToList(ret.IncludeDirectories, platform.Evaluate(platform.IncludeDirectories));
             AppendProjectProperties(ret, vctools.Item("VCCLCompilerTool") as VCCLCompilerTool, vctools.Item("VCNMakeTool") as VCNMakeTool, platform);
 
-            try
+            //Get settings from the single file (this might fail badly if there are no settings to catpure)
+            var applicationObject = ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
+            Assumes.Present(applicationObject);
+            ProjectItem item = applicationObject.ActiveDocument.ProjectItem;
+            VCFile vcfile = item != null? item.Object as VCFile : null;
+            IVCCollection fileCfgs = vcfile != null? (IVCCollection)vcfile.FileConfigurations : null;
+            VCFileConfiguration fileConfig = fileCfgs != null? fileCfgs.Item(config.Name) as VCFileConfiguration : null;
+            VCCLCompilerTool fileToolCL = null;
+            VCNMakeTool fileToolNMake = null;
+
+            try 
             {
-                //Get settings from the single file (this might fail badly if there are no settings to catpure)
-                var applicationObject = ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
-                Assumes.Present(applicationObject);
-                ProjectItem item = applicationObject.ActiveDocument.ProjectItem;
-                VCFile vcfile = item.Object as VCFile;
-
-                IVCCollection fileCfgs = (IVCCollection)vcfile.FileConfigurations;
-                VCFileConfiguration fileConfig = fileCfgs.Item(config.Name) as VCFileConfiguration;
-
-                AppendProjectProperties(ret, fileConfig.Tool as VCCLCompilerTool, fileConfig.Tool as VCNMakeTool, platform);
+                fileToolCL = fileConfig.Tool as VCCLCompilerTool;
+                fileToolNMake = fileConfig.Tool as VCNMakeTool;
+            } 
+            catch (Exception e) 
+            { 
+                OutputLog.Log("File specific properties not found, only project properties used ("+e.Message+")"); 
+                //TODO ~ ramonv ~ get the data from the vcxproj XML
             }
-            catch (Exception) {}
+
+            AppendProjectProperties(ret, fileToolCL, fileToolNMake, platform);
 
             SolutionSettings customSettings = SettingsManager.Instance.Settings;
             if (customSettings != null)
