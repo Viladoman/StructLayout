@@ -19,7 +19,7 @@ namespace StructLayout
         public string Label { get; set; }
         public string Tooltip { get; set; }
 
-        public EditorUtils.EditorMode DisplayFilter { set; get; }
+        public EditorUtils.EditorMode DisplayFilter { set; get; } = EditorUtils.EditorMode.None;
     }
 
     public class SolutionSettings

@@ -42,7 +42,7 @@ namespace StructLayout
                 var customAttributes = (UIDescription[])property.GetCustomAttributes(typeof(UIDescription), true);
                 UIDescription description = (customAttributes.Length > 0 && customAttributes[0] != null)? customAttributes[0] : null;
 
-                if (description != null && description.DisplayFilter != editorMode)
+                if (description != null && description.DisplayFilter != EditorUtils.EditorMode.None && description.DisplayFilter != editorMode)
                 {
                     continue;
                 }
