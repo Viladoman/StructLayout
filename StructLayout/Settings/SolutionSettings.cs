@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,13 +20,16 @@ namespace StructLayout
         public string Label { get; set; }
         public string Tooltip { get; set; }
 
-        public EditorUtils.EditorMode DisplayFilter { set; get; } = EditorUtils.EditorMode.None;
+        public EditorUtils.EditorMode EditorModeFilter { set; get; } = EditorUtils.EditorMode.None;
     }
 
     public class SolutionSettings
     {
-        [UIDescription(Label = "CMake Commands File", DisplayFilter = EditorUtils.EditorMode.CMake, Tooltip = "File location for the build commands exported by CMAKE_EXPORT_COMPILE_COMMANDS=1 (This fields allows a limited set of $(SolutionDir) style macros)")]
-        public string CMakeCommandsFile { set; get; } = "";
+        [UIDescription(Label = "Automatic Extraction", Tooltip = "If true, it will try to extract the architecture, include paths, preprocessor macros... from the current solution.")]
+        public bool AutomaticExtraction { set; get; } = true;
+
+        //[UIDescription(Label = "CMake Commands File", EditorModeFilter = EditorUtils.EditorMode.CMake, Tooltip = "File location for the build commands exported by CMAKE_EXPORT_COMPILE_COMMANDS=1 (This fields allows a limited set of $(SolutionDir) style macros)")]
+        //public string CMakeCommandsFile { set; get; } = "";
 
         //Parser Settings
         [UIDescription(Label = "Extra Preprocessor Defintions", Tooltip = "Additional preprocessor definitions on top of the auto extracted form the project configuration. (This fields allows $(SolutionDir) style macros)")]

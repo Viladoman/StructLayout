@@ -105,21 +105,21 @@ namespace StructLayout
             }
         }
 
-        private void AppendProjectProperties(ProjectProperties properties, VCCLCompilerTool cl, VCNMakeTool nmake, VCPlatform platform)
+        private void AppendProjectProperties(ProjectProperties properties, VCCLCompilerTool cl, VCNMakeTool nmake, IMacroEvaluator evaluator)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             if (cl != null)
             {
-                AppendMSBuildStringToList(properties.IncludeDirectories,     platform.Evaluate(cl.AdditionalIncludeDirectories));
-                AppendMSBuildStringToList(properties.ForceIncludes,          platform.Evaluate(cl.ForcedIncludeFiles));
-                AppendMSBuildStringToList(properties.PrepocessorDefinitions, platform.Evaluate(cl.PreprocessorDefinitions));
+                AppendMSBuildStringToList(properties.IncludeDirectories,     evaluator.Evaluate(cl.AdditionalIncludeDirectories));
+                AppendMSBuildStringToList(properties.ForceIncludes,          evaluator.Evaluate(cl.ForcedIncludeFiles));
+                AppendMSBuildStringToList(properties.PrepocessorDefinitions, evaluator.Evaluate(cl.PreprocessorDefinitions));
             }
             else if (nmake != null)
             {
-                AppendMSBuildStringToList(properties.IncludeDirectories,     platform.Evaluate(nmake.IncludeSearchPath));
-                AppendMSBuildStringToList(properties.ForceIncludes,          platform.Evaluate(nmake.ForcedIncludes));
-                AppendMSBuildStringToList(properties.PrepocessorDefinitions, platform.Evaluate(nmake.PreprocessorDefinitions));
+                AppendMSBuildStringToList(properties.IncludeDirectories,     evaluator.Evaluate(nmake.IncludeSearchPath));
+                AppendMSBuildStringToList(properties.ForceIncludes,          evaluator.Evaluate(nmake.ForcedIncludes));
+                AppendMSBuildStringToList(properties.PrepocessorDefinitions, evaluator.Evaluate(nmake.PreprocessorDefinitions));
             }
         }
 
@@ -127,11 +127,35 @@ namespace StructLayout
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            switch(EditorUtils.GetEditorMode())
+            var customSettings = SettingsManager.Instance.Settings;
+            if (customSettings == null || customSettings.AutomaticExtraction)
             {
-                case EditorUtils.EditorMode.VisualStudio: return GetProjectDataVisualStudio();
-                case EditorUtils.EditorMode.CMake:        return GetProjectDataCMake();
-                default: return null;
+                switch(EditorUtils.GetEditorMode())
+                {
+                    case EditorUtils.EditorMode.VisualStudio: return GetProjectDataVisualStudio();
+                    case EditorUtils.EditorMode.CMake:        return GetProjectDataCMake();
+                    default: return null;
+                }
+            }
+            else
+            {
+                return GetProjectDataManual();
+            }
+        }
+
+        private void AddCustomSettings(ProjectProperties projProperties, IMacroEvaluator evaluator)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            SolutionSettings customSettings = SettingsManager.Instance.Settings;
+            if (customSettings != null)
+            {
+                var evaluatorExtra = new MacroEvaluatorExtra();
+                AppendMSBuildStringToList(projProperties.IncludeDirectories, evaluator.Evaluate(evaluatorExtra.Evaluate(customSettings.AdditionalIncludeDirs)));
+                AppendMSBuildStringToList(projProperties.ForceIncludes, evaluator.Evaluate(evaluatorExtra.Evaluate(customSettings.AdditionalForceIncludes)));
+                AppendMSBuildStringToList(projProperties.PrepocessorDefinitions, evaluator.Evaluate(evaluatorExtra.Evaluate(customSettings.AdditionalPreprocessorDefinitions)));
+                projProperties.ExtraArguments = evaluator.Evaluate(evaluatorExtra.Evaluate(customSettings.AdditionalCommandLine));
+                projProperties.ShowWarnings = customSettings.EnableWarnings;
             }
         }
 
@@ -157,6 +181,8 @@ namespace StructLayout
 
             var midl = vctools.Item("VCMidlTool") as VCMidlTool;
 
+            var evaluator = new MacroEvaluatorVisualPlatform(platform);
+
             ProjectProperties ret = new ProjectProperties();
             ret.Target = midl != null && midl.TargetEnvironment == midlTargetEnvironment.midlTargetWin32 ? ProjectProperties.TargetType.x86 : ProjectProperties.TargetType.x64;
             ret.Standard = GetStandardVersion(config);
@@ -165,8 +191,8 @@ namespace StructLayout
             ret.WorkingDirectory = Path.GetDirectoryName(project.FullName);
 
             //Include dirs / files and preprocessor
-            AppendMSBuildStringToList(ret.IncludeDirectories, platform.Evaluate(platform.IncludeDirectories));
-            AppendProjectProperties(ret, vctools.Item("VCCLCompilerTool") as VCCLCompilerTool, vctools.Item("VCNMakeTool") as VCNMakeTool, platform);
+            AppendMSBuildStringToList(ret.IncludeDirectories, evaluator.Evaluate(platform.IncludeDirectories));
+            AppendProjectProperties(ret, vctools.Item("VCCLCompilerTool") as VCCLCompilerTool, vctools.Item("VCNMakeTool") as VCNMakeTool, evaluator);
 
             //Get settings from the single file (this might fail badly if there are no settings to catpure)
             var applicationObject = EditorUtils.ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
@@ -185,25 +211,15 @@ namespace StructLayout
             } 
             catch (Exception e) 
             { 
-                //TODO ~ ramonv ~ get the data from the vcxproj XML ( if enabled parse the solution folder ) 
+                //If we really need this data we can always parse the vcxproj as an xml 
                 OutputLog.Log("File specific properties not found, only project properties used ("+e.Message+")"); 
             }
 
-            AppendProjectProperties(ret, fileToolCL, fileToolNMake, platform);
+            AppendProjectProperties(ret, fileToolCL, fileToolNMake, evaluator);
 
-            //TODO ~ ramonv ~ move toa different function for reusage between VS and CMAKE
-            SolutionSettings customSettings = SettingsManager.Instance.Settings;
-            if (customSettings != null)
-            {
-                AppendMSBuildStringToList(ret.IncludeDirectories, platform.Evaluate(customSettings.AdditionalIncludeDirs));
-                AppendMSBuildStringToList(ret.ForceIncludes, platform.Evaluate(customSettings.AdditionalForceIncludes));
-                AppendMSBuildStringToList(ret.PrepocessorDefinitions, platform.Evaluate(customSettings.AdditionalPreprocessorDefinitions));
-                ret.ExtraArguments = platform.Evaluate(customSettings.AdditionalCommandLine);
-                ret.ShowWarnings = customSettings.EnableWarnings;
-            }
+            AddCustomSettings(ret, evaluator);
 
-            //Exclude directories 
-            RemoveMSBuildStringFromList(ret.IncludeDirectories, platform.Evaluate(platform.ExcludeDirectories));
+            RemoveMSBuildStringFromList(ret.IncludeDirectories, evaluator.Evaluate(platform.ExcludeDirectories)); //Exclude directories 
 
             return ret;
         }
@@ -214,11 +230,32 @@ namespace StructLayout
 
             OutputLog.Log("Capturing configuration from CMake...");
 
-            //TODO ~ ramonv ~ to be implemented
+            var evaluator = new MacroEvaluatorBasic();
 
-            return null;
+            var ret = new ProjectProperties();
+
+            //TODO ~ ramonv ~ to be implemented
+            //TODO ~ ramonv ~ retrieve the CMake Commands and parse if for closest setup and command line parameter extraction
+            OutputLog.Log("WIP! default to manual configuration.");
+
+            AddCustomSettings(ret, evaluator);
+
+            return ret;
         }
 
+        private ProjectProperties GetProjectDataManual()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            OutputLog.Log("Using manual configuration...");
+
+            var ret = new ProjectProperties();
+
+            var evaluator = new MacroEvaluatorBasic();
+            AddCustomSettings(ret, evaluator);
+
+            return ret;
+        }
       
 
         public async System.Threading.Tasks.Task ParseAtCurrentLocationAsync()

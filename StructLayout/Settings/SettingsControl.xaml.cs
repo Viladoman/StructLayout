@@ -27,6 +27,8 @@ namespace StructLayout
 
         public SettingsControl(SettingsWindow window, SolutionSettings settings)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             Win = window;
             Options = settings;
             InitializeComponent();
@@ -34,6 +36,8 @@ namespace StructLayout
         }
         private void CreateGrid()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             EditorUtils.EditorMode editorMode = EditorUtils.GetEditorMode();
 
             PropertyInfo[] properties = typeof(SolutionSettings).GetProperties();
@@ -42,7 +46,7 @@ namespace StructLayout
                 var customAttributes = (UIDescription[])property.GetCustomAttributes(typeof(UIDescription), true);
                 UIDescription description = (customAttributes.Length > 0 && customAttributes[0] != null)? customAttributes[0] : null;
 
-                if (description != null && description.DisplayFilter != EditorUtils.EditorMode.None && description.DisplayFilter != editorMode)
+                if (description != null && description.EditorModeFilter != EditorUtils.EditorMode.None && description.EditorModeFilter != editorMode)
                 {
                     continue;
                 }
