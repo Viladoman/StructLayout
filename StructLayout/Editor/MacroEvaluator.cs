@@ -39,7 +39,7 @@ namespace StructLayout
 
         public string Evaluate(string input)
         {
-            return Regex.Replace(input, @"(\$\([a-zA-Z_]+\))", delegate (Match m)
+            return Regex.Replace(input, @"(\$\([a-zA-Z0-9_]+\))", delegate (Match m)
             {                
                 if (dict.ContainsKey(m.Value))
                 {
@@ -102,9 +102,33 @@ namespace StructLayout
     {
         public override string ComputeMacro(string macroStr)
         {
-            //TODO ~ ramonv ~ to be implemented
-     
-            //Add UE4ModuleName
+            if (macroStr == @"$(UE4ModuleName)")
+            {
+                Document doc = EditorUtils.GetActiveDocument();
+                if (doc == null)
+                {
+                    return null;
+                }
+                
+                string path = doc.FullName;
+                var dirInfo = Directory.GetParent(path);
+
+                while (dirInfo != null)
+                {
+                    path = dirInfo.FullName;
+
+                    string folderName = Path.GetFileName(path);
+                    if (File.Exists(path+"\\"+folderName+".Build.cs"))
+                    {
+                        OutputLog.Log("UE4 Module Name: " + folderName);
+                        return folderName;
+                    }
+
+                    dirInfo = Directory.GetParent(path); //Next folder
+                }
+
+                OutputLog.Log("Unable to find the UE4 Module Name");
+            }
 
             return null;
         }

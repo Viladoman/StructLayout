@@ -28,11 +28,8 @@ namespace StructLayout
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            //Get full file path
-            var applicationObject = EditorUtils.ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
-            Assumes.Present(applicationObject);
-
-            string filename = applicationObject.ActiveDocument.FullName;
+            Document activeDocument = EditorUtils.GetActiveDocument();
+            if (activeDocument == null) return null;
 
             //Get text location
             var textManager = EditorUtils.ServiceProvider.GetService(typeof(SVsTextManager)) as IVsTextManager2;
@@ -44,7 +41,7 @@ namespace StructLayout
 
             view.GetCaretPos(out int line, out int col);
 
-            return new DocumentLocation(filename,(uint)(line+1),(uint)(col+1));
+            return new DocumentLocation(activeDocument.FullName, (uint)(line+1),(uint)(col+1));
         }
 
         private ProjectProperties.StandardVersion GetStandardVersion(VCConfiguration config)

@@ -34,6 +34,14 @@ namespace StructLayout
             return (GeneralSettingsPageGrid)Package.GetDialogPage(typeof(GeneralSettingsPageGrid));
         }
 
+        static public Document GetActiveDocument()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            var applicationObject = EditorUtils.ServiceProvider.GetService(typeof(DTE)) as EnvDTE80.DTE2;
+            Assumes.Present(applicationObject);
+            return applicationObject.ActiveDocument;
+        }
+
         static public Project GetActiveProject()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
