@@ -902,7 +902,7 @@ namespace StructLayout
 
         private void ScrollViewer_OnClick(object sender, MouseButtonEventArgs e)
         {
-            if (Hover != null && Hover.Children.Count > 0 && GetSelectedDisplayMode() == DisplayMode.Stack)
+            if (Hover != null && Hover.Children.Count > 0)
             {
                 if (Hover.Collapsed)
                 {

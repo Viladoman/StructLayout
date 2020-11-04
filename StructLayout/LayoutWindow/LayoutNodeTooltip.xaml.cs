@@ -137,7 +137,7 @@ namespace StructLayout
 
         private void RefreshInteractionText()
         {
-            if (Viewer.GetSelectedDisplayMode() == LayoutViewer.DisplayMode.Flat || Node.Children.Count == 0 || Node.Category == LayoutNode.LayoutCategory.Union)
+            if (Node.Children.Count == 0 || Node.Category == LayoutNode.LayoutCategory.Union)
             {
                 interactionBorder.Visibility = Visibility.Collapsed;
                 interactionPanel.Visibility = Visibility.Collapsed;
@@ -146,7 +146,7 @@ namespace StructLayout
             {
                 interactionBorder.Visibility = Visibility.Visible;
                 interactionPanel.Visibility = Visibility.Visible;
-                interactionTxt.Text = "Left Mouse Click to Expand/Collapse";
+                interactionTxt.Text = Node.Collapsed? "Left Mouse Click to Expand" : "Left Mouse Click to Collapse";
             }
         }
         public static string GetFullValueStr(uint value)
