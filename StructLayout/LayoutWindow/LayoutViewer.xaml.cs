@@ -208,7 +208,8 @@ namespace StructLayout
             overlayBrush.Opacity = 0.3;
             SetDisplayGridColumns(8);
 
-            tooltip.Content = new LayoutNodeTooltip(this);
+            tooltip.Content = new LayoutNodeTooltip();
+            tooltip.Padding = new Thickness(0);
 
             displayAlignementComboBox.ItemsSource = Enum.GetValues(typeof(DisplayAlignmentType)).Cast<DisplayAlignmentType>();
             displayAlignementComboBox.SelectedIndex = 0;

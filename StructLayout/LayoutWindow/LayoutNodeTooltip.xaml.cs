@@ -21,7 +21,6 @@ namespace StructLayout
     public partial class LayoutNodeTooltip : UserControl
     {
         private LayoutNode Node { set; get; }
-        private LayoutViewer Viewer { set; get; }
 
         public LayoutNode ReferenceNode
         {
@@ -29,9 +28,8 @@ namespace StructLayout
             get { return Node; }
         }
 
-        public LayoutNodeTooltip(LayoutViewer viewer)
+        public LayoutNodeTooltip()
         {
-            Viewer = viewer;
             InitializeComponent();
         }
 

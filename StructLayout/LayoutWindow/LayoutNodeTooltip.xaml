@@ -4,9 +4,20 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:StructLayout"
+             xmlns:common="clr-namespace:StructLayout.Common"
+             Background="{DynamicResource {x:Static common:ColorTheme.Background}}"
+             Foreground="{DynamicResource {x:Static common:ColorTheme.Foreground}}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+
+    <UserControl.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.Foreground}}" />
+            <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.Background}}" />
+        </Style>        
+    </UserControl.Resources>
+
+    <Grid Margin="10">
         <StackPanel>
             <TextBlock x:Name="headerTxt" FontWeight="Bold" FontSize="18" Margin="0,0,0,5"/>
             <TextBlock x:Name="subheaderTxt" FontSize="14"/>
