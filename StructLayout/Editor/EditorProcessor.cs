@@ -253,7 +253,15 @@ namespace StructLayout
 
             return ret;
         }
-      
+        public void DisplayDialogResult(ParseResult.StatusCode status)
+        {
+            switch(status)
+            {
+                case ParseResult.StatusCode.InvalidInput: MessageBox.Show("Parser had Invalid Input.","Struct Layout Result"); break;
+                case ParseResult.StatusCode.ParseFailed:  MessageBox.Show("Errors found while parsing.\nCheck the 'Struct Layout' output pane for more information.\nUpdate the Extension's options as needed for a succesful compilation.", "Struct Layout Result"); break;
+                case ParseResult.StatusCode.NotFound:     MessageBox.Show("No structure found at the given position.", "Struct Layout Result"); break;
+            }
+        }
 
         public async System.Threading.Tasks.Task ParseAtCurrentLocationAsync()
         {
@@ -289,6 +297,8 @@ namespace StructLayout
             } 
 
             var result = await parser.ParseAsync(properties, location);
+
+            DisplayDialogResult(result.Status);
 
             //Only create or focus the window if we have a valid result
             LayoutWindow win = EditorUtils.GetLayoutWindow(result.Status == ParseResult.StatusCode.Found);
