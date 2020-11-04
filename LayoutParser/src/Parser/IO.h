@@ -7,11 +7,13 @@ namespace Layout
 
 namespace IO
 { 
+	typedef double (__stdcall *TLogFunc)(const char*);
+
 	void Clear();
 
 	bool ToDataBuffer(const Layout::Tree& tree);
 	char* GetDataBuffer(unsigned int& size);
 
-    void ToLogBuffer(const char* str, unsigned int len);
-    char* GetLogBuffer(unsigned int& size);
+	void SetLogFunc(TLogFunc func);
+    void Log(const char* str);
 }

@@ -163,18 +163,19 @@ namespace StructLayout
     {
         public bool PrintCommandLine { get; set; } = false;
 
+        delegate void ParserLog(string str);
         [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool ParseLocation(string commandline, string fullFilename, uint row, uint col);
+        static extern double LayoutParser_SetLog([MarshalAs(UnmanagedType.FunctionPtr)] ParserLog func);
 
         [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr GetData(ref uint size);
+        public static extern bool LayoutParser_ParseLocation(string commandline, string fullFilename, uint row, uint col);
 
         [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr GetLog(ref uint size);
+        public static extern IntPtr LayoutParser_GetData(ref uint size);
 
         [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void Clear();
-
+        public static extern void LayoutParser_Clear();
+        
         private LayoutNode ReadNode(BinaryReader reader)
         {
             LayoutNode node = new LayoutNode();
@@ -263,26 +264,11 @@ namespace StructLayout
             FinalizeNodeRecursive(node);
         }
 
-        public void ProcessLog()
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            uint size = 0;
-            IntPtr result = GetLog(ref size);
-            if (size > 0)
-            {
-                byte[] managedArray = new byte[size];
-                Marshal.Copy(result, managedArray, 0, (int)size);
-                string val = Encoding.UTF8.GetString(managedArray);
-                OutputLog.Log("Execution Log:\n"+val);
-            }
-        }
-
         public async Task<ParseResult> ParseAsync(ProjectProperties projProperties, DocumentLocation location)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            ParseResult ret = new ParseResult(); 
+            ParseResult ret = new ParseResult();
 
             if (location.Filename == null || location.Filename.Length == 0)
             {
@@ -290,8 +276,6 @@ namespace StructLayout
                 ret.Status = ParseResult.StatusCode.InvalidInput;
                 return ret;
             }
-
-            //SetLog(str => OutputLog.Log(str));
 
             AdjustPaths(projProperties.IncludeDirectories);
             AdjustPaths(projProperties.ForceIncludes);
@@ -316,13 +300,15 @@ namespace StructLayout
                 OutputLog.Log("COMMAND LINE: " + toolCmd);
             }
 
+            string log = "";
+            LayoutParser_SetLog(str => log += str);
+
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
             var valid = false;
-
             try
             {
-                valid = await System.Threading.Tasks.Task.Run(() => ParseLocation(toolCmd, location.Filename, location.Line, location.Column));
+                valid = await System.Threading.Tasks.Task.Run(() => LayoutParser_ParseLocation(toolCmd, location.Filename, location.Line, location.Column));
             }
             catch(Exception e)
             {
@@ -333,13 +319,16 @@ namespace StructLayout
             const long TicksPerMicrosecond = (TimeSpan.TicksPerMillisecond / 1000);
             string timeStr = " ("+GetTimeStr((ulong)(watch.ElapsedTicks / TicksPerMicrosecond))+")";
 
-            ProcessLog();
+            if (log.Length > 0)
+            {
+                OutputLog.Log("Execution Log:\n" + log);
+            }
 
             if (valid)
             {
                 //capture data
                 uint size = 0;
-                IntPtr result = GetData(ref size);
+                IntPtr result = LayoutParser_GetData(ref size);
 
                 if (size > 0)
                 {
@@ -367,7 +356,7 @@ namespace StructLayout
                 ret.Status = ParseResult.StatusCode.ParseFailed;
             }
 
-            Clear();
+            LayoutParser_Clear();
 
             return ret;
         }

@@ -64,23 +64,23 @@ namespace Utils
 
 extern "C"
 {
-    DLLEXPORT char* GetData(unsigned int* size)
+    DLLEXPORT char* LayoutParser_GetData(unsigned int* size)
     { 
         return IO::GetDataBuffer(*size);
     }
 
-    DLLEXPORT char* GetLog(unsigned int* size)
-    {
-        return IO::GetLogBuffer(*size);
+    DLLEXPORT void LayoutParser_SetLog(IO::TLogFunc logFunc)
+    { 
+        IO::SetLogFunc(logFunc);
     }
 
-    DLLEXPORT bool ParseLocation(const char* commandLineArgs, const char* filename, const unsigned int row, const unsigned int col)
+    DLLEXPORT bool LayoutParser_ParseLocation(const char* commandLineArgs, const char* filename, const unsigned int row, const unsigned int col)
     {  
         Parser::SetFilter(Parser::LocationFilter{filename,row,col});
         return Utils::Parse(filename, commandLineArgs);
     }
 
-    DLLEXPORT void Clear()
+    DLLEXPORT void LayoutParser_Clear()
     {
         Parser::Clear();
         IO::Clear();

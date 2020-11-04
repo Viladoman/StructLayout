@@ -1,3 +1,5 @@
+#include "IO.h"
+
 #include <vector>
 #include <string>
 
@@ -7,7 +9,8 @@ namespace IO
 { 
     using TBuffer = std::vector<char>;
     TBuffer g_dataBuffer;
-    TBuffer g_logBuffer;
+
+    TLogFunc g_logFunc = nullptr;
 
     namespace Utils
     {
@@ -69,7 +72,6 @@ namespace IO
     void Clear()
     { 
         g_dataBuffer.clear();
-        g_logBuffer.clear();
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -92,19 +94,17 @@ namespace IO
     }
 
     // -----------------------------------------------------------------------------------------------------------------
-    void ToLogBuffer(const char* str, unsigned int len)
-    {
-        while(*str)
-        { 
-            g_logBuffer.push_back(*str);
-            ++str;
-        }
+    void SetLogFunc(TLogFunc func)
+    { 
+        g_logFunc = func;
     }
 
     // -----------------------------------------------------------------------------------------------------------------
-    char* GetLogBuffer(unsigned int& size)
+    void Log(const char* str)
     {
-        size = static_cast<unsigned int>(g_logBuffer.size());
-        return g_logBuffer.empty()? nullptr : &g_logBuffer[0];
+        if (g_logFunc)
+        { 
+            g_logFunc(str);
+        } 
     }
 }

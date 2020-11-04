@@ -314,7 +314,7 @@ namespace Parser
         
     void ConsoleLog(llvm::StringRef str)
     { 
-        IO::ToLogBuffer(str.str().c_str(),str.str().length());
+        IO::Log(str.str().c_str());
     }
 
 	bool Parse(const char* filename, int argc, const char* argv[])
