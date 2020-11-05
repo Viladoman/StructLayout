@@ -22,9 +22,6 @@ In this visualization mode the types with children are stacked in order to allow
 ### Flat Mode
 
 The flat mode skips all groups and only shows one layer, producing a more compact view. 
-In flat mode we can toggle between: 
-- **Top** : only the struct direct members.
-- **Bottom**: types without any children.
 
 ![Flat screenshot](https://github.com/Viladoman/StructLayout/wiki/data/Flat.png?raw=true)
 
@@ -45,7 +42,7 @@ When a Layout request is made the extension does the following:
 
 ## Options & Configurations
 
-[More detailed information in the Configurations Wiki](https://github.com/Viladoman/StructLayout/wiki/Configurations)
+[More detailed information in the Configurations Page](https://github.com/Viladoman/StructLayout/wiki/Configurations)
 
 Because each solution might need different extra parameters and different needs, the parser options with the extra parameters are stored in a file called **StructLayoutSettings.json** next to the solution. This options can be accessed by pressing the *Options* button in the Extensions tab or in the Struct Layout Tool Window's bottom left corner.
 
