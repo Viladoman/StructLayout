@@ -83,20 +83,28 @@ namespace StructLayout
         {
             extraStack.Children.Clear();
 
-            if (Node.Extra.Count > 1 && Node.Category == LayoutNode.LayoutCategory.Bitfield)
-            { 
-                //Compound bitfield (display contents) 
-                extraBorder.Visibility = Visibility.Visible;
-                extraStack.Visibility = Visibility.Visible;
-                var title = new TextBlock();
-                title.Text = "Contains:";
-                extraStack.Children.Add(title);
-
-                foreach (LayoutNode child in Node.Extra)
+            if (Node.Category == LayoutNode.LayoutCategory.Bitfield)
+            {
+                if (Node.Extra.Count > 1)
                 {
-                    var desc = new TextBlock();
-                    desc.Text = "- " + (child.Type.Length > 0 ? child.Type : child.Category.ToString()) + (child.Name.Length > 0 ? " " + child.Name : "") + " : " + child.Size;
-                    extraStack.Children.Add(desc);
+                    //Compound bitfield (display contents) 
+                    extraBorder.Visibility = Visibility.Visible;
+                    extraStack.Visibility = Visibility.Visible;
+                    var title = new TextBlock();
+                    title.Text = "Contains:";
+                    extraStack.Children.Add(title);
+
+                    foreach (LayoutNode child in Node.Extra)
+                    {
+                        var desc = new TextBlock();
+                        desc.Text = "- " + (child.Type.Length > 0 ? child.Type : child.Category.ToString()) + (child.Name.Length > 0 ? " " + child.Name : "") + " : " + child.Size;
+                        extraStack.Children.Add(desc);
+                    }
+                }
+                else
+                {
+                    extraBorder.Visibility = Visibility.Collapsed;
+                    extraStack.Visibility = Visibility.Collapsed;
                 }
             }
             else if (Node.Extra.Count > 0)

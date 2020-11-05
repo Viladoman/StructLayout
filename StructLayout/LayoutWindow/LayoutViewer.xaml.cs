@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace StructLayout
 {
@@ -187,7 +188,8 @@ namespace StructLayout
         private LayoutNode Root { set; get; }
         private LayoutNode Hover { set; get; }
 
-        private ToolTip tooltip = new ToolTip();
+        private ToolTip tooltip = new ToolTip() { Content = new LayoutNodeTooltip(), Padding = new Thickness(0) };
+        private DispatcherTimer tooltipTimer = new DispatcherTimer() { Interval = new TimeSpan(4000000) };
 
         private Pen nodeBorderPen = new Pen(Colors.GetCategoryForeground(), 2);
         private Brush overlayBrush = Brushes.White.Clone(); 
@@ -208,8 +210,7 @@ namespace StructLayout
             overlayBrush.Opacity = 0.3;
             SetDisplayGridColumns(8);
 
-            tooltip.Content = new LayoutNodeTooltip();
-            tooltip.Padding = new Thickness(0);
+            tooltipTimer.Tick += ShowTooltip;
 
             displayAlignementComboBox.ItemsSource = Enum.GetValues(typeof(DisplayAlignmentType)).Cast<DisplayAlignmentType>();
             displayAlignementComboBox.SelectedIndex = 0;
@@ -251,20 +252,29 @@ namespace StructLayout
             return displayModeComboBox.SelectedItem != null ? (DisplayMode)displayModeComboBox.SelectedItem : DisplayMode.Stack;
         }
 
+        private void ShowTooltip(Object a, object b)
+        {
+            tooltipTimer.Stop();
+            (tooltip.Content as LayoutNodeTooltip).ReferenceNode = Hover;
+            tooltip.Placement = System.Windows.Controls.Primitives.PlacementMode.Mouse;
+            tooltip.IsOpen = true;
+            tooltip.PlacementTarget = this;
+        }
+
         private void SetHoverNode(LayoutNode node)
         {
             if (node != Hover)
             {
+                //Close Tooltip 
+                tooltip.IsOpen = false;
+                tooltipTimer.Stop();
+                
                 Hover = node;
 
-                //Tooltip control 
-                (tooltip.Content as LayoutNodeTooltip).ReferenceNode = Hover;
-                tooltip.IsOpen = false;
+                //Start Tooltip if applicable
                 if (Hover != null)
                 {
-                    tooltip.Placement = System.Windows.Controls.Primitives.PlacementMode.Mouse;
-                    tooltip.IsOpen = true;
-                    tooltip.PlacementTarget = this;
+                    tooltipTimer.Start();
                 }
 
                 RenderOverlay();
