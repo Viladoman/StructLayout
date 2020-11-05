@@ -102,6 +102,8 @@ namespace StructLayout
     {
         public override string ComputeMacro(string macroStr)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             if (macroStr == @"$(UE4ModuleName)")
             {
                 Document doc = EditorUtils.GetActiveDocument();

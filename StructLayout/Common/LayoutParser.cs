@@ -175,7 +175,21 @@ namespace StructLayout
 
         [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern void LayoutParser_Clear();
-        
+
+        private static string Log { set; get; } = "";
+        private static ParserLog logFunc;
+
+        private static void ProcessLog(string str)
+        {
+            Log += str;
+        }
+
+        public static void SetupParser()
+        {
+            logFunc = new ParserLog(ProcessLog);
+            LayoutParser_SetLog(logFunc);
+        }
+
         private LayoutNode ReadNode(BinaryReader reader)
         {
             LayoutNode node = new LayoutNode();
@@ -274,6 +288,8 @@ namespace StructLayout
 
         private void FixEmptyBaseOptim(LayoutNode node)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             for (int i = 1; i < node.Children.Count;)
             {
                 var thisNode = node.Children[i];
@@ -362,8 +378,7 @@ namespace StructLayout
                 OutputLog.Log("COMMAND LINE: " + toolCmd);
             }
 
-            string log = "";
-            LayoutParser_SetLog(str => log += str);
+            Log = "";
 
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
@@ -381,9 +396,10 @@ namespace StructLayout
             const long TicksPerMicrosecond = (TimeSpan.TicksPerMillisecond / 1000);
             string timeStr = " ("+GetTimeStr((ulong)(watch.ElapsedTicks / TicksPerMicrosecond))+")";
 
-            if (log.Length > 0)
+            if (Log.Length > 0)
             {
-                OutputLog.Log("Execution Log:\n" + log);
+                OutputLog.Log("Execution Log:\n" + Log);
+                Log = "";
             }
 
             if (valid)
