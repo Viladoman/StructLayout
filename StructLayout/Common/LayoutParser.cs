@@ -207,46 +207,108 @@ namespace StructLayout
             }
         }
 
+        private void FixUnions(LayoutNode node)
+        {
+            if (node.Type.Length > 0 && node.Type.StartsWith("union"))
+            {
+                node.Category = LayoutNode.LayoutCategory.Union;
+                node.Extra = node.Children;
+                node.Children = new List<LayoutNode>();
+            }
+        }
+
+        private void AdjustBitfieldNode(LayoutNode node)
+        {
+            node.Extra = node.Children;
+            node.Children = new List<LayoutNode>();
+
+            foreach (LayoutNode child in node.Extra)
+            {
+                child.Name     = node.Name;
+                child.Type     = node.Type;
+                child.Category = node.Category;
+            }
+
+            //TODO ~ move name to child
+            //TODO ~ move type to child
+            //TODO ~ move category to child
+            //TODO ~ remove name of parent if more than 1 children 
+        }
+
+        private void MergeBitfieldNodes(LayoutNode source, LayoutNode target)
+        {
+            foreach (LayoutNode child in source.Extra)
+            {
+                target.Extra.Add(child);
+            }
+
+            if (target.Extra.Count > 1)
+            {
+                target.Name = "Bitfield";
+            }
+        }
+
+        private void FixBitfields(LayoutNode node)
+        {
+            LayoutNode prevNode = null;
+            for (int i = 0; i < node.Children.Count;)
+            {
+                LayoutNode thisNode = node.Children[i];
+
+                if (thisNode.Category == LayoutNode.LayoutCategory.Bitfield)
+                {
+                    AdjustBitfieldNode(thisNode);
+
+                    if (prevNode != null && prevNode.Category == LayoutNode.LayoutCategory.Bitfield && thisNode.Offset == prevNode.Offset)
+                    {
+                        MergeBitfieldNodes(thisNode, prevNode);
+                        node.Children.RemoveAt(i);
+                        continue;
+                    }
+                }
+
+                prevNode = thisNode;
+                ++i;
+            }           
+        }
+
+        private void FixEmptyBaseOptim(LayoutNode node)
+        {
+            for (int i = 1; i < node.Children.Count;)
+            {
+                var thisNode = node.Children[i];
+                var prevNode = node.Children[i - 1];
+
+                if (thisNode.Offset == prevNode.Offset)
+                {
+                    if (prevNode.IsBaseCategory() && prevNode.Size == 1)
+                    {
+                        //Empty base optimization
+                        node.Extra.Add(prevNode);
+                        node.Children.RemoveAt(i - 1);
+                    }
+                    else
+                    {
+                        //Found unknown overlap 
+                        OutputLog.Log("Found type overlap without known explanation");
+                        ++i;
+                    }
+                }
+                else
+                {
+                    ++i;
+                }
+            }
+        }
+
         private void FixOverlaps(LayoutNode node)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            if (node.Type.Length > 0 && node.Type.StartsWith("union"))
-            {
-                node.Category = LayoutNode.LayoutCategory.Union;
-                node.Extra    = node.Children;
-                node.Children = new List<LayoutNode>();
-            }
-            
-            if (node.Category != LayoutNode.LayoutCategory.Union)
-            {
-                for (int i = 1; i < node.Children.Count;)
-                {
-                    var thisNode = node.Children[i];
-                    var prevNode = node.Children[i - 1];
-
-                    if (thisNode.Offset == prevNode.Offset)
-                    {
-                        if (prevNode.IsBaseCategory() && prevNode.Size == 1)
-                        {
-                            //Empty base optimization
-                            node.Extra.Add(prevNode);
-                            node.Children.RemoveAt(i - 1);
-                        }
-                        else
-                        {
-                            //Found unknown overlap 
-                            OutputLog.Log("Found type overlap without known explanation");
-                            ++i;
-                        }
-                    }
-                    else
-                    {
-                        ++i;
-                    }
-                }
-            }
-            
+            FixUnions(node);
+            FixBitfields(node);
+            FixEmptyBaseOptim(node);
+           
             //continue recursion
             foreach (LayoutNode child in node.Children)
             {

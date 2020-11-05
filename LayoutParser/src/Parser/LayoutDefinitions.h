@@ -5,7 +5,11 @@
 
 namespace Layout 
 {
-    enum class Category
+    // ----------------------------------------------------------------------------------------------------------
+    using TAmount         = long long;
+
+    // ----------------------------------------------------------------------------------------------------------
+    enum class Category : unsigned char
     {
         Root = 0,
         SimpleField,
@@ -22,21 +26,22 @@ namespace Layout
     };
 
     // ----------------------------------------------------------------------------------------------------------
-    using TAmount = long long;
-
-    // ----------------------------------------------------------------------------------------------------------
     struct Node
     { 
-        Node() : nature(Category::Root),offset(0u),size(1u),align(1u){}
+        Node() 
+            : nature(Category::Root)
+            , offset(0u)
+            , size(1u)
+            , align(1u)
+        {}
 
-        std::string  name;
-        std::string  type;
-        TAmount      offset;
-        TAmount      size;
-        TAmount      align;
-        Category     nature;
-
+        std::string        name;
+        std::string        type;
         std::vector<Node*> children;
+        TAmount            offset;
+        TAmount            size;
+        TAmount            align;
+        Category           nature;
     };
 
     // ----------------------------------------------------------------------------------------------------------

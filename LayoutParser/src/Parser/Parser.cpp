@@ -192,15 +192,24 @@ namespace ClangParser
                 {
                     if(field.isBitField())
                     {
-                        //field.getType().getAsString() //Field type 
-                        //field.getNameAsString(); //field name
-                        //uint64_t localFieldByteOffsetInBits = m_context->toBits(fieldOffset - offset);
-                        //unsigned Begin = localFieldOffsetInBits - localFieldByteOffsetInBits;
-                        //unsigned Width = field.getBitWidthValue(*m_context);
+                        const clang::TypeInfo fieldInfo = context.getTypeInfo(field.getType());
 
-                        //TODO ~ ramonv ~ output bitfield
+                        //bitfield
+                        Layout::Node* fieldNode = new Layout::Node();
+                        fieldNode->name   = field.getNameAsString(); 
+                        fieldNode->type   = field.getType().getAsString();
 
-                        //PrintBitFieldOffset(OS,FieldOffset,Begin,Width,IndentLevel);
+                        fieldNode->nature = Layout::Category::Bitfield;
+                        fieldNode->offset = fieldOffset.getQuantity();
+                        fieldNode->size   = context.toCharUnitsFromBits(fieldInfo.Width).getQuantity();
+                        fieldNode->align  = context.toCharUnitsFromBits(fieldInfo.Align).getQuantity();
+
+                        Layout::Node* extraData = new Layout::Node();
+                        extraData->offset  = localFieldOffsetInBits - context.toBits(fieldOffset); 
+                        extraData->size    = field.getBitWidthValue(context);
+                        fieldNode->children.push_back(extraData);
+
+                        node->children.push_back(fieldNode);
                     }
                     else
                     {

@@ -38,7 +38,7 @@ namespace StructLayout
             if (Node != null)
             {
                 RefreshBasicProfile();
-                RefreshUnionStack();
+                RefreshExtraStack();
                 RefreshTypeStack();
                 RefreshInteractionText();
             }
@@ -46,16 +46,19 @@ namespace StructLayout
 
         private void RefreshBasicProfile()
         {
+            bool isSingleBitfield = Node.Category == LayoutNode.LayoutCategory.Bitfield && Node.Extra.Count == 1;
+            string extraTypeStr = isSingleBitfield? " : " + Node.Extra[0].Size : "";
+
             if (Node.Name.Length > 0)
             {
                 headerTxt.Text = Node.Name;
 
                 subheaderTxt.Visibility = Visibility.Visible;
-                subheaderTxt.Text = Node.Type;
+                subheaderTxt.Text = Node.Type + extraTypeStr;
             }
             else if (Node.Type.Length > 0)
             {
-                headerTxt.Text = Node.Type;
+                headerTxt.Text = Node.Type + extraTypeStr;
                 subheaderTxt.Visibility = Visibility.Visible;
                 subheaderTxt.Text = Node.Category.ToString();
             }
@@ -76,22 +79,39 @@ namespace StructLayout
             layout2Txt.Text = "Local Offset: " + GetFullValueStr(localOffset);
         }
 
-        private void RefreshUnionStack()
+        private void RefreshExtraStack()
         {
             extraStack.Children.Clear();
 
-            if (Node.Extra.Count > 0)
-            {
+            if (Node.Extra.Count > 1 && Node.Category == LayoutNode.LayoutCategory.Bitfield)
+            { 
+                //Compound bitfield (display contents) 
                 extraBorder.Visibility = Visibility.Visible;
                 extraStack.Visibility = Visibility.Visible;
                 var title = new TextBlock();
-                title.Text = Node.Category == LayoutNode.LayoutCategory.Union? "Contains:" : "Empty Base Optimization:";
+                title.Text = "Contains:";
                 extraStack.Children.Add(title);
 
-                foreach(LayoutNode child in Node.Extra)
+                foreach (LayoutNode child in Node.Extra)
                 {
                     var desc = new TextBlock();
-                    desc.Text = "- " + (child.Type.Length > 0 ? child.Type : child.Category.ToString()) + (child.Name.Length > 0? " " + child.Name : "") + " ( size: " + GetFullValueStr(child.Size) + " )";
+                    desc.Text = "- " + (child.Type.Length > 0 ? child.Type : child.Category.ToString()) + (child.Name.Length > 0 ? " " + child.Name : "") + " : " + child.Size;
+                    extraStack.Children.Add(desc);
+                }
+            }
+            else if (Node.Extra.Count > 0)
+            {
+                //Union (display contents)
+                extraBorder.Visibility = Visibility.Visible;
+                extraStack.Visibility = Visibility.Visible;
+                var title = new TextBlock();
+                title.Text = Node.Category == LayoutNode.LayoutCategory.Union ? "Contains:" : "Empty Base Optimization:";
+                extraStack.Children.Add(title);
+
+                foreach (LayoutNode child in Node.Extra)
+                {
+                    var desc = new TextBlock();      
+                    desc.Text = "- " + (child.Type.Length > 0 ? child.Type : child.Category.ToString()) + (child.Name.Length > 0 ? " " + child.Name : "") + " ( size: " + GetFullValueStr(child.Size) + " )";
                     extraStack.Children.Add(desc);
                 }
             }
