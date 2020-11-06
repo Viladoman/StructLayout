@@ -2,7 +2,7 @@
 
 namespace Layout
 { 
-	struct Tree;
+	struct Node;
 }
 
 namespace IO
@@ -11,7 +11,7 @@ namespace IO
 
 	void Clear();
 
-	bool ToDataBuffer(const Layout::Tree& tree);
+	bool ToDataBuffer(const Layout::Node* tree);
 	char* GetDataBuffer(unsigned int& size);
 
 	void SetLogFunc(TLogFunc func);

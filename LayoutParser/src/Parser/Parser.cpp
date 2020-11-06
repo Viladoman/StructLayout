@@ -33,6 +33,9 @@
 
 namespace ClangParser 
 {
+    Layout::Node* g_queryResult = nullptr;
+    Parser::LocationFilter g_locationFilter;
+
     namespace Helpers
     {
         inline bool IsMSLayout(const clang::ASTContext& context) { return context.getTargetInfo().getCXXABI().isMicrosoft(); }
@@ -49,56 +52,8 @@ namespace ClangParser
                 delete node;
             }
         }
-    }
 
-    // ----------------------------------------------------------------------------------------------------------
-    class SLayouts
-    { 
-    public:
-
-        void ComputeLayout(const clang::ASTContext& context, const clang::CXXRecordDecl* declaration)
-        {
-            if (!declaration || !declaration->getDefinition() || declaration->isInvalidDecl() || !declaration->isCompleteDefinition()) return;
-
-            const clang::SourceManager& manager = context.getSourceManager();
-
-            //TODO ~ ramonv ~ compare with FileID 
-            llvm::StringRef filename = manager.getFilename(declaration->getLocation());
-
-            if (locationFilter.filename && filename == locationFilter.filename)
-            { 
-                const clang::SourceRange range = declaration->getSourceRange();
-                const clang::PresumedLoc startLocation = manager.getPresumedLoc(range.getBegin());
-                const clang::PresumedLoc endLocation = manager.getPresumedLoc(range.getEnd());
-
-                const unsigned int startLine = startLocation.getLine();
-                const unsigned int startCol  = startLocation.getColumn();
-                const unsigned int endLine   = endLocation.getLine();
-                const unsigned int endCol    = endLocation.getColumn();
-
-                if ( (locationFilter.row > startLine || (locationFilter.row == startLine && locationFilter.col >= startCol)) && 
-                     (locationFilter.row < endLine   || (locationFilter.row == endLine   && locationFilter.col <= endCol))   &&
-                     (startLine > bestTree.startLine || (startLine == bestTree.startLine && startCol > bestTree.startCol)))
-                { 
-                    bestTree.root = ComputeStruct(context, declaration, true);
-                    bestTree.startLine = startLine;
-                    bestTree.startCol  = startCol;
-                }
-            }
-        }
-
-        void SetFilter(const Parser::LocationFilter& filter){ locationFilter = filter; }
-
-        void Clear() 
-        { 
-            Helpers::DestroyTree(bestTree.root);
-            bestTree = Layout::Tree(); 
-        }
-
-        const Layout::Tree& GetLayout() const { return bestTree; }
-
-    private:
-        Layout::Node* ComputeStruct(const clang::ASTContext& context, const clang::CXXRecordDecl* declaration, const bool includeVirtualBases)
+        Layout::Node* ComputeStruct(const clang::ASTContext& context, const clang::CXXRecordDecl* declaration, const bool includeVirtualBases = true)
         {
             Layout::Node* node = new Layout::Node();
 
@@ -261,36 +216,64 @@ namespace ClangParser
 
             return node;
         }
-
-    private:
-        Layout::Tree bestTree;
-        Parser::LocationFilter locationFilter;
-    };
-
-    SLayouts g_layouts;
+    }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    class FindClassVisitor : public clang::RecursiveASTVisitor<FindClassVisitor> 
+    class FindStructAtLocationVisitor : public clang::RecursiveASTVisitor<FindStructAtLocationVisitor> 
     {
     public:
-        FindClassVisitor():m_context(nullptr){}
-
-        inline void SetContext(clang::ASTContext* context){ m_context = context; }
+        FindStructAtLocationVisitor(const clang::SourceManager& sourceManager)
+            : m_sourceManager(sourceManager)
+            , m_best(nullptr)
+            , m_bestStartLine(0u)
+            , m_bestStartCol(0u)
+        {}
 
         bool VisitCXXRecordDecl(clang::CXXRecordDecl* declaration) 
         {
-            //Declaration->dump();
-
-            if ( declaration && ( declaration->isClass() || declaration->isStruct() ) && !declaration->isDependentType() )
-            {
-                g_layouts.ComputeLayout(*m_context,declaration);
-            }
-
+            TryRecord(declaration,declaration->getSourceRange());
             return true;
         }
+
+        bool VisitVarDecl(clang::VarDecl& declaration) 
+        {          
+            TryRecord(declaration.getType()->getAsCXXRecordDecl(),declaration.getSourceRange());
+            return true;
+        }
+
+        const clang::CXXRecordDecl* GetBest() const { return m_best; }
+
+    private: 
+        void TryRecord(const clang::CXXRecordDecl* declaration, const clang::SourceRange& sourceRange)
+        { 
+            if (declaration && ( declaration->isClass() || declaration->isStruct() ) && !declaration->isDependentType() && declaration->getDefinition() && !declaration->isInvalidDecl() && declaration->isCompleteDefinition())
+            { 
+                //Check range
+                const clang::PresumedLoc startLocation = m_sourceManager.getPresumedLoc(sourceRange.getBegin());
+                const clang::PresumedLoc endLocation = m_sourceManager.getPresumedLoc(sourceRange.getEnd());
+
+                const unsigned int startLine = startLocation.getLine();
+                const unsigned int startCol  = startLocation.getColumn();
+                const unsigned int endLine   = endLocation.getLine();
+                const unsigned int endCol    = endLocation.getColumn();
+                
+                if ( (g_locationFilter.row > startLine || (g_locationFilter.row == startLine && g_locationFilter.col >= startCol)) && 
+                    (g_locationFilter.row < endLine    || (g_locationFilter.row == endLine   && g_locationFilter.col <= endCol))   &&
+                    (startLine > m_bestStartLine || (startLine == m_bestStartLine && startCol > m_bestStartCol)))
+                { 
+                    m_best = declaration; 
+                    m_bestStartLine = startLine;
+                    m_bestStartCol  = startCol;
+                }
+            }
+        }
+
     private:
-        clang::ASTContext* m_context; 
+        const clang::SourceManager& m_sourceManager;
+        const clang::CXXRecordDecl* m_best;
+
+        unsigned int m_bestStartLine;
+        unsigned int m_bestStartCol; 
     };
 
     class Consumer : public clang::ASTConsumer 
@@ -298,12 +281,39 @@ namespace ClangParser
     public:
         virtual void HandleTranslationUnit(clang::ASTContext& context) override
         {
-            m_visitor.SetContext(&context);
-            m_visitor.TraverseDecl(context.getTranslationUnitDecl());
-        }
+            const clang::SourceManager& sourceManager = context.getSourceManager();
+            auto Decls = context.getTranslationUnitDecl()->decls();
 
-    private:
-        FindClassVisitor m_visitor;
+            FindStructAtLocationVisitor visitor(sourceManager);
+            for (auto& Decl : Decls) 
+            {
+                const auto& FileID = sourceManager.getFileID(Decl->getLocation());
+                if (FileID == sourceManager.getMainFileID() && ContainsLocation(sourceManager,Decl->getSourceRange()))
+                {
+                    visitor.TraverseDecl(Decl);
+                }
+            }
+
+            if (const clang::CXXRecordDecl* best = visitor.GetBest())
+            {
+                g_queryResult = Helpers::ComputeStruct(context, best);
+            }
+        }
+    private: 
+
+        bool ContainsLocation(const clang::SourceManager& sourceManager, const clang::SourceRange& sourceRange) const
+        { 
+            const clang::PresumedLoc startLocation = sourceManager.getPresumedLoc(sourceRange.getBegin());
+            const clang::PresumedLoc endLocation = sourceManager.getPresumedLoc(sourceRange.getEnd());
+
+            const unsigned int startLine = startLocation.getLine();
+            const unsigned int startCol  = startLocation.getColumn();
+            const unsigned int endLine   = endLocation.getLine();
+            const unsigned int endCol    = endLocation.getColumn();
+
+            return (g_locationFilter.row > startLine || (g_locationFilter.row == startLine && g_locationFilter.col >= startCol)) && 
+                   (g_locationFilter.row < endLine   || (g_locationFilter.row == endLine   && g_locationFilter.col <= endCol));
+        }
     };
 
     class Action : public clang::ASTFrontendAction 
@@ -318,7 +328,7 @@ namespace Parser
 { 
     void SetFilter(const LocationFilter& filter)
     { 
-        ClangParser::g_layouts.SetFilter(filter); 
+        ClangParser::g_locationFilter = filter;
     }
         
     void ConsoleLog(llvm::StringRef str)
@@ -364,13 +374,14 @@ namespace Parser
         return retCode == 0;
 	}
 
-	const Layout::Tree& GetLayout()
+	const Layout::Node* GetLayout()
 	{ 
-        return ClangParser::g_layouts.GetLayout();
+        return ClangParser::g_queryResult;
 	}
 
     void Clear()
     { 
-        ClangParser::g_layouts.Clear();
+        ClangParser::Helpers::DestroyTree(ClangParser::g_queryResult);
+        ClangParser::g_queryResult = nullptr;
     }
 }

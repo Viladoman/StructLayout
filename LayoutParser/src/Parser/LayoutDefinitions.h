@@ -43,18 +43,4 @@ namespace Layout
         TAmount            align;
         Category           nature;
     };
-
-    // ----------------------------------------------------------------------------------------------------------
-    struct Tree
-    {        
-        Tree()
-            : root(nullptr)
-            , startLine(0u)
-            , startCol(0u)
-        {}
-
-        Node* root;
-        unsigned int startLine;
-        unsigned int startCol; 
-    };
 }

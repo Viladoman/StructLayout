@@ -55,6 +55,7 @@ namespace Utils
         if (Parser::Parse(filename, static_cast<int>(args.size()),&args[0]))
         { 
             IO::ToDataBuffer(Parser::GetLayout()); 
+            Parser::Clear();
             return true;
         }
 
@@ -76,7 +77,7 @@ extern "C"
 
     DLLEXPORT bool LayoutParser_ParseLocation(const char* commandLineArgs, const char* filename, const unsigned int row, const unsigned int col)
     {  
-        Parser::SetFilter(Parser::LocationFilter{filename,row,col});
+        Parser::SetFilter(Parser::LocationFilter{row,col});
         return Utils::Parse(filename, commandLineArgs);
     }
 

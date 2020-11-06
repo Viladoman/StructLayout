@@ -1,14 +1,13 @@
 
 namespace Layout
 { 
-	struct Tree; 
+	struct Node; 
 }
 
 namespace Parser
 { 
 	struct LocationFilter 
 	{ 
-		const char* filename; 
 		unsigned int row; 
 		unsigned int col;
 	};
@@ -16,6 +15,6 @@ namespace Parser
 	void SetFilter(const LocationFilter& context);
 
 	bool Parse(const char* filename, int argc, const char* argv[]);
-	const Layout::Tree& GetLayout();
+	const Layout::Node* GetLayout();
 	void Clear();
 }

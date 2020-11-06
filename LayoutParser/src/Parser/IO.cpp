@@ -75,12 +75,12 @@ namespace IO
     }
 
     // -----------------------------------------------------------------------------------------------------------------
-    bool ToDataBuffer(const Layout::Tree& tree)
+    bool ToDataBuffer(const Layout::Node* node)
     { 
         g_dataBuffer.clear();
-        if (tree.root)
+        if (node)
         {
-            Utils::BinarizeNode(g_dataBuffer,*(tree.root));
+            Utils::BinarizeNode(g_dataBuffer,*(node));
             return true;
         }
         return false;
