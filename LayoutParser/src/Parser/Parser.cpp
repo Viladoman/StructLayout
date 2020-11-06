@@ -235,9 +235,9 @@ namespace ClangParser
             return true;
         }
 
-        bool VisitVarDecl(clang::VarDecl& declaration) 
+        bool VisitVarDecl(clang::VarDecl* declaration) 
         {          
-            TryRecord(declaration.getType()->getAsCXXRecordDecl(),declaration.getSourceRange());
+            TryRecord(declaration->getType()->getAsCXXRecordDecl(),declaration->getSourceRange());
             return true;
         }
 
