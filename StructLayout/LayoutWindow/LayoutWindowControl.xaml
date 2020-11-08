@@ -16,6 +16,15 @@
         <Style TargetType="Button">
             <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.Foreground}}" />
             <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.Background}}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverForeground}}" />

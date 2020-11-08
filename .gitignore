@@ -24,7 +24,7 @@ LayoutParser/tmp/
 LayoutParser/bin/
 
 # LLVM project
-llvm-project/
+llvm-project*
 
 # WPF App for rapid UX iteration
 Prototype/

@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -96,12 +97,18 @@ namespace StructLayout
             manager.Save();
         }
 
-        public void ButtonCancel_OnSave(object o, object e)
+        public void ButtonSave_OnClick(object sender, object e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             ApplyChanges();
             Win.Close();
+        }
+
+        private void ButtonDocumentation_OnClick(object sender, object e)
+        {
+            var uri = new Uri(@"https://github.com/Viladoman/StructLayout/wiki/Configurations");
+            Process.Start(new ProcessStartInfo(uri.AbsoluteUri));
         }
     }
 }

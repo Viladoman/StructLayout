@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace StructLayout
@@ -884,6 +885,9 @@ namespace StructLayout
 
         private void ScrollViewer_OnLoaded(object sender, object e)
         {
+            //Fix the issue with the colored corner square
+            ((Rectangle)scrollViewer.Template.FindName("Corner", scrollViewer)).Fill = scrollViewer.Background;
+
             SetupCanvas();
             RenderGrid();
             RefreshShapes();
