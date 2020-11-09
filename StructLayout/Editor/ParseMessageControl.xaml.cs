@@ -44,13 +44,10 @@ namespace StructLayout
                 mainContent.Children.Add(CreateBasicText("Parser had Invalid Input."));    
                 break;
             case ParseResult.StatusCode.ParseFailed:
-                mainContent.Children.Add(CreateBasicText("Errors found while parsing."));    
-                mainContent.Children.Add(CreateBasicText("Update the Extension's options as needed for a succesful compilation."));    
-                mainContent.Children.Add(CreateBasicText("Check the 'Struct Layout' output pane for more information."));    
+                mainContent.Children.Add(CreateBasicText("Errors found while parsing.\nUpdate the Extension's options as needed for a succesful compilation.\nCheck the 'Struct Layout' output pane for more information."));    
                 break;
             case ParseResult.StatusCode.NotFound:     
-                mainContent.Children.Add(CreateBasicText("No structure found at the given position."));    
-                mainContent.Children.Add(CreateBasicText("Try performing the query from a structure definition or initialization."));    
+                mainContent.Children.Add(CreateBasicText("No structure found at the given position.\nTry performing the query from a structure definition or initialization."));    
                 break;
             }
         }
@@ -67,7 +64,7 @@ namespace StructLayout
                 logExpander.Visibility = Visibility.Visible;
                 onlyButtons.Visibility = Visibility.Collapsed;
 
-                logText.Text = Result.ParserLog;
+                logText.Text = TruncateLongString(Result.ParserLog,4000);
             }
         }
 
@@ -91,6 +88,14 @@ namespace StructLayout
                 buttonAcceptB.IsDefault = true;
                 buttonAcceptB.IsCancel = true;
             }
+        }
+        private string TruncateLongString(string str, int maxLength)
+        {
+            if (string.IsNullOrEmpty(str) || str.Length <= maxLength)
+            {
+                return str;
+            }
+            return str.Substring(0, maxLength) + "...";
         }
 
         private TextBlock CreateBasicText(string str)

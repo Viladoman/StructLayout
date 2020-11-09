@@ -46,7 +46,7 @@
 
         <StackPanel Margin="10" x:Name="mainContent"/>
 
-        <Expander Grid.Row="1" x:Name="logExpander"  Background="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverBackground}}">
+        <Expander Grid.Row="1" x:Name="logExpander" Background="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverBackground}}">
             <Expander.Header>
                 <Grid HorizontalAlignment="{Binding HorizontalAlignment, RelativeSource={RelativeSource AncestorType=ContentPresenter}, Mode=OneWayToSource}">
                     <Grid.ColumnDefinitions>
@@ -61,7 +61,7 @@
                 </Grid>
             </Expander.Header>
 
-            <ScrollViewer MaxHeight="200" Background="{DynamicResource {x:Static common:ColorTheme.Background}}">
+            <ScrollViewer MaxWidth="800" MaxHeight="200" Background="{DynamicResource {x:Static common:ColorTheme.Background}}" HorizontalScrollBarVisibility="Auto"  VerticalScrollBarVisibility="Auto">
                 <TextBlock Margin="10" x:Name="logText"/>
             </ScrollViewer>
         </Expander>
