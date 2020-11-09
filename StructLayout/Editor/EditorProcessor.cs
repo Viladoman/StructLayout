@@ -248,21 +248,23 @@ namespace StructLayout
 
             var ret = new ProjectProperties();
 
-            var evaluator = new MacroEvaluatorBasic();
-            AddCustomSettings(ret, evaluator);
+            Project project = EditorUtils.GetActiveProject();
+            VCProject prj = project == null? null : project.Object as VCProject;
+            VCConfiguration config = prj == null? null : prj.ActiveConfiguration;
+            VCPlatform platform = config == null? null : config.Platform;
+
+            if (platform != null)
+            {
+                AddCustomSettings(ret, new MacroEvaluatorVisualPlatform(platform));
+            }
+            else
+            {
+                AddCustomSettings(ret, new MacroEvaluatorBasic());
+            }
 
             return ret;
         }
-        public void DisplayDialogResult(ParseResult.StatusCode status)
-        {
-            switch(status)
-            {
-                case ParseResult.StatusCode.InvalidInput: MessageBox.Show("Parser had Invalid Input.","Struct Layout Result"); break;
-                case ParseResult.StatusCode.ParseFailed:  MessageBox.Show("Errors found while parsing.\nCheck the 'Struct Layout' output pane for more information.\nUpdate the Extension's options as needed for a succesful compilation.", "Struct Layout Result"); break;
-                case ParseResult.StatusCode.NotFound:     MessageBox.Show("No structure found at the given position.", "Struct Layout Result"); break;
-            }
-        }
-
+     
         public async System.Threading.Tasks.Task ParseAtCurrentLocationAsync()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
