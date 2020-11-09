@@ -52,6 +52,10 @@
     <Compile Include="Common\OutputLog.cs" />
     <Compile Include="Editor\EditorUtils.cs" />
     <Compile Include="Editor\MacroEvaluator.cs" />
+    <Compile Include="Editor\ParseMessageControl.xaml.cs">
+      <DependentUpon>ParseMessageControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Editor\ParseMessageWindow.cs" />
     <Compile Include="Editor\SettingsCommand.cs" />
     <Compile Include="Settings\SettingsControl.xaml.cs">
       <DependentUpon>SettingsControl.xaml</DependentUpon>
@@ -104,6 +108,10 @@
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.6.2051" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Editor\ParseMessageControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="LayoutWindow\LayoutNodeTooltip.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

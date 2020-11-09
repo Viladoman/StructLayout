@@ -296,9 +296,7 @@ namespace StructLayout
                 prewin.SetProcessing();
             } 
 
-            var result = await parser.ParseAsync(properties, location);
-
-            DisplayDialogResult(result.Status);
+            ParseResult result = await parser.ParseAsync(properties, location);
 
             //Only create or focus the window if we have a valid result
             LayoutWindow win = EditorUtils.GetLayoutWindow(result.Status == ParseResult.StatusCode.Found);
@@ -311,6 +309,8 @@ namespace StructLayout
                     EditorUtils.FocusWindow(win);
                 }
             }
+
+            ParseMessageWindow.DisplayResult(result);
         }
     }
 }

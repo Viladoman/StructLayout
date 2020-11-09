@@ -157,6 +157,7 @@ namespace StructLayout
 
         public LayoutNode Layout { set; get; }
         public StatusCode Status { set; get; }
+        public string ParserLog { set; get; }
     }
 
     public class LayoutParser
@@ -383,14 +384,8 @@ namespace StructLayout
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
             var valid = false;
-            try
-            {
-                valid = await System.Threading.Tasks.Task.Run(() => LayoutParser_ParseLocation(toolCmd, location.Filename, location.Line, location.Column));
-            }
-            catch(Exception e)
-            {
-                OutputLog.Error("Parser Error: "+e.Message);
-            }
+           
+            valid = await System.Threading.Tasks.Task.Run(() => LayoutParser_ParseLocation(toolCmd, location.Filename, location.Line, location.Column));
 
             watch.Stop();
             const long TicksPerMicrosecond = (TimeSpan.TicksPerMillisecond / 1000);
@@ -399,6 +394,7 @@ namespace StructLayout
             if (Log.Length > 0)
             {
                 OutputLog.Log("Execution Log:\n" + Log);
+                ret.ParserLog = Log;
                 Log = "";
             }
 
