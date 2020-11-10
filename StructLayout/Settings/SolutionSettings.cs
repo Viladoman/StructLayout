@@ -56,6 +56,8 @@ namespace StructLayout
         const string SettingsName = "StructLayoutSettings.json";
 
         private SolutionEvents solutionEvents; //Super important if not copied the events get disposed and never triggered
+        private DocumentEvents documentEvents; //Super important if not copied the events get disposed and never triggered
+        
         public SolutionSettings Settings { get; set; }
         private string Filename{ set; get; }
         private Common.FileWatcher Watcher { set; get; }  = new Common.FileWatcher();
@@ -74,9 +76,21 @@ namespace StructLayout
             solutionEvents.AfterClosing += RefreshFilename;
             solutionEvents.Opened += RefreshFilename;
 
+            documentEvents = applicationObject.Events.DocumentEvents;
+            documentEvents.DocumentOpened += TryRefreshFilename;
+
             Watcher.FileWatchedChanged += Load;
 
             RefreshFilename();
+        }
+
+        private void TryRefreshFilename(object dummy = null)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            if (Filename == null)
+            {
+                RefreshFilename();
+            }
         }
 
         private void RefreshFilename()
@@ -132,6 +146,8 @@ namespace StructLayout
         public void Save()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
+
+            TryRefreshFilename();
 
             if (Filename != null && Settings != null)
             {
