@@ -71,8 +71,6 @@ namespace StructLayout
                     inputControl.Margin = new Thickness(5);
                     Grid.SetColumn(inputControl, 1);
                     elementGrid.Children.Add(inputControl);
-
-                    //TODO ~ ramonv ~ add some sort of tooltip with resolved macros for compatible strings ( Add to UI description )
                 }
                 else if (property.PropertyType == typeof(bool))
                 {

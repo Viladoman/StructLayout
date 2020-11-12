@@ -68,29 +68,17 @@ namespace StructLayout
             if (macroStr == @"$(SolutionDir)")
             {
                 Solution solution = EditorUtils.GetActiveSolution();
-                return solution == null? null : Path.GetDirectoryName(solution.FullName) + '\\' ;
+                if (solution == null) return null;
+                return (Path.HasExtension(solution.FullName)? Path.GetDirectoryName(solution.FullName) : solution.FullName) + '\\';
             }
-            else if (macroStr == @"$(ProjectDir)")
+            if (macroStr == @"$(Configuration)")
             {
+                //TODO ~ Ramonv ~ this does not work ConfigurationManager is null
                 Project project = EditorUtils.GetActiveProject();
-                return project == null? null : Path.GetDirectoryName(project.FullName) + '\\';
-            }
-            else if (macroStr == @"$(Configuration)")
-            {
-                Project project = EditorUtils.GetActiveProject();
-                if (project != null)
+                if (project != null && project.ConfigurationManager != null)
                 {
                     Configuration config = project.ConfigurationManager.ActiveConfiguration;
                     return config == null ? null : config.ConfigurationName;
-                }
-            }
-            else if (macroStr == @"$(Platform)")
-            {
-                Project project = EditorUtils.GetActiveProject();
-                if (project != null)
-                {
-                    Configuration config = project.ConfigurationManager.ActiveConfiguration;
-                    return config == null ? null : config.PlatformName;
                 }
             }
 

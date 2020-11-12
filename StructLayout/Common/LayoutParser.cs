@@ -243,11 +243,6 @@ namespace StructLayout
                 child.Type     = node.Type;
                 child.Category = node.Category;
             }
-
-            //TODO ~ move name to child
-            //TODO ~ move type to child
-            //TODO ~ move category to child
-            //TODO ~ remove name of parent if more than 1 children 
         }
 
         private void MergeBitfieldNodes(LayoutNode source, LayoutNode target)

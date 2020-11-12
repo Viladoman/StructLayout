@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.VCProjectEngine;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -221,19 +222,190 @@ namespace StructLayout
             return ret;
         }
 
+        class CMakeCommandEntry
+        {
+            public string directory { set; get; } 
+            public string command { set; get; }
+            public string file { set; get; }
+        }
+
+        private List<string> ParseCommands(string input)
+        {
+            List<string> ret = new List<string>();
+
+            bool inQuotes = false;
+            string current = "";
+
+            foreach (char c in input)
+            {
+                if (c == '"')
+                {
+                    inQuotes = !inQuotes;
+                }
+                else if (c == ' ' && !inQuotes)
+                {
+                    if (current.Length > 0)
+                    {
+                        ret.Add(current);
+                        current = "";
+                    }
+                }
+                else
+                {
+                    current += c;
+                }
+            }
+
+            if (current.Length>0)
+            {
+                ret.Add(current);
+            }
+
+            return ret;
+        }
+
+        private void ExtractCMakeProjectProperties(ProjectProperties inout, CMakeCommandEntry command)
+        {
+            if (command == null) return;
+
+            inout.WorkingDirectory = command.directory;
+
+            List<string> commands = ParseCommands(command.command);
+
+            for (int i=0;i<commands.Count;++i)
+            {
+                string com = commands[i];
+
+                if (com.Length > 2 && com[0] == '-' || com[0] == '/')
+                {
+                    if (com[1] == 'D')
+                    {
+                        inout.PrepocessorDefinitions.Add(com.Substring(2, com.Length - 2));
+                    }
+                    else if (com[1] == 'I')
+                    {
+                        inout.IncludeDirectories.Add(com.Substring(2, com.Length - 2));
+                    }
+                    else if (com == "-m32")
+                    {
+                        inout.Target = ProjectProperties.TargetType.x86;
+                    }
+                    else if (com == "-m64")
+                    {
+                        inout.Target = ProjectProperties.TargetType.x64;
+                    }
+                    else if (com.StartsWith("-std"))
+                    {
+                        string standard = com.Substring(5, com.Length - 5);
+                             if (standard == "c++14") inout.Standard = ProjectProperties.StandardVersion.Cpp14;
+                        else if (standard == "c++17") inout.Standard = ProjectProperties.StandardVersion.Cpp17;
+                        else if (standard == "c++2a") inout.Standard = ProjectProperties.StandardVersion.Latest;
+                    }
+                    else if (com.StartsWith("-include"))
+                    {
+                        inout.IncludeDirectories.Add(com.Substring(8, com.Length - 8));
+                    }                    
+                }
+            }
+        }
+
+        private int PathCompareScore(string a, string b)
+        {
+            int ret = 0;
+            if (a != null && b != null)
+            {
+                int max = Math.Min(a.Length, b.Length);
+                for (; ret < max && a[ret] == b[ret]; ++ret) { }
+            }
+
+            return ret;
+        }
+
+        private CMakeCommandEntry FindBestCMakeEntry(List<CMakeCommandEntry> commands, string documentName)
+        {
+            if (commands == null || documentName == null){ return null; }
+
+            //TODO ~ ramovn ~ remove extension for perfect match
+            string lowerInput = documentName.Replace('\\','/').ToLower();
+            int bestScoreMatch = 0;
+            CMakeCommandEntry bestEntry = null;
+            //int bestScoreExtra = Int32.MaxValue;
+
+            foreach(CMakeCommandEntry entry in commands)
+            {
+                //This assumes no ../../ in those file and documentName paths
+                int scoreMatch = PathCompareScore(lowerInput, entry.file.Replace('\\', '/').ToLower());
+                if (scoreMatch == lowerInput.Length && (lowerInput.Length == entry.file.Length))
+                {
+                    //perfect match - early exit
+                    return entry;
+                }
+                else if (scoreMatch >= bestScoreMatch)
+                {
+                    //TODO ~ ramonv ~ consider nested folders ( get the closest ) 
+
+                    bestScoreMatch = scoreMatch;
+                    bestEntry = entry;
+                }
+            }
+
+            return bestEntry;
+        }
+
+        private ProjectProperties CaptureCMakeCommands(string commandsFile, string documentName)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            var ret = new ProjectProperties();
+
+            if (commandsFile == null || commandsFile.Length == 0)
+            {
+                OutputLog.Log("Unable to retrieve a CMake commands file.\nMake sure the cmake flag -DCMAKE_EXPORT_COMPILE_COMMANDS=1 is set and the options are pointing to the proper file.");
+            }
+            else
+            {
+                if (File.Exists(commandsFile))
+                {
+                    OutputLog.Log("Capturing commands from CMake commands file: " + commandsFile);
+
+                    List<CMakeCommandEntry> allCommands = null;
+                    try
+                    {
+                        string jsonString = File.ReadAllText(commandsFile);
+                        allCommands = JsonConvert.DeserializeObject<List<CMakeCommandEntry>>(jsonString);
+                    }
+                    catch (Exception e)
+                    {
+                        OutputLog.Error(e.Message);
+                    }
+
+                    ExtractCMakeProjectProperties(ret, FindBestCMakeEntry(allCommands, documentName));
+                }
+                else
+                {
+                    OutputLog.Log("Unable to find CMake commands file at " + commandsFile + ".\nMake sure the cmake flag -DCMAKE_EXPORT_COMPILE_COMMANDS=1 is set and the options are pointing to the proper file.");
+                }
+            }
+
+            return ret; 
+        }
+
         private ProjectProperties GetProjectDataCMake()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             OutputLog.Log("Capturing configuration from CMake...");
 
+            Document document = EditorUtils.GetActiveDocument();
+            if (document == null) { return null; }
+
             var evaluator = new MacroEvaluatorBasic();
 
-            var ret = new ProjectProperties();
+            var customSettings = SettingsManager.Instance.Settings;
+            string commandsFile = customSettings == null ? null : customSettings.CMakeCommandsFile;
+            commandsFile = commandsFile == null ? null : evaluator.Evaluate(commandsFile);
 
-            //TODO ~ ramonv ~ to be implemented
-            //TODO ~ ramonv ~ retrieve the CMake Commands and parse if for closest setup and command line parameter extraction
-            OutputLog.Log("WIP! default to manual configuration.");
+            var ret = CaptureCMakeCommands(commandsFile, document.FullName);
 
             AddCustomSettings(ret, evaluator);
 
