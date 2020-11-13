@@ -266,7 +266,11 @@ namespace StructLayout
 
         private void ExtractCMakeProjectProperties(ProjectProperties inout, CMakeCommandEntry command)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             if (command == null) return;
+
+            OutputLog.Log("Extracting commands from Translation Unit: " + command.file);
 
             inout.WorkingDirectory = command.directory;
 
@@ -325,8 +329,8 @@ namespace StructLayout
         {
             if (commands == null || documentName == null){ return null; }
 
-            //TODO ~ ramovn ~ remove extension for perfect match
-            string lowerInput = documentName.Replace('\\','/').ToLower();
+            string documentNameNoExt = Path.ChangeExtension(documentName, "");
+            string lowerInput = documentNameNoExt.Replace('\\','/').ToLower();
             int bestScoreMatch = 0;
             CMakeCommandEntry bestEntry = null;
             //int bestScoreExtra = Int32.MaxValue;
@@ -342,7 +346,7 @@ namespace StructLayout
                 }
                 else if (scoreMatch >= bestScoreMatch)
                 {
-                    //TODO ~ ramonv ~ consider nested folders ( get the closest ) 
+                    //TODO ~ ramonv ~ consider nested folders ( get the closest ) - This scoring can be way better
 
                     bestScoreMatch = scoreMatch;
                     bestEntry = entry;
