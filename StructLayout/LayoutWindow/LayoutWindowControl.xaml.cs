@@ -43,7 +43,12 @@
             }
 
             viewer.SetLayout(result.Layout);
-        }   
+        }
+
+        public void SetGridNumberBase(LayoutViewer.GridBase gridBase)
+        {
+            viewer.SetGridNumberBase(gridBase);
+        }
 
         public void OpenSettings(object a, object e)
         {

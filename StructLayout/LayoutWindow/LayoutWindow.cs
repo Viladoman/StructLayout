@@ -44,5 +44,10 @@ namespace StructLayout
 
             (this.Content as LayoutWindowControl).SetResult(result);
         }
+
+        public void SetGridNumberBase(LayoutViewer.GridBase gridBase)
+        {
+            (this.Content as LayoutWindowControl).SetGridNumberBase(gridBase);
+        }
     }
 }

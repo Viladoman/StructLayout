@@ -192,6 +192,8 @@ namespace StructLayout
         private ToolTip tooltip = new ToolTip() { Content = new LayoutNodeTooltip(), Padding = new Thickness(0) };
         private DispatcherTimer tooltipTimer = new DispatcherTimer() { Interval = new TimeSpan(4000000) };
 
+        private GridBase GridNumberBase { set; get; } = GridBase.Hexadecimal;
+
         private Pen nodeBorderPen = new Pen(Colors.GetCategoryForeground(), 2);
         private Brush overlayBrush = Brushes.White.Clone(); 
 
@@ -243,6 +245,18 @@ namespace StructLayout
                 RefreshShapes();
             }
         }
+
+        public void SetGridNumberBase(GridBase newBase)
+        {
+            if (newBase != GridNumberBase)
+            {
+                GridNumberBase = newBase;
+
+                RenderGrid();
+                RefreshShapes();
+            }
+        }
+
         private DisplayAlignmentType GetSelectedDisplayAlignment()
         {
             return displayAlignementComboBox.SelectedItem != null? (DisplayAlignmentType)displayAlignementComboBox.SelectedItem : DisplayAlignmentType.Struct;
@@ -652,7 +666,7 @@ namespace StructLayout
             //Draw Labels
             for (uint c = 0; c < numCols; ++c)
             {
-                var label = c.ToString("X");
+                var label = GridNumberBase == GridBase.Hexadecimal? c.ToString("X") : c.ToString();
                 var txt = new FormattedText(label, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Font, 12, scrollViewer.Foreground, VisualTreeHelper.GetDpi(this).PixelsPerDip);
                 drawingContext.DrawText(txt, new Point(MarginLeft + (c * NodeWidth) + (NodeWidth - txt.Width) * 0.5, (MarginTop - txt.Height) * 0.5));
             }
@@ -661,7 +675,7 @@ namespace StructLayout
             for (uint r = 0; r < numRows; ++r)
             {
                 uint val = r * DisplayGridColumns;
-                var label = "0x" + val.ToString("X");
+                var label = GridNumberBase == GridBase.Hexadecimal? "0x" + val.ToString("X") : val.ToString();
                 var txt = new FormattedText(label, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Font, 12, scrollViewer.Foreground, VisualTreeHelper.GetDpi(this).PixelsPerDip);
                 drawingContext.DrawText(txt, new Point((MarginLeft - txt.Width) * 0.5, MarginTop + (r * NodeHeight) + (NodeHeight - txt.Height) * 0.5));
             }

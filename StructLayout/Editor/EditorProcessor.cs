@@ -437,6 +437,20 @@ namespace StructLayout
             return ret;
         }
      
+        private void ApplyUserSettingsToWindow(LayoutWindow window, GeneralSettingsPageGrid settings)
+        {
+            if (window == null || settings == null) return;
+            window.SetGridNumberBase(settings.OptionViewerGridBase);
+        }
+
+        public void OnUserSettingsChanged()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            GeneralSettingsPageGrid settings = EditorUtils.GetGeneralSettings();
+            LayoutWindow win = EditorUtils.GetLayoutWindow(false);
+            ApplyUserSettingsToWindow(win, settings);
+        }
+
         public async System.Threading.Tasks.Task ParseAtCurrentLocationAsync()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
