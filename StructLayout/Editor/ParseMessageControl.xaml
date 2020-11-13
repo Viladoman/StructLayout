@@ -68,7 +68,7 @@
 
         <WrapPanel HorizontalAlignment="Right" Grid.Row="1" x:Name="onlyButtons" Visibility="Collapsed">
             <Button x:Name="buttonOptionsB" Content="Open Options" Padding="10,0,10,0" Margin="5,0,0,0" Click="OpenSettings"/>
-            <Button x:Name="buttonAcceptB"  Content="Accept" Padding="10,0,10,0" Margin="5,0,5,0" Click="CloseWindow"/>
+            <Button x:Name="buttonAcceptB"  Content="Accept" Padding="10,0,10,0" Margin="5" Click="CloseWindow"/>
         </WrapPanel>
 
     </Grid>
