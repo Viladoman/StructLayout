@@ -301,9 +301,17 @@ namespace StructLayout
                     else if (com.StartsWith("-std"))
                     {
                         string standard = com.Substring(5, com.Length - 5);
-                             if (standard == "c++14") inout.Standard = ProjectProperties.StandardVersion.Cpp14;
+                             if (standard == "c++98") inout.Standard = ProjectProperties.StandardVersion.Cpp98;
+                        else if (standard == "c++03") inout.Standard = ProjectProperties.StandardVersion.Cpp03;
+                        else if (standard == "c++14") inout.Standard = ProjectProperties.StandardVersion.Cpp14;
                         else if (standard == "c++17") inout.Standard = ProjectProperties.StandardVersion.Cpp17;
-                        else if (standard == "c++2a") inout.Standard = ProjectProperties.StandardVersion.Latest;
+                        else if (standard == "c++20") inout.Standard = ProjectProperties.StandardVersion.Cpp20;
+                        else if (standard == "gnu++98") inout.Standard = ProjectProperties.StandardVersion.Gnu98;
+                        else if (standard == "gnu++03") inout.Standard = ProjectProperties.StandardVersion.Gnu03;
+                        else if (standard == "gnu++14") inout.Standard = ProjectProperties.StandardVersion.Gnu14;
+                        else if (standard == "gnu++17") inout.Standard = ProjectProperties.StandardVersion.Gnu17;
+                        else if (standard == "gnu++20") inout.Standard = ProjectProperties.StandardVersion.Gnu20;
+                        else inout.Standard = ProjectProperties.StandardVersion.Latest;
                     }
                     else if (com.StartsWith("-include"))
                     {

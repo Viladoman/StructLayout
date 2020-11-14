@@ -37,8 +37,16 @@ namespace StructLayout
         public enum StandardVersion
         {
             Default, 
+            Cpp98,
+            Cpp03,
             Cpp14,
             Cpp17,
+            Cpp20,
+            Gnu98,
+            Gnu03,
+            Gnu14,
+            Gnu17,
+            Gnu20,
             Latest,
         }
 
@@ -434,8 +442,16 @@ namespace StructLayout
         {
             switch (standard)
             {
+                case ProjectProperties.StandardVersion.Cpp98:  return " -std=c++98";
+                case ProjectProperties.StandardVersion.Cpp03:  return " -std=c++03";
                 case ProjectProperties.StandardVersion.Cpp14:  return " -std=c++14";
                 case ProjectProperties.StandardVersion.Cpp17:  return " -std=c++17";
+                case ProjectProperties.StandardVersion.Cpp20:  return " -std=c++20";
+                case ProjectProperties.StandardVersion.Gnu98:  return " -std=gnu++98";
+                case ProjectProperties.StandardVersion.Gnu03:  return " -std=gnu++03";
+                case ProjectProperties.StandardVersion.Gnu14:  return " -std=gnu++14";
+                case ProjectProperties.StandardVersion.Gnu17:  return " -std=gnu++17";
+                case ProjectProperties.StandardVersion.Gnu20:  return " -std=gnu++20";
                 case ProjectProperties.StandardVersion.Latest: return " -std=c++2a";
                 default: return "";
             }
