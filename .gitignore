@@ -29,8 +29,10 @@ llvm-project*
 # WPF App for rapid UX iteration
 Prototype/
 
-# Test Project
+# Test Projects
 TestProjects/Regular/.vs/
 TestProjects/Regular/tmp/
 TestProjects/Regular/bin/
 TestProjects/Regular/StructLayoutSettings.json
+TestProjects/CMake/.vs/
+TestProjects/CMake/out/
