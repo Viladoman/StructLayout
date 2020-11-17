@@ -3,14 +3,22 @@ using EnvDTE80;
 using Microsoft;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace StructLayout
 {
+
+    public class CMakeProjectSettings
+    {
+        public string CurrentProjectSetting { set; get; }
+    }     
+
     static public class EditorUtils
     {
         public enum EditorMode
@@ -56,6 +64,45 @@ namespace StructLayout
             DTE2 applicationObject = ServiceProvider.GetService(typeof(SDTE)) as DTE2;
             Assumes.Present(applicationObject);
             return applicationObject.Solution;
+        }
+
+        static public string GetSolutionPath()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            Solution solution = GetActiveSolution();
+            if (solution == null) return null;
+            return (Path.HasExtension(solution.FullName) ? Path.GetDirectoryName(solution.FullName) : solution.FullName) + '\\';
+        }
+
+        static public string GetCMakeActiveConfigurationName()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            string solutionPath = GetSolutionPath();
+            if (solutionPath == null || solutionPath.Length == 0) return null;
+
+            string activeConfigFilename = solutionPath + @".vs\ProjectSettings.json";
+            if (File.Exists(activeConfigFilename))
+            {
+                var projSettings = new CMakeProjectSettings();
+
+                try
+                {
+                    string jsonString = File.ReadAllText(activeConfigFilename);
+                    projSettings = JsonConvert.DeserializeObject<CMakeProjectSettings>(jsonString);
+                }
+                catch (Exception e)
+                {
+                    OutputLog.Error(e.Message);
+                }
+
+                if (projSettings != null)
+                {
+                    return projSettings.CurrentProjectSetting;
+                }
+            }
+
+            return null; 
         }
 
         static public EditorMode GetEditorMode()

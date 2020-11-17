@@ -59,7 +59,7 @@ namespace StructLayout
         }
     }
 
-    public class MacroEvaluatorBasic : MacroEvaluatorDict
+    public class MacroEvaluatorCMake : MacroEvaluatorDict
     {
         public override string ComputeMacro(string macroStr)
         {
@@ -67,19 +67,11 @@ namespace StructLayout
 
             if (macroStr == @"$(SolutionDir)")
             {
-                Solution solution = EditorUtils.GetActiveSolution();
-                if (solution == null) return null;
-                return (Path.HasExtension(solution.FullName)? Path.GetDirectoryName(solution.FullName) : solution.FullName) + '\\';
+                return EditorUtils.GetSolutionPath();
             }
             if (macroStr == @"$(Configuration)")
             {
-                //TODO ~ Ramonv ~ this does not work ConfigurationManager is null
-                Project project = EditorUtils.GetActiveProject();
-                if (project != null && project.ConfigurationManager != null)
-                {
-                    Configuration config = project.ConfigurationManager.ActiveConfiguration;
-                    return config == null ? null : config.ConfigurationName;
-                }
+                return EditorUtils.GetCMakeActiveConfigurationName();
             }
 
             return null;

@@ -411,7 +411,7 @@ namespace StructLayout
             Document document = EditorUtils.GetActiveDocument();
             if (document == null) { return null; }
 
-            var evaluator = new MacroEvaluatorBasic();
+            var evaluator = new MacroEvaluatorCMake();
 
             var customSettings = SettingsManager.Instance.Settings;
             string commandsFile = customSettings == null ? null : customSettings.CMakeCommandsFile;
@@ -443,7 +443,7 @@ namespace StructLayout
             }
             else
             {
-                AddCustomSettings(ret, new MacroEvaluatorBasic());
+                AddCustomSettings(ret, new MacroEvaluatorCMake());
             }
 
             return ret;

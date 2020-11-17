@@ -24,6 +24,8 @@ struct VirtualChild : public Virtual
 { 
 	TemplatedStruct<double> t; 
 
+	const char* str;
+
 #ifdef TARGET_DEBUG
 	double d; 
 	double e;

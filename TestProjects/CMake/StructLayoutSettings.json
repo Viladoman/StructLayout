@@ -1,6 +1,6 @@
 {
   "AutomaticExtraction": true,
-  "CMakeCommandsFile": "$(SolutionDir)out\\build\\x64-Clang-Release\\compile_commands.json",
+  "CMakeCommandsFile": "$(SolutionDir)out\\build\\$(Configuration)\\compile_commands.json",
   "AdditionalPreprocessorDefinitions": "",
   "AdditionalIncludeDirs": "",
   "AdditionalForceIncludes": "",
