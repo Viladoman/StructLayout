@@ -9,22 +9,19 @@ namespace StructLayout
 {
     public class ParseMessageWindow : Window
     {
-        public ParseMessageWindow(ParseResult result)
+        public ParseMessageWindow(ParseMessageContent content)
         {
             Title = "Struct Layout";
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
             SizeToContent = SizeToContent.WidthAndHeight;
             ResizeMode = ResizeMode.NoResize;
-            this.Content = new ParseMessageControl(this,result);
+            this.Content = new ParseMessageControl(this, content);
         }
 
-        static public void DisplayResult(ParseResult result)
+        static public void Display(ParseMessageContent content)
         {
-            if (result.Status != ParseResult.StatusCode.Found)
-            {
-                var messageWin = new ParseMessageWindow(result);
-                messageWin.ShowDialog();
-            }
+            var messageWin = new ParseMessageWindow(content);
+            messageWin.ShowDialog();
         }
     }
 }

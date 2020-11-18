@@ -55,6 +55,7 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" FontWeight="Bold" FontSize="15" Background="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverBackground}}" Height="25" Text="Show Log" />
                     <WrapPanel Grid.Column="1" VerticalAlignment="Center">
+                        <Button x:Name="buttonDocA"     Content="Documentation" Padding="10,0,10,0" Margin="5,0,0,0" Click="OpenDocumentation"/>
                         <Button x:Name="buttonOptionsA" Content="Open Options" Padding="10,0,10,0" Margin="5,0,0,0" Click="OpenSettings"/>
                         <Button x:Name="buttonAcceptA"  Content="Accept" Padding="10,0,10,0" Margin="5,0,5,0" Click="CloseWindow"/>
                     </WrapPanel>
@@ -67,6 +68,7 @@
         </Expander>
 
         <WrapPanel HorizontalAlignment="Right" Grid.Row="1" x:Name="onlyButtons" Visibility="Collapsed">
+            <Button x:Name="buttonDocB"     Content="Documentation" Padding="10,0,10,0" Margin="5,0,0,0" Click="OpenDocumentation"/>
             <Button x:Name="buttonOptionsB" Content="Open Options" Padding="10,0,10,0" Margin="5,0,0,0" Click="OpenSettings"/>
             <Button x:Name="buttonAcceptB"  Content="Accept" Padding="10,0,10,0" Margin="5" Click="CloseWindow"/>
         </WrapPanel>

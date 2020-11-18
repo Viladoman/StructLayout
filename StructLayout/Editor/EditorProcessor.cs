@@ -463,6 +463,32 @@ namespace StructLayout
             ApplyUserSettingsToWindow(win, settings);
         }
 
+        private void DisplayResult(ParseResult result)
+        {
+            if (result.Status != ParseResult.StatusCode.Found)
+            {
+                var content = new ParseMessageContent();
+
+                switch (result.Status)
+                {
+                    case ParseResult.StatusCode.InvalidInput:
+                        content.Message = "Parser had Invalid Input.";
+                        break;
+                    case ParseResult.StatusCode.ParseFailed:
+                        content.Message = "Errors found while parsing.\nUpdate the Extension's options as needed for a succesful compilation.\nCheck the 'Struct Layout' output pane for more information.";
+                        break;
+                    case ParseResult.StatusCode.NotFound:
+                        content.Message = "No structure found at the given position.\nTry performing the query from a structure definition or initialization.";
+                        break;
+                }
+
+                content.Log = result.ParserLog;
+                content.ShowOptions = result.Status == ParseResult.StatusCode.ParseFailed;
+
+                ParseMessageWindow.Display(content);
+            }
+        }
+
         public async System.Threading.Tasks.Task ParseAtCurrentLocationAsync()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -475,6 +501,7 @@ namespace StructLayout
             if (location == null)
             {
                 OutputLog.Error("Unable to retrieve current document position.");
+                //TODO ~ Ramonv ~ Add Messagebox
                 return;
             }
 
@@ -482,6 +509,7 @@ namespace StructLayout
             if (properties == null)
             {
                 OutputLog.Error("Unable to retrieve the project configuration");
+                //TODO ~ Ramonv ~ Add Messageboxes inside each GEtProjectDAta to get more accurate information
                 return;
             }
 
@@ -510,7 +538,7 @@ namespace StructLayout
                 }
             }
 
-            ParseMessageWindow.DisplayResult(result);
+            DisplayResult(result);
         }
     }
 }

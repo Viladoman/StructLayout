@@ -46,6 +46,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Common\ColorTheme.cs" />
+    <Compile Include="Common\Documentation.cs" />
     <Compile Include="Common\FileWatcher.cs" />
     <Compile Include="Common\LayoutColors.cs" />
     <Compile Include="Common\LayoutParser.cs" />

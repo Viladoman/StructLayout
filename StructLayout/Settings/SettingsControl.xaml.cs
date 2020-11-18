@@ -105,8 +105,7 @@ namespace StructLayout
 
         private void ButtonDocumentation_OnClick(object sender, object e)
         {
-            var uri = new Uri(@"https://github.com/Viladoman/StructLayout/wiki/Configurations");
-            Process.Start(new ProcessStartInfo(uri.AbsoluteUri));
+            Documentation.OpenLink(Documentation.Link.GeneralConfiguration);
         }
     }
 }

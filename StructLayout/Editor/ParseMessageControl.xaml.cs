@@ -15,46 +15,46 @@ using System.Windows.Shapes;
 
 namespace StructLayout
 {
+    public class ParseMessageContent
+    {   
+        public string Message { set; get; }
+        public string Log { set; get; }
+        public Documentation.Link Doc { set; get; } = Documentation.Link.None;
+        public bool ShowOptions { set; get; } = false;
+    }
+
     /// <summary>
     /// Interaction logic for ParseMessageControl.xaml
     /// </summary>
     public partial class ParseMessageControl : UserControl
     {
         private Window ParentWindow { set; get; }
-        private ParseResult Result { set; get; }
+        private ParseMessageContent MsgContent { set; get; }
 
-        public ParseMessageControl(Window parentWindow,ParseResult result)
+        public ParseMessageControl(Window parentWindow, ParseMessageContent msgContent)
         {
             InitializeComponent();
 
             ParentWindow = parentWindow;
-            Result = result;
+            MsgContent = msgContent;
             ShowMessage(); 
             ShowLog();
-            ShowButtons(); 
+            ShowOptionsButton();
+            ShowDocumentationButton();
         }
 
         private void ShowMessage()
         {
             mainContent.Children.Clear();
-
-            switch(Result.Status)
+            if (MsgContent.Message != null && MsgContent.Message.Length > 0)
             {
-            case ParseResult.StatusCode.InvalidInput:
-                mainContent.Children.Add(CreateBasicText("Parser had Invalid Input."));    
-                break;
-            case ParseResult.StatusCode.ParseFailed:
-                mainContent.Children.Add(CreateBasicText("Errors found while parsing.\nUpdate the Extension's options as needed for a succesful compilation.\nCheck the 'Struct Layout' output pane for more information."));    
-                break;
-            case ParseResult.StatusCode.NotFound:     
-                mainContent.Children.Add(CreateBasicText("No structure found at the given position.\nTry performing the query from a structure definition or initialization."));    
-                break;
+                mainContent.Children.Add(CreateBasicText(MsgContent.Message));    
             }
         }
 
         private void ShowLog()
         {
-            if (Result.ParserLog == null || Result.ParserLog.Length == 0)
+            if (MsgContent.Log == null || MsgContent.Log.Length == 0)
             {
                 logExpander.Visibility = Visibility.Collapsed;
                 onlyButtons.Visibility = Visibility.Visible;
@@ -64,13 +64,13 @@ namespace StructLayout
                 logExpander.Visibility = Visibility.Visible;
                 onlyButtons.Visibility = Visibility.Collapsed;
 
-                logText.Text = TruncateLongString(Result.ParserLog,4000);
+                logText.Text = TruncateLongString(MsgContent.Log, 4000);
             }
         }
 
-        private void ShowButtons()
+        private void ShowOptionsButton()
         {
-            if (Result.Status == ParseResult.StatusCode.ParseFailed)
+            if (MsgContent.ShowOptions)
             {
                 buttonOptionsA.Visibility = Visibility.Visible; 
                 buttonOptionsB.Visibility = Visibility.Visible;
@@ -89,6 +89,21 @@ namespace StructLayout
                 buttonAcceptB.IsCancel = true;
             }
         }
+
+        private void ShowDocumentationButton()
+        {
+            if (MsgContent.Doc == Documentation.Link.None)
+            {
+                buttonDocA.Visibility = Visibility.Collapsed;
+                buttonDocB.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                buttonDocA.Visibility = Visibility.Visible;
+                buttonDocB.Visibility = Visibility.Visible;
+            }
+        }
+
         private string TruncateLongString(string str, int maxLength)
         {
             if (string.IsNullOrEmpty(str) || str.Length <= maxLength)
@@ -116,9 +131,9 @@ namespace StructLayout
             SettingsManager.Instance.OpenSettingsWindow();
         }
 
-        private void buttonOptionsB_KeyDown(object sender, KeyEventArgs e)
+        private void OpenDocumentation(object a = null, object b = null)
         {
-
+            Documentation.OpenLink(MsgContent.Doc);
         }
     }
 }
