@@ -16,7 +16,14 @@ using System.Windows.Shapes;
 namespace StructLayout
 {
     public class ParseMessageContent
-    {   
+    {
+        public ParseMessageContent(){}
+
+        public ParseMessageContent(string message)
+        {
+            Message = message;
+        }
+
         public string Message { set; get; }
         public string Log { set; get; }
         public Documentation.Link Doc { set; get; } = Documentation.Link.None;

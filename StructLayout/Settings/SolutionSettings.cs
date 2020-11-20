@@ -28,7 +28,7 @@ namespace StructLayout
         [UIDescription(Label = "Automatic Extraction", Tooltip = "If true, it will try to extract the architecture, include paths, preprocessor macros... from the current solution.")]
         public bool AutomaticExtraction { set; get; } = true;
 
-        [UIDescription(Label = "CMake Commands File", EditorModeFilter = EditorUtils.EditorMode.CMake, Tooltip = "File location for the build commands exported by CMAKE_EXPORT_COMPILE_COMMANDS=1 (This fields allows a limited set of $(SolutionDir) style macros)")]
+        [UIDescription(Label = "Explicit Commands File", EditorModeFilter = EditorUtils.EditorMode.CMake, Tooltip = "File location for the build commands exported by CMAKE_EXPORT_COMPILE_COMMANDS=1 (This fields allows a limited set of $(SolutionDir) style macros)")]
         public string CMakeCommandsFile { set; get; } = "";
 
         //Parser Settings

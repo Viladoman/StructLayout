@@ -1,28 +1,24 @@
 ﻿using System;
 using System.ComponentModel.Design;
-using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
 
-namespace StructLayout
+namespace StructLayout.Editor
 {
     /// <summary>
     /// Command handler
     /// </summary>
-    internal sealed class ParseCommand
+    internal sealed class DocumentationCommand
     {
         /// <summary>
         /// Command ID.
         /// </summary>
-        public const int CommandId = 256;
+        public const int CommandId = 257;
 
         /// <summary>
         /// Command menu group (command set GUID).
         /// </summary>
-        public static readonly Guid CommandSet = new Guid("1dffa616-1620-4243-92e7-6e5efdc8e05d");
+        public static readonly Guid CommandSet = new Guid("2d97936f-81d9-4101-a448-a39c1e21596a");
 
         /// <summary>
         /// VS Package that provides this command, not null.
@@ -30,12 +26,12 @@ namespace StructLayout
         private readonly AsyncPackage package;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ParseCommand"/> class.
+        /// Initializes a new instance of the <see cref="ReportIssueCommand"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
         /// <param name="commandService">Command service to add command to, not null.</param>
-        private ParseCommand(AsyncPackage package, OleMenuCommandService commandService)
+        private DocumentationCommand(AsyncPackage package, OleMenuCommandService commandService)
         {
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
@@ -48,7 +44,7 @@ namespace StructLayout
         /// <summary>
         /// Gets the instance of the command.
         /// </summary>
-        public static ParseCommand Instance
+        public static DocumentationCommand Instance
         {
             get;
             private set;
@@ -71,12 +67,12 @@ namespace StructLayout
         /// <param name="package">Owner package, not null.</param>
         public static async Task InitializeAsync(AsyncPackage package)
         {
-            // Switch to the main thread - the call to AddCommand in ParseCommand's constructor requires
+            // Switch to the main thread - the call to AddCommand in ReportIssueCommand's constructor requires
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
             OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
-            Instance = new ParseCommand(package, commandService);
+            Instance = new DocumentationCommand(package, commandService);
         }
 
         /// <summary>
@@ -88,8 +84,8 @@ namespace StructLayout
         /// <param name="e">Event args.</param>
         private void Execute(object sender, EventArgs e)
         {
-            //fire and forget
-            _ = EditorProcessor.Instance.ParseAtCurrentLocationAsync(); 
+            ThreadHelper.ThrowIfNotOnUIThread();
+            Documentation.OpenLink(Documentation.Link.MainPage);
         }
     }
 }

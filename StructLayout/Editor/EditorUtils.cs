@@ -3,29 +3,19 @@ using EnvDTE80;
 using Microsoft;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StructLayout
 {
-
-    public class CMakeProjectSettings
-    {
-        public string CurrentProjectSetting { set; get; }
-    }     
-
     static public class EditorUtils
     {
         public enum EditorMode
         {
             None, 
-            VisualStudio, 
+            VisualStudio,
             CMake,
+            UnrealEngine,
         }
 
         static private StructLayoutPackage Package { get; set; }
@@ -74,37 +64,6 @@ namespace StructLayout
             return (Path.HasExtension(solution.FullName) ? Path.GetDirectoryName(solution.FullName) : solution.FullName) + '\\';
         }
 
-        static public string GetCMakeActiveConfigurationName()
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            string solutionPath = GetSolutionPath();
-            if (solutionPath == null || solutionPath.Length == 0) return null;
-
-            string activeConfigFilename = solutionPath + @".vs\ProjectSettings.json";
-            if (File.Exists(activeConfigFilename))
-            {
-                var projSettings = new CMakeProjectSettings();
-
-                try
-                {
-                    string jsonString = File.ReadAllText(activeConfigFilename);
-                    projSettings = JsonConvert.DeserializeObject<CMakeProjectSettings>(jsonString);
-                }
-                catch (Exception e)
-                {
-                    OutputLog.Error(e.Message);
-                }
-
-                if (projSettings != null)
-                {
-                    return projSettings.CurrentProjectSetting;
-                }
-            }
-
-            return null; 
-        }
-
         static public EditorMode GetEditorMode()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -118,6 +77,21 @@ namespace StructLayout
             if (project.Object == null)
             {
                 return EditorMode.CMake;
+            }
+
+            Solution solution = EditorUtils.GetActiveSolution();
+            if (solution != null)
+            {
+                //Check for unreal project ( $(SolutionName.uproject) || UE4.sln + Engine/Source/UE4Editor.target )
+                var uproject = Path.ChangeExtension(solution.FullName, "uproject");
+                if (File.Exists(uproject))
+                {
+                    return EditorMode.UnrealEngine;
+                }
+                else if (Path.GetFileNameWithoutExtension(solution.FullName) == "UE4" && File.Exists(GetSolutionPath() + @"Engine/Source/UE4Editor.Target.cs"))
+                {
+                    return EditorMode.UnrealEngine;
+                }
             }
 
             return EditorMode.VisualStudio;

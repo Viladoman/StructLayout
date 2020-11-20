@@ -15,7 +15,6 @@ namespace StructLayout
             MainPage,
             ReportIssue,
             GeneralConfiguration,
-            CMakeConfiguration,
         }
 
         static public string LinkToURL(Link link)
@@ -23,8 +22,8 @@ namespace StructLayout
             switch (link)
             {
                 case Link.MainPage:             return @"https://github.com/Viladoman/StructLayout";
+                case Link.ReportIssue:          return @"https://github.com/Viladoman/StructLayout/issues";
                 case Link.GeneralConfiguration: return @"https://github.com/Viladoman/StructLayout/wiki/Configurations";
-                //TODO ~ ramonv ~ fill this                
             }
             return null;
         }

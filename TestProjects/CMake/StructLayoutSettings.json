@@ -1,9 +1,0 @@
-{
-  "AutomaticExtraction": true,
-  "CMakeCommandsFile": "$(SolutionDir)out\\build\\$(Configuration)\\compile_commands.json",
-  "AdditionalPreprocessorDefinitions": "",
-  "AdditionalIncludeDirs": "",
-  "AdditionalForceIncludes": "",
-  "AdditionalCommandLine": "",
-  "EnableWarnings": false
-}

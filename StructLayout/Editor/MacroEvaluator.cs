@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace StructLayout
 {
-    interface IMacroEvaluator
+    public interface IMacroEvaluator
     {
         string Evaluate(string input);
     }
@@ -35,12 +35,14 @@ namespace StructLayout
     {
         private Dictionary<string, string> dict = new Dictionary<string, string>();
 
-        public abstract string ComputeMacro(string macroStr);      
+        protected string MacroRegexPattern { set; get; } = @"(\$\([a-zA-Z0-9_]+\))"; 
+
+        public abstract string ComputeMacro(string macroStr);
 
         public string Evaluate(string input)
         {
-            return Regex.Replace(input, @"(\$\([a-zA-Z0-9_]+\))", delegate (Match m)
-            {                
+            return Regex.Replace(input, MacroRegexPattern, delegate (Match m)
+            {
                 if (dict.ContainsKey(m.Value))
                 {
                     return dict[m.Value];
@@ -69,9 +71,33 @@ namespace StructLayout
             {
                 return EditorUtils.GetSolutionPath();
             }
-            if (macroStr == @"$(Configuration)")
+            else if (macroStr == @"$(Configuration)")
             {
-                return EditorUtils.GetCMakeActiveConfigurationName();
+                return ExtractorCMake.GetActiveConfigurationName();
+            }
+
+            return null;
+        }
+    }
+
+    public class MacroEvaluatorCMakeArgs : MacroEvaluatorDict
+    {
+        public MacroEvaluatorCMakeArgs()
+        {
+            MacroRegexPattern = @"(\$\{[a-zA-Z0-9_]+\})";
+        }
+
+        public override string ComputeMacro(string macroStr)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            
+            if (macroStr == @"${projectDir}")
+            {
+                return EditorUtils.GetSolutionPath();
+            }
+            else if (macroStr == @"${name}")
+            {
+                return ExtractorCMake.GetActiveConfigurationName();
             }
 
             return null;
@@ -87,29 +113,14 @@ namespace StructLayout
             if (macroStr == @"$(UE4ModuleName)")
             {
                 Document doc = EditorUtils.GetActiveDocument();
-                if (doc == null)
-                {
-                    return null;
-                }
+                if (doc == null) return null;
                 
-                string path = doc.FullName;
-                var dirInfo = Directory.GetParent(path);
-
-                while (dirInfo != null)
-                {
-                    path = dirInfo.FullName;
-
-                    string folderName = Path.GetFileName(path);
-                    if (File.Exists(path+"\\"+folderName+".Build.cs"))
-                    {
-                        OutputLog.Log("UE4 Module Name: " + folderName);
-                        return folderName;
-                    }
-
-                    dirInfo = Directory.GetParent(path); //Next folder
-                }
-
-                OutputLog.Log("Unable to find the UE4 Module Name");
+                string modulePath = ExtractorUnreal.GetModulePath(doc.FullName);
+                if (modulePath == null) return null;
+                
+                string moduleName = Path.GetFileName(modulePath);
+                OutputLog.Log("UE4 Module Name: " + moduleName);
+                return moduleName; 
             }
 
             return null;

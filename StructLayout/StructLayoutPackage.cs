@@ -58,7 +58,10 @@ namespace StructLayout
             EditorUtils.Initialize(this);
             await LayoutWindowCommand.InitializeAsync(this);
             await ParseCommand.InitializeAsync(this);
-            await StructLayout.Editor.SettingsCommand.InitializeAsync(this);
+            await Editor.SettingsCommand.InitializeAsync(this);
+            await Editor.DocumentationCommand.InitializeAsync(this);
+            await Editor.ReportIssueCommand.InitializeAsync(this);
+            await Editor.AboutCommand.InitializeAsync(this);
         }
 
         #endregion

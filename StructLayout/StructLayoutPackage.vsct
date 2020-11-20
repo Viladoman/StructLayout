@@ -57,9 +57,27 @@
         </Strings>
       </Button>
       <Button guid="guidStructLayoutPackageCmdSet2" id="cmdidSettingsCommand" priority="0x0100" type="Button">
-        <Parent guid="guidStructLayoutPackageCmdSet2" id="StructLayoutMenuGroup" />
+        <Parent guid="guidStructLayoutPackageCmdSet2" id="StructLayoutOptionsGroup" />
         <Strings>
           <ButtonText>Options</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidStructLayoutPackageCmdSet2" id="cmdidGithubCommand" priority="0x0100" type="Button">
+        <Parent guid="guidStructLayoutPackageCmdSet2" id="StructLayoutDocumentationGroup" />
+        <Strings>
+          <ButtonText>Documentation</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidStructLayoutPackageCmdSet2" id="cmdidReportIssueCommand" priority="0x0100" type="Button">
+        <Parent guid="guidStructLayoutPackageCmdSet2" id="StructLayoutDocumentationGroup" />
+        <Strings>
+          <ButtonText>Report Issue</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidStructLayoutPackageCmdSet2" id="cmdidAboutCommand" priority="0x0100" type="Button">
+        <Parent guid="guidStructLayoutPackageCmdSet2" id="StructLayoutDocumentationGroup" />
+        <Strings>
+          <ButtonText>About</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -80,7 +98,10 @@
       <Group guid="guidStructLayoutPackageCmdSet2" id="StructLayoutGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EXTENSIONS" />
       </Group>
-      <Group guid="guidStructLayoutPackageCmdSet2" id="StructLayoutMenuGroup" priority="0x0600">
+      <Group guid="guidStructLayoutPackageCmdSet2" id="StructLayoutOptionsGroup" priority="0x0600">
+        <Parent guid="guidStructLayoutPackageCmdSet2" id="StructLayoutMenu" />
+      </Group>
+      <Group guid="guidStructLayoutPackageCmdSet2" id="StructLayoutDocumentationGroup" priority="0x0600">
         <Parent guid="guidStructLayoutPackageCmdSet2" id="StructLayoutMenu" />
       </Group>
     </Groups>
@@ -129,8 +150,12 @@
     <GuidSymbol value="{2d97936f-81d9-4101-a448-a39c1e21596a}" name="guidStructLayoutPackageCmdSet2">
       <IDSymbol value="4128" name="StructLayoutGroup" />
       <IDSymbol value="4129" name="StructLayoutMenu" />
-      <IDSymbol value="4130" name="StructLayoutMenuGroup" />
+      <IDSymbol value="4130" name="StructLayoutOptionsGroup" />
+      <IDSymbol value="4131" name="StructLayoutDocumentationGroup" />
       <IDSymbol value="256" name="cmdidSettingsCommand" />
+      <IDSymbol value="257" name="cmdidGithubCommand" />
+      <IDSymbol value="258" name="cmdidReportIssueCommand" />
+      <IDSymbol value="259" name="cmdidAboutCommand" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

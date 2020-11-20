@@ -51,13 +51,21 @@
     <Compile Include="Common\LayoutColors.cs" />
     <Compile Include="Common\LayoutParser.cs" />
     <Compile Include="Common\OutputLog.cs" />
+    <Compile Include="Editor\Commands\AboutCommand.cs" />
+    <Compile Include="Editor\Commands\DocumentationCommand.cs" />
     <Compile Include="Editor\EditorUtils.cs" />
+    <Compile Include="Editor\Extractors\ExtractorCMake.cs" />
+    <Compile Include="Editor\Extractors\ExtractorBase.cs" />
+    <Compile Include="Editor\Extractors\ExtractorManual.cs" />
+    <Compile Include="Editor\Extractors\ExtractorUnreal.cs" />
+    <Compile Include="Editor\Extractors\ExtractorVisualStudio.cs" />
     <Compile Include="Editor\MacroEvaluator.cs" />
     <Compile Include="Editor\ParseMessageControl.xaml.cs">
       <DependentUpon>ParseMessageControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Editor\ParseMessageWindow.cs" />
-    <Compile Include="Editor\SettingsCommand.cs" />
+    <Compile Include="Editor\Commands\ReportIssueCommand.cs" />
+    <Compile Include="Editor\Commands\SettingsCommand.cs" />
     <Compile Include="Settings\SettingsControl.xaml.cs">
       <DependentUpon>SettingsControl.xaml</DependentUpon>
     </Compile>
@@ -76,7 +84,7 @@
     <Compile Include="LayoutWindow\LayoutWindowControl.xaml.cs">
       <DependentUpon>LayoutWindowControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Editor\ParseCommand.cs" />
+    <Compile Include="Editor\Commands\ParseCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StructLayoutPackage.cs" />
     <Compile Include="StructLayoutSettings.cs">
