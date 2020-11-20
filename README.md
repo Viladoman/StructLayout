@@ -5,6 +5,8 @@ Visual Studio Extension for C++ struct memory layout visualization
 [![MarketPlace](https://img.shields.io/badge/Visual_Studio_Marketplace-Latest-green.svg)](https://marketplace.visualstudio.com/items?itemName=RamonViladomat.StructLayout)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=T2ZVTJM6S7926)
 
+[Download latest from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=RamonViladomat.StructLayout)
+
 ## Motivation
 
 In C++, the structure layout can be affected by different factors. In order to produce performant data cache oriented code or reduce the structure memory footprint, it is important to be aware of the class layouts at the same spot where code is created, updated, removed or debugged. This extension allows programmers to visualize their structures within Visual Studio with just 1 click.
