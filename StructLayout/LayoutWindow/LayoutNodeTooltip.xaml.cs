@@ -69,14 +69,15 @@ namespace StructLayout
             }
 
             //LayoutData
-
-            //TODO ~ ramonv ~ add padding - % padding - realsize
-
             layout1Txt.Text = "Offset: " + GetFullValueStr(Node.Offset) + " - Size: "  + GetFullValueStr(Node.Size) + " - Align: " + GetFullValueStr(Node.Align);
 
+            layout2Txt.Visibility = Node.RealSize == Node.Size ? Visibility.Collapsed : Visibility.Visible;
+            layout2Txt.Text = "Real Size: " + GetFullValueStr(Node.RealSize) + " - Padding: " + GetFullValueStr(Node.Padding);
+            layout2Txt.Text += Node.Size > 0? " - " + (uint)(((float)Node.Padding / Node.Size) * 100) + "%" : "";
+
             var localOffset = Node.Parent == null ? Node.Offset : Node.Offset - Node.Parent.Offset;
-            layout2Txt.Visibility = localOffset == Node.Offset ? Visibility.Collapsed : Visibility.Visible;
-            layout2Txt.Text = "Local Offset: " + GetFullValueStr(localOffset);
+            layout3Txt.Visibility = localOffset == Node.Offset ? Visibility.Collapsed : Visibility.Visible;
+            layout3Txt.Text = "Local Offset: " + GetFullValueStr(localOffset);
         }
 
         private void RefreshExtraStack()

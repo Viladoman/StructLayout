@@ -24,6 +24,7 @@
             <Border x:Name="layoutBorder" BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,8" />
             <TextBlock x:Name="layout1Txt" />
             <TextBlock x:Name="layout2Txt" />
+            <TextBlock x:Name="layout3Txt" />
             <Border x:Name="extraBorder" BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,8" />
             <StackPanel x:Name="extraStack" />
             <Border x:Name="typeBorder" BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,8" />

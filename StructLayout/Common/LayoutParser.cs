@@ -120,6 +120,8 @@ namespace StructLayout
         public uint Offset { set; get; }
         public uint Size { set; get; }
         public uint Align { set; get; }
+        public uint RealSize { set; get; }
+        public uint Padding { get { return Size - RealSize; } }
 
         public bool Collapsed { set; get; } = true;
 
@@ -219,14 +221,19 @@ namespace StructLayout
             return node;
         }
 
-        public void FinalizeNodeRecursive(LayoutNode node)
+        private void FinalizeNodeRecursive(LayoutNode node)
         {
             node.Offset += node.Parent != null ? node.Parent.Offset : 0;
             node.RenderData.Background = Colors.GetCategoryBackground(node.Category);
 
+            node.RealSize = node.Children.Count == 0? node.Size : 0;
+            uint realSizeOffset = node.Offset;
             foreach (LayoutNode child in node.Children)
             {
                 FinalizeNodeRecursive(child);
+
+                node.RealSize += realSizeOffset <= child.Offset ? child.RealSize : 0;
+                realSizeOffset = Math.Max(child.Offset+child.Size,realSizeOffset);
             }
         }
 
