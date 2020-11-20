@@ -85,9 +85,9 @@ namespace StructLayout.Editor
         private void Execute(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-            //TODO ~ ramonv ~ to be implemented
 
-            ParseMessageWindow.Display(new ParseMessageContent("ABOUT!!!!!"));
+            AboutWindow dlg = new AboutWindow();
+            dlg.ShowDialog();
         }
     }
 }

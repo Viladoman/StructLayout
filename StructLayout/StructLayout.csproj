@@ -66,6 +66,9 @@
     <Compile Include="Editor\ParseMessageWindow.cs" />
     <Compile Include="Editor\Commands\ReportIssueCommand.cs" />
     <Compile Include="Editor\Commands\SettingsCommand.cs" />
+    <Compile Include="Settings\AboutWindow.xaml.cs">
+      <DependentUpon>AboutWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Settings\SettingsControl.xaml.cs">
       <DependentUpon>SettingsControl.xaml</DependentUpon>
     </Compile>
@@ -132,6 +135,10 @@
     <Page Include="LayoutWindow\LayoutWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Settings\AboutWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Settings\SettingsControl.xaml">
       <SubType>Designer</SubType>

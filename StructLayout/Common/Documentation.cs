@@ -15,6 +15,7 @@ namespace StructLayout
             MainPage,
             ReportIssue,
             GeneralConfiguration,
+            Donate,
         }
 
         static public string LinkToURL(Link link)
@@ -24,6 +25,7 @@ namespace StructLayout
                 case Link.MainPage:             return @"https://github.com/Viladoman/StructLayout";
                 case Link.ReportIssue:          return @"https://github.com/Viladoman/StructLayout/issues";
                 case Link.GeneralConfiguration: return @"https://github.com/Viladoman/StructLayout/wiki/Configurations";
+                case Link.Donate:               return @"https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=T2ZVTJM6S7926";
             }
             return null;
         }
