@@ -26,11 +26,10 @@
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.Foreground}}" />
         </Style>
-        <Style TargetType="Button" x:Key="StackButton">
+        <Style TargetType="Button">
             <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.Foreground}}" />
             <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.Background}}" />
             <Setter Property="Width"      Value="75"/>
-            <Setter Property="Visibility" Value="Collapsed" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
@@ -45,36 +44,8 @@
                     <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverForeground}}" />
                     <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverBackground}}" />
                 </Trigger>
-                <DataTrigger Binding="{Binding ElementName=displayModeComboBox, Path=SelectedIndex}" Value="0">
-                    <Setter Property="Visibility" Value="Visible" />
-                </DataTrigger>
             </Style.Triggers>
         </Style>
-        <Style TargetType="Button" x:Key="FlatButton">
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.Foreground}}" />
-            <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.Background}}" />
-            <Setter Property="Width"      Value="75"/>
-            <Setter Property="Visibility" Value="Collapsed" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type Button}">
-                        <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverForeground}}" />
-                    <Setter Property="Background" Value="{DynamicResource {x:Static common:ColorTheme.ComboBox_MouseOverBackground}}" />
-                </Trigger>
-                <DataTrigger Binding="{Binding ElementName=displayModeComboBox, Path=SelectedIndex}" Value="1">
-                    <Setter Property="Visibility" Value="Visible" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-
         <ControlTemplate x:Key="ComboBoxToggleButton" TargetType="{x:Type ToggleButton}">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -180,30 +151,8 @@
                 <Label FontWeight="Bold">Mode:</Label>
                 <ComboBox x:Name="displayModeComboBox" Width="65" SelectionChanged="DisplayModeComboBox_SelectionChanged"/>
 
-                <Button Click="ButtonCollapseAll_Click" Margin="10 0 0 0">
-                    Collapse All
-                    <Button.Style>
-                        <Style TargetType="Button" BasedOn="{StaticResource StackButton}"/>
-                    </Button.Style>
-                </Button>
-                <Button Click="ButtonExpandAll_Click" Margin="5 0 0 0">
-                    Expand All
-                    <Button.Style>
-                        <Style TargetType="Button" BasedOn="{StaticResource StackButton}"/>
-                    </Button.Style>
-                </Button>
-                <Button Click="ButtonCollapseAll_Click" Margin="10 0 0 0">
-                    Top
-                    <Button.Style>
-                        <Style TargetType="Button" BasedOn="{StaticResource FlatButton}"/>
-                    </Button.Style>
-                </Button>
-                <Button Click="ButtonExpandAll_Click" Margin="5 0 0 0">
-                    Bottom
-                    <Button.Style>
-                        <Style TargetType="Button" BasedOn="{StaticResource FlatButton}"/>
-                    </Button.Style>
-                </Button>
+                <Button Click="ButtonCollapseAll_Click" Margin="10 0 0 0">Collapse All</Button>
+                <Button Click="ButtonExpandAll_Click" Margin="5 0 0 0">Expand All</Button>
             </WrapPanel>
         </Grid>
         <local:CustomScrollViewer Grid.Row="1" x:Name="scrollViewer" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible">
