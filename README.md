@@ -1,7 +1,9 @@
 # StructLayout
+
 Visual Studio Extension for C++ struct memory layout visualization
 
-[Download latest from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=RamonViladomat.StructLayout)
+[![MarketPlace](https://img.shields.io/badge/Visual_Studio_Marketplace-Latest-green.svg)](https://marketplace.visualstudio.com/items?itemName=RamonViladomat.StructLayout)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=T2ZVTJM6S7926)
 
 ## Motivation
 
