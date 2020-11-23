@@ -250,26 +250,37 @@ namespace StructLayout
         {
             if (commands == null || documentName == null) { return null; }
 
-            string documentNameNoExt = Path.ChangeExtension(documentName, "");
-            string lowerInput = documentNameNoExt.Replace('\\', '/').ToLower();
+            string documentFolder = Path.GetDirectoryName(documentName) + '/';
+            int documentFolderLength = (documentFolder.Length - 1);
+            string documentFileName = Path.GetFileNameWithoutExtension(documentName);
+            string lowerInput = documentFolder.Replace('\\', '/').ToLower();
             int bestScoreMatch = 0;
+            int bestUpperFolder = Int32.MaxValue;
             CMakeCommandEntry bestEntry = null;
 
             foreach (CMakeCommandEntry entry in commands)
             {
                 //This assumes no ../../ in those file and documentName paths
-                int scoreMatch = PathCompareScore(lowerInput, entry.file.Replace('\\', '/').ToLower());
-                if (scoreMatch == lowerInput.Length && (lowerInput.Length == entry.file.Length))
+                string entryLower = entry.file.Replace('\\', '/').ToLower();
+                int scoreMatch = PathCompareScore(lowerInput, entryLower);
+                if (scoreMatch >= bestScoreMatch)
                 {
-                    //perfect match - early exit
-                    return entry;
-                }
-                else if (scoreMatch >= bestScoreMatch)
-                {
-                    //TODO ~ ramonv ~ consider nested folders ( get the closest ) - This scoring can be way better
+                    string entryDir = Path.GetDirectoryName(entry.file);
+                    int thisUpperFolder = entryDir.Length - documentFolderLength;
 
-                    bestScoreMatch = scoreMatch;
-                    bestEntry = entry;
+                    if (thisUpperFolder == 0 && documentFileName == Path.GetFileNameWithoutExtension(entry.file))
+                    {
+                        //Same file with different extension match
+                        //Early exit 
+                        return entry;
+                    }
+
+                    if (scoreMatch > bestScoreMatch || (thisUpperFolder >= 0 && thisUpperFolder < bestUpperFolder))
+                    {
+                        bestScoreMatch = scoreMatch;
+                        bestUpperFolder = thisUpperFolder;
+                        bestEntry = entry;
+                    }
                 }
             }
 
