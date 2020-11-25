@@ -58,16 +58,19 @@ namespace StructLayout
 
         private void OnReportIssue(object sender, object e)
         {
+            this.Close();
             Documentation.OpenLink(Documentation.Link.ReportIssue);
         }
 
         private void OnGithub(object sender, object e)
         {
+            this.Close();
             Documentation.OpenLink(Documentation.Link.MainPage);
         }
 
         private void OnDonate(object sender, object e)
         {
+            this.Close();
             Documentation.OpenLink(Documentation.Link.Donate);
         }
 

@@ -140,6 +140,7 @@ namespace StructLayout
 
         private void OpenDocumentation(object a = null, object b = null)
         {
+            ParentWindow.Close();
             Documentation.OpenLink(MsgContent.Doc);
         }
     }
