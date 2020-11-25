@@ -2,8 +2,8 @@
 
 Visual Studio Extension for C++ struct memory layout visualization
 
-[![MarketPlace](https://img.shields.io/badge/Visual_Studio_Marketplace-Latest-green.svg)](https://marketplace.visualstudio.com/items?itemName=RamonViladomat.StructLayout)
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=T2ZVTJM6S7926)
+[![MarketPlace](https://img.shields.io/badge/Visual_Studio_Marketplace-v0.3.4-green.svg)](https://marketplace.visualstudio.com/items?itemName=RamonViladomat.StructLayout)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate?hosted_button_id=QWTUS8PNK5X5A)
 
 [Download latest from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=RamonViladomat.StructLayout)
 
@@ -52,3 +52,10 @@ When a Layout request is made the extension does the following:
 ## References
 - [Visual Studio 2019](https://visualstudio.microsoft.com/vs/)
 - [LLVM](http://llvm.org/)
+
+## Contributing
+This project is open to code contributions. 
+
+If you found this extension useful you can always buy me a cup coffee. 
+
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/donate?hosted_button_id=QWTUS8PNK5X5A)
