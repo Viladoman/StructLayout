@@ -16,6 +16,9 @@ namespace StructLayout
             ReportIssue,
             GeneralConfiguration,
             Donate,
+
+            //Special Issues
+            UnrealIssue_1,
         }
 
         static public string LinkToURL(Link link)
@@ -26,6 +29,8 @@ namespace StructLayout
                 case Link.ReportIssue:          return @"https://github.com/Viladoman/StructLayout/issues";
                 case Link.GeneralConfiguration: return @"https://github.com/Viladoman/StructLayout/wiki/Configurations";
                 case Link.Donate:               return @"https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=T2ZVTJM6S7926";
+
+                case Link.UnrealIssue_1:        return @"https://github.com/Viladoman/StructLayout/wiki/Unreal-Engine-4-Configuration#issue-with-primaryassetid-operator--and-";
             }
             return null;
         }

@@ -56,6 +56,26 @@ namespace StructLayout
             projProperties.PrepocessorDefinitions.Add("UNREAL_CODE_ANALYZER");
         }
 
+        protected override void ProcessPostProjectData(ProjectProperties projProperties)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            for (int i = 0; i < projProperties.ForceIncludes.Count; ++i)
+            {
+                string pchFile = projProperties.ForceIncludes[i] + ".pch";
+                if (File.Exists(pchFile))
+                {
+                    OutputLog.Log("Found incompatible pch file, generating alias for: " + pchFile);
+
+                    string originalName = projProperties.ForceIncludes[i];
+                    string newName = Path.GetDirectoryName(originalName) + @"\SL_" + Path.GetFileName(originalName);
+                    projProperties.ForceIncludes[i] = newName;
+
+                    File.Copy(originalName, newName, true);
+                }
+            }
+        }
+
         private XmlNode SearchInProjectFile(Project project, string modulePath)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -125,6 +145,5 @@ namespace StructLayout
 
             return relativePath;
         }
-
     }
 }

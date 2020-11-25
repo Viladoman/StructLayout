@@ -75,6 +75,19 @@ namespace StructLayout
             ApplyUserSettingsToWindow(win, settings);
         }
 
+        private void CheckForSpecialResults(ParseMessageContent content)
+        {
+            if (content.Log != null && content.Log.Length > 0)
+            {
+                //Special Issue Messages
+                if (content.Log.Contains("PrimaryAssetId.h:34:15: error: use of overloaded operator '==' is ambiguous (with operand types 'const FName' and 'const FPrimaryAssetType')"))
+                {
+                    content.Doc = Documentation.Link.UnrealIssue_1;
+                    content.Message = "Errors found while parsing.\nThis is a known Unreal Engine issue.\nPress the Documentation Button for more details.";
+                }
+            }
+        }
+
         private void DisplayResult(ParseResult result)
         {
             if (result.Status != ParseResult.StatusCode.Found)
@@ -96,6 +109,8 @@ namespace StructLayout
 
                 content.Log = result.ParserLog;
                 content.ShowOptions = result.Status == ParseResult.StatusCode.ParseFailed;
+
+                CheckForSpecialResults(content);
 
                 ParseMessageWindow.Display(content);
             }

@@ -77,10 +77,13 @@ namespace StructLayout
 
             RemoveMSBuildStringFromList(ret.IncludeDirectories, evaluator.Evaluate(platform.ExcludeDirectories)); //Exclude directories 
 
+            ProcessPostProjectData(ret);
+
             return ret;
         }
 
         protected virtual void CaptureExtraProperties(ProjectProperties projProperties, IMacroEvaluator evaluator){ }
+        protected virtual void ProcessPostProjectData(ProjectProperties projProperties) { }
 
         private ProjectProperties.StandardVersion GetStandardVersion(VCConfiguration config)
         {
