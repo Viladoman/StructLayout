@@ -7,23 +7,39 @@ namespace StructLayout
 {
     public static class OutputLog
     {
-        private static IVsOutputWindowPane pane;
+        private static IServiceProvider ServiceProvider { set; get; }
+
+        private static IVsOutputWindowPane paneInstance;
+
+        private static IVsOutputWindowPane Pane 
+        { 
+            get 
+            {
+                //Lazy creation to reduce noise. It will be created on the first request
+                ThreadHelper.ThrowIfNotOnUIThread();
+                if (paneInstance == null)
+                {
+                    paneInstance = CreatePane(ServiceProvider, Guid.NewGuid(), "Struct Layout", true, false);
+                }
+                return paneInstance;
+            } 
+        }
+
         public static void Initialize(IServiceProvider serviceProvider)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-            CreatePane(serviceProvider, Guid.NewGuid(), "Struct Layout", true, false);
+            ServiceProvider = serviceProvider;
         }
 
         public static void Clear()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-            pane.Clear();
+            Pane.Clear();
         }
 
         public static void Focus()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-            pane.Activate();
+            Pane.Activate();
         }
 
         public static void Log(string text)
@@ -42,10 +58,10 @@ namespace StructLayout
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             DateTime currentTime = DateTime.Now;
-            pane.OutputString("[" + String.Format("{0:HH:mm:ss}", currentTime) + "] " + text + "\n");            
+            Pane.OutputString("[" + String.Format("{0:HH:mm:ss}", currentTime) + "] " + text + "\n");            
         }
 
-        private static void CreatePane(IServiceProvider serviceProvider, Guid paneGuid, string title, bool visible, bool clearWithSolution)
+        private static IVsOutputWindowPane CreatePane(IServiceProvider serviceProvider, Guid paneGuid, string title, bool visible, bool clearWithSolution)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -56,7 +72,9 @@ namespace StructLayout
             output.CreatePane(ref paneGuid, title, Convert.ToInt32(visible), Convert.ToInt32(clearWithSolution));
 
             // Retrieve the new pane.
+            IVsOutputWindowPane pane;
             output.GetPane(ref paneGuid, out pane);
+            return pane;
         }
     }
 }
