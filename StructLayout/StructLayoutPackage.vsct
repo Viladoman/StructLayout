@@ -96,7 +96,7 @@
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN" />
       </Group>
       <Group guid="guidStructLayoutPackageCmdSet2" id="StructLayoutGroup" priority="0x0600">
-        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EXTENSIONS" />
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_TOOL_MAINMENU" />
       </Group>
       <Group guid="guidStructLayoutPackageCmdSet2" id="StructLayoutOptionsGroup" priority="0x0600">
         <Parent guid="guidStructLayoutPackageCmdSet2" id="StructLayoutMenu" />
@@ -122,11 +122,6 @@
   <Symbols>
     <!-- This is the package guid. -->
     <GuidSymbol name="guidStructLayoutPackage" value="{f8311149-1f10-4946-a454-0ac3ca1e28cc}" />
-
-    <!-- HACK AS IDM_VS_MENU_EXTENSIONS is not found and it is fetch on an older file -->
-    <GuidSymbol name="guidSHLMainMenu" value="{d309f791-903f-11d0-9efc-00a0c911004f}">
-      <IDSymbol name="IDM_VS_MENU_EXTENSIONS" value="0x0091" />
-    </GuidSymbol>
 
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidStructLayoutPackageCmdSet" value="{7df6381a-21a4-4a2b-b334-faac37766f18}">
