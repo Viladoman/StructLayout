@@ -4,7 +4,7 @@ namespace Test
 {
 	struct Base
 	{
-		bool        maybe;
+		bool   maybe;
 		double bigNumber;
 	};
 }

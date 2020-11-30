@@ -4,7 +4,7 @@
 
 #include "TestHeader.h"
 
-struct TestStruct : Test::Base
+struct TestStruct : public Test::Base
 {
     virtual ~TestStruct() {}
 

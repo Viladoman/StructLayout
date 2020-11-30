@@ -106,7 +106,7 @@ namespace StructLayout
 
             if (cl != null)
             {
-                AppendMSBuildStringToList(properties.IncludeDirectories, evaluator.Evaluate(cl.AdditionalIncludeDirectories));
+                AppendMSBuildStringToList(properties.IncludeDirectories, evaluator.Evaluate(cl.FullIncludePath));
                 AppendMSBuildStringToList(properties.ForceIncludes, evaluator.Evaluate(cl.ForcedIncludeFiles));
                 AppendMSBuildStringToList(properties.PrepocessorDefinitions, evaluator.Evaluate(cl.PreprocessorDefinitions));
             }

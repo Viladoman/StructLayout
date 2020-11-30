@@ -3,4 +3,14 @@
   <ItemGroup>
     <ClCompile Include="TestProject.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Folder Space">
+      <UniqueIdentifier>{0b5ad1e4-4e6c-4bd9-a9e7-8a7914df3f37}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Folder Space\TestHeader.h">
+      <Filter>Folder Space</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>
