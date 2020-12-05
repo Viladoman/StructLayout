@@ -377,9 +377,10 @@ namespace StructLayout
             string extra     = projProperties.ExtraArguments.Length == 0? "" : " " + projProperties.ExtraArguments;
 
             string standard  = GetStandardFlag(projProperties.Standard);
-            string archStr   = projProperties != null && projProperties.Target == ProjectProperties.TargetType.x86 ? "-m32" : "-m64";
+            string language  = Path.GetExtension(location.Filename) == ".c"? "" : " -x c++"; //do not force c++ on .c files 
+            string archStr   = projProperties != null && projProperties.Target == ProjectProperties.TargetType.x86 ? " -m32" : " -m64";
 
-            string toolCmd = AdjustPath(location.Filename) + " -- -x c++ " + archStr + standard + flags + defines + includes + forceInc + workDir + extra;
+            string toolCmd = AdjustPath(location.Filename) + " --" + language + archStr + standard + flags + defines + includes + forceInc + workDir + extra;
 
             OutputLog.Focus();
             OutputLog.Log("Looking for structures at " + location.Filename + ":" + location.Line + ":" + location.Column+"...");
