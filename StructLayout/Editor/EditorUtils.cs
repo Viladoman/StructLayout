@@ -92,6 +92,10 @@ namespace StructLayout
                 {
                     return EditorMode.UnrealEngine;
                 }
+                else if (Path.GetFileNameWithoutExtension(solution.FullName) == "UE5" && File.Exists(GetSolutionPath() + @"Engine/Source/UnrealEditor.Target.cs"))
+                {
+                    return EditorMode.UnrealEngine;
+                }
             }
 
             return EditorMode.VisualStudio;
