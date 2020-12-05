@@ -37,11 +37,24 @@ namespace StructLayout
             }
         }
 
+        private static bool StringHasContent(string input)
+        {
+            foreach(char c in input)
+            {
+                if ( c != ' ' && c != '"')
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        } 
+
         protected static bool IsMSBuildStringInvalid(string input)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            ThreadHelper.ThrowIfNotOnUIThread();     
 
-            if (input.Length == 0)
+            if (!StringHasContent(input))
             {
                 return true;
             }
