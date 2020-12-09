@@ -53,8 +53,8 @@ namespace StructLayout
             {
                 headerTxt.Text = Node.Name;
 
-                subheaderTxt.Visibility = Visibility.Visible;
                 subheaderTxt.Text = Node.Type + extraTypeStr;
+                subheaderTxt.Visibility = subheaderTxt.Text.Length > 0? Visibility.Visible : Visibility.Collapsed;
             }
             else if (Node.Type.Length > 0)
             {
@@ -114,7 +114,8 @@ namespace StructLayout
                 extraBorder.Visibility = Visibility.Visible;
                 extraStack.Visibility = Visibility.Visible;
                 var title = new TextBlock();
-                title.Text = Node.Category == LayoutNode.LayoutCategory.Union ? "Contains:" : "Empty Base Optimization:";
+
+                title.Text = Node.Category == LayoutNode.LayoutCategory.Union || Node.Category == LayoutNode.LayoutCategory.Shared ? "Contains:" : "Empty Base Optimization:";
                 extraStack.Children.Add(title);
 
                 foreach (LayoutNode child in Node.Extra)

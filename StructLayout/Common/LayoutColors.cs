@@ -11,7 +11,7 @@
         static Brush BaseBrush     = new SolidColorBrush(Color.FromRgb(51, 119, 102));
         static Brush VTableBrush   = new SolidColorBrush(Color.FromRgb(0, 119, 51));
         static Brush UnionBrush    = new SolidColorBrush(Color.FromRgb(0, 0, 119));
-        static Brush PaddingBrush  = new SolidColorBrush(Color.FromRgb(119, 0, 0));
+        static Brush SharedBrush   = new SolidColorBrush(Color.FromRgb(20, 20, 119));
         static Brush OtherBrush    = new SolidColorBrush(Color.FromRgb(51, 51, 51));
 
         static public Brush GetCategoryBackground(LayoutNode.LayoutCategory category)
@@ -31,7 +31,7 @@
                 case LayoutNode.LayoutCategory.VBTablePtr:     return VTableBrush;
                 case LayoutNode.LayoutCategory.VtorDisp:       return VTableBrush;
                 case LayoutNode.LayoutCategory.Union:          return UnionBrush;
-                case LayoutNode.LayoutCategory.Padding:        return PaddingBrush;
+                case LayoutNode.LayoutCategory.Shared:         return SharedBrush;
                 default: return OtherBrush;
             }
         }

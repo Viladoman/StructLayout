@@ -110,7 +110,7 @@ namespace StructLayout
             VBTablePtr,
             VtorDisp,
             Union,
-            Padding,
+            Shared,
             
         };
 
@@ -297,6 +297,42 @@ namespace StructLayout
             }           
         }
 
+        private void ShareNodes(LayoutNode nodeA, LayoutNode nodeB)
+        {
+            LayoutNode parent = nodeA.Parent;
+
+            LayoutNode share;
+
+            //Create or update the Shared node
+            if (nodeA.Category != LayoutNode.LayoutCategory.Shared)
+            {
+                //Create the new node
+                share = new LayoutNode();
+                share.Name = "Shared Memory";
+                share.Category = LayoutNode.LayoutCategory.Shared;
+                share.Offset = nodeA.Offset;
+                share.Size = nodeA.Size;
+
+                //inject the new node
+                int index = parent.Children.IndexOf(nodeA);
+                share.Extra.Add(nodeA);
+                parent.Children[index] = share;
+
+                share.Parent = parent;
+                nodeA.Parent = share;
+            }
+            else
+            {
+                share = nodeA;
+                share.Size = Math.Max(share.Size, nodeB.Size);
+            }
+
+            //perform the merge
+            share.Extra.Add(nodeB);
+            nodeB.Parent = share;
+            parent.Children.Remove(nodeB);
+        }
+
         private void FixEmptyBaseOptim(LayoutNode node)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -316,9 +352,7 @@ namespace StructLayout
                     }
                     else
                     {
-                        //Found unknown overlap 
-                        OutputLog.Log("Found type overlap without known explanation");
-                        ++i;
+                        ShareNodes(prevNode,thisNode);
                     }
                 }
                 else
