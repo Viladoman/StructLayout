@@ -358,7 +358,7 @@ namespace StructLayout
             parent.Children.Remove(nodeB);
         }
 
-        private void FixEmptyBaseOptim(LayoutNode node)
+        private void FixSharedMemory(LayoutNode node)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -391,11 +391,12 @@ namespace StructLayout
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
+            FixUnions(node);
+
             if (!node.IsSharedMemory())
             {
-                FixUnions(node);
                 FixBitfields(node);
-                FixEmptyBaseOptim(node);
+                FixSharedMemory(node);
             }
 
             //continue recursion
