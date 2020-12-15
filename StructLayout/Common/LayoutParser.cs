@@ -111,7 +111,7 @@ namespace StructLayout
             VtorDisp,
             Union,
             Shared,
-            
+
         };
 
         public string Type { set; get; } = "";
@@ -123,8 +123,6 @@ namespace StructLayout
         public uint RealSize { set; get; }
         public uint Padding { get { return Size - RealSize; } }
 
-        public bool Collapsed { set; get; } = true;
-
         public LayoutCategory Category { set; get; }
 
         public LayoutNode Parent { set; get; }
@@ -133,6 +131,28 @@ namespace StructLayout
 
         //Render params
         public RenderData RenderData { set; get; } = new RenderData();
+
+        public bool IsExpanded { set; get; } = false;
+        public int? ExpansionIndex { set; get; } = null;
+
+        public bool Expand(int? index = null)
+        {
+            bool isShared = IsSharedMemory();
+
+            if (Children.Count > 0 && (!isShared || Children.Count == 1 || (index.HasValue && index.Value < Children.Count)))
+            {
+                IsExpanded = true;
+                ExpansionIndex = index;
+                return true;
+            }
+            return false;
+        }
+
+        public void Collapse()
+        {
+            IsExpanded = false;
+            ExpansionIndex = null;
+        }
 
         public void AddChild(LayoutNode childNode)
         {
@@ -152,6 +172,11 @@ namespace StructLayout
                 default:
                     return false;
             }
+        }
+
+        public bool IsSharedMemory()
+        {
+            return Category == LayoutNode.LayoutCategory.Union || Category == LayoutNode.LayoutCategory.Shared;
         }
     }
 
@@ -242,8 +267,6 @@ namespace StructLayout
             if (node.Type.Length > 0 && node.Type.StartsWith("union"))
             {
                 node.Category = LayoutNode.LayoutCategory.Union;
-                node.Extra = node.Children;
-                node.Children = new List<LayoutNode>();
             }
         }
 
@@ -312,10 +335,11 @@ namespace StructLayout
                 share.Category = LayoutNode.LayoutCategory.Shared;
                 share.Offset = nodeA.Offset;
                 share.Size = nodeA.Size;
+                nodeA.Offset = 0;
 
                 //inject the new node
                 int index = parent.Children.IndexOf(nodeA);
-                share.Extra.Add(nodeA);
+                share.Children.Add(nodeA);
                 parent.Children[index] = share;
 
                 share.Parent = parent;
@@ -324,11 +348,12 @@ namespace StructLayout
             else
             {
                 share = nodeA;
-                share.Size = Math.Max(share.Size, nodeB.Size);
             }
 
             //perform the merge
-            share.Extra.Add(nodeB);
+            share.Size = Math.Max(share.Size, nodeB.Size);
+            nodeB.Offset = 0;
+            share.Children.Add(nodeB);
             nodeB.Parent = share;
             parent.Children.Remove(nodeB);
         }
@@ -366,10 +391,13 @@ namespace StructLayout
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            FixUnions(node);
-            FixBitfields(node);
-            FixEmptyBaseOptim(node);
-           
+            if (!node.IsSharedMemory())
+            {
+                FixUnions(node);
+                FixBitfields(node);
+                FixEmptyBaseOptim(node);
+            }
+
             //continue recursion
             foreach (LayoutNode child in node.Children)
             {
@@ -383,7 +411,8 @@ namespace StructLayout
 
             FixOverlaps(node);
 
-            node.Collapsed = false;
+            node.Expand();
+
             FinalizeNodeRecursive(node);
         }
 

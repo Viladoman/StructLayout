@@ -372,7 +372,7 @@ namespace StructLayout
             foreach (LayoutNode child in node.Children)
             {
                 PrepareRenderDataFlat(child);
-            }
+            }         
         } 
 
         private void ComputeRenderData(LayoutNode node)
@@ -382,7 +382,7 @@ namespace StructLayout
             foreach (LayoutNode child in node.Children)
             {
                 ComputeRenderData(child);
-            }
+            }           
         }
 
         private string GetNodeLabel(LayoutNode node)
@@ -617,27 +617,41 @@ namespace StructLayout
         {
             RenderBasicShape(drawingContext, node, node.RenderData.Background);
 
-            if (!node.Collapsed)
+            if (node.IsExpanded)
             {
-                foreach (LayoutNode child in node.Children)
+                if (node.ExpansionIndex.HasValue)
                 {
-                    RenderNodeStack(drawingContext, child);
+                    RenderNodeStack(drawingContext, node.Children[node.ExpansionIndex.Value]);
+                }
+                else
+                {
+                    foreach (LayoutNode child in node.Children)
+                    {
+                        RenderNodeStack(drawingContext, child);
+                    }
                 }
             }
         }
 
         private void RenderNodeFlat(DrawingContext drawingContext, LayoutNode node)
         {
-            if (node.Children.Count == 0 || node.Collapsed == true)
+            if (node.IsExpanded)
             {
-                RenderBasicShape(drawingContext, node, node.RenderData.Background);
+                if (node.ExpansionIndex.HasValue)
+                {
+                    RenderNodeFlat(drawingContext, node.Children[node.ExpansionIndex.Value]);
+                }
+                else 
+                {
+                    foreach (LayoutNode child in node.Children)
+                    {
+                        RenderNodeFlat(drawingContext, child);
+                    }
+                }
             }
             else
             {
-                foreach (LayoutNode child in node.Children)
-                {
-                    RenderNodeFlat(drawingContext, child);
-                }
+                RenderBasicShape(drawingContext, node, node.RenderData.Background);
             }
         }
 
@@ -724,16 +738,23 @@ namespace StructLayout
 
         private void RenderLabel(DrawingContext drawingContext, LayoutNode node)
         {
-            if (node.Collapsed)
+            if (node.IsExpanded)
+            {
+                if (node.ExpansionIndex.HasValue)
+                {
+                    RenderLabel(drawingContext, node.Children[node.ExpansionIndex.Value]);
+                }
+                else
+                {
+                    foreach (LayoutNode child in node.Children)
+                    {
+                        RenderLabel(drawingContext, child);
+                    }
+                }
+            }
+            else 
             {
                 RenderLabelSimple(drawingContext, node);
-            }
-            else
-            {  
-                foreach(LayoutNode child in node.Children)
-                {
-                    RenderLabel(drawingContext, child);
-                }
             }
         }
 
@@ -791,36 +812,40 @@ namespace StructLayout
             RefreshCanvasVisual(overlayVisual);
         }
 
-
         private void RefreshCanvasVisual(VisualHost visual)
         {
             canvas.Children.Remove(visual);
             canvas.Children.Add(visual);
         }
+
         private void ExpandAllNodes(LayoutNode node)
         {
             if (node.Children.Count > 0)
-            {
-                node.Collapsed = false;
-                foreach (LayoutNode child in node.Children)
+            {                 
+                node.Expand();
+
+                if (node.IsExpanded)
                 {
-                    ExpandAllNodes(child);
+                    if (node.ExpansionIndex.HasValue)
+                    {
+                        ExpandAllNodes(node.Children[node.ExpansionIndex.Value]); 
+                    }
+                    else
+                    {
+                        foreach (LayoutNode child in node.Children)
+                        {
+                            ExpandAllNodes(child);
+                        }
+                    }
                 }
             }
         }
 
-        private bool ExpandNode(LayoutNode node)
-        {
-            bool ret = node.Collapsed;
-            node.Collapsed = false;
-            return ret;
-        }
-
         private bool CollapseNode(LayoutNode node)
         {
-            if (!node.Collapsed)
+            if (node.IsExpanded)
             {
-                node.Collapsed = true;
+                node.Collapse();
                 foreach(LayoutNode child in node.Children)
                 {
                     CollapseNode(child);
@@ -859,19 +884,30 @@ namespace StructLayout
         {
             if (IsOffsetInside(node,offset) && IsPointInside(node.RenderData, localPos))
             {
-                if (!node.Collapsed)
+                if (node.IsExpanded)
                 {
-                    foreach (LayoutNode child in node.Children)
+                    if (node.ExpansionIndex.HasValue)
                     {
-                        LayoutNode found = GetNodeAtPositionImpl(child, localPos, offset);
+                        LayoutNode found = GetNodeAtPositionImpl(node.Children[node.ExpansionIndex.Value], localPos, offset);
                         if (found != null)
                         {
                             return found;
                         }
                     }
+                    else
+                    {
+                        foreach (LayoutNode child in node.Children)
+                        {
+                            LayoutNode found = GetNodeAtPositionImpl(child, localPos, offset);
+                            if (found != null)
+                            {
+                                return found;
+                            }
+                        }
+                    }
                 }
 
-                return (GetSelectedDisplayMode() == DisplayMode.Stack || node.Children.Count == 0 || node.Collapsed)? node : null;
+                return (GetSelectedDisplayMode() == DisplayMode.Stack || !node.IsExpanded)? node : null;
             }
 
             return null;
@@ -913,15 +949,15 @@ namespace StructLayout
             scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta.Y);
         }
 
-        private void SetHoverNodeFromMouseEvent(MouseEventArgs e)
+        private void SetHoverNodeFromPosition(Point p)
         {
-            Point p = e.GetPosition(canvas);
-            SetHoverNode(GetNodeAtPosition(e.GetPosition(canvas)));
+            SetHoverNode(GetNodeAtPosition(p));
         }
 
         private void ScrollViewer_OnMouseMove(object sender, MouseEventArgs e)
         {
-            SetHoverNodeFromMouseEvent(e);
+            Point p = e.GetPosition(canvas);
+            SetHoverNodeFromPosition(p);
         }
 
         private void ScrollViewer_OnMouseLeave(object sender, MouseEventArgs e)
@@ -929,21 +965,48 @@ namespace StructLayout
             SetHoverNode(null);
         }
 
+        private void TriggerNodeExpansion(LayoutNode node, int? index = null)
+        {
+            node.Expand(index);
+            SetHoverNodeFromPosition(Mouse.GetPosition(canvas));
+            RefreshShapes(); 
+        }
+
+        private void CreateChildSelectionMenu(LayoutNode node)
+        {
+            System.Windows.Forms.ContextMenuStrip contextMenuStrip = new System.Windows.Forms.ContextMenuStrip();
+            for(int i = 0; i < node.Children.Count; ++i)
+            {
+                int index = i; //Copy to local variable in order to work for the click callback
+                LayoutNode child = node.Children[index];
+                var element = new System.Windows.Forms.ToolStripMenuItem();
+                element.Text = String.IsNullOrEmpty(child.Name)? (String.IsNullOrEmpty(child.Type)? child.Category.ToString() : child.Type) : child.Name;
+                element.Click += (sender, e) => TriggerNodeExpansion(node,index);
+                contextMenuStrip.Items.Add(element);
+
+            }
+            contextMenuStrip.Show(System.Windows.Forms.Control.MousePosition);
+        }
+
         private void ScrollViewer_OnClick(object sender, MouseButtonEventArgs e)
         {
-            if (Hover != null && Hover.Children.Count > 0)
+            if (Hover == null)
             {
-                if (Hover.Collapsed)
-                {
-                    ExpandNode(Hover);
-                    SetHoverNodeFromMouseEvent(e);
-                }
-                else
-                {
-                    CollapseNode(Hover);
-                }
+                return;
+            }
 
+            if (Hover.IsExpanded)
+            {
+                CollapseNode(Hover);
                 RefreshShapes();
+            }
+            else if (Hover.IsSharedMemory() && Hover.Children.Count > 1)
+            {
+                CreateChildSelectionMenu(Hover);
+            } 
+            else if (Hover.Children.Count > 0)
+            {
+                TriggerNodeExpansion(Hover);
             }
         }
 
@@ -974,7 +1037,7 @@ namespace StructLayout
             if (Root != null && GetSelectedDisplayMode() == DisplayMode.Stack)
             {
                 CollapseNode(Root);
-                ExpandNode(Root);
+                Root.Expand();
             }
 
             SetupCanvas();
@@ -993,7 +1056,7 @@ namespace StructLayout
             if (Root != null)
             {
                 CollapseNode(Root);
-                ExpandNode(Root);
+                Root.Expand();
                 RefreshShapes();
             }
         } 

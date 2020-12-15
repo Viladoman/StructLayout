@@ -108,20 +108,36 @@ namespace StructLayout
                     extraStack.Visibility = Visibility.Collapsed;
                 }
             }
+            else if (Node.IsSharedMemory())
+            {
+                extraBorder.Visibility = Visibility.Visible;
+                extraStack.Visibility = Visibility.Visible;
+
+                var title = new TextBlock();
+                title.Text = Node.Children.Count == 0? "Empty" : "Contains:";
+                extraStack.Children.Add(title);
+
+                foreach (LayoutNode child in Node.Children)
+                {
+                    var desc = new TextBlock();
+                    desc.Text = "- " + (child.Type.Length > 0 ? child.Type : child.Category.ToString()) + (child.Name.Length > 0 ? " " + child.Name : "") + " - size: " + GetFullValueStr(child.Size);
+                    extraStack.Children.Add(desc);
+                }
+            }
             else if (Node.Extra.Count > 0)
             {
-                //Union (display contents)
+                //Empty Base Optimization
                 extraBorder.Visibility = Visibility.Visible;
                 extraStack.Visibility = Visibility.Visible;
                 var title = new TextBlock();
 
-                title.Text = Node.Category == LayoutNode.LayoutCategory.Union || Node.Category == LayoutNode.LayoutCategory.Shared ? "Contains:" : "Empty Base Optimization:";
+                title.Text = "Empty Base Optimization:";
                 extraStack.Children.Add(title);
 
                 foreach (LayoutNode child in Node.Extra)
                 {
-                    var desc = new TextBlock();      
-                    desc.Text = "- " + (child.Type.Length > 0 ? child.Type : child.Category.ToString()) + (child.Name.Length > 0 ? " " + child.Name : "") + " ( size: " + GetFullValueStr(child.Size) + " )";
+                    var desc = new TextBlock();
+                    desc.Text = "- " + (child.Type.Length > 0 ? child.Type : child.Category.ToString()) + (child.Name.Length > 0 ? " " + child.Name : "");
                     extraStack.Children.Add(desc);
                 }
             }
@@ -165,7 +181,7 @@ namespace StructLayout
 
         private void RefreshInteractionText()
         {
-            if (Node.Children.Count == 0 || Node.Category == LayoutNode.LayoutCategory.Union)
+            if (Node.Children.Count == 0)
             {
                 interactionBorder.Visibility = Visibility.Collapsed;
                 interactionPanel.Visibility = Visibility.Collapsed;
@@ -174,7 +190,7 @@ namespace StructLayout
             {
                 interactionBorder.Visibility = Visibility.Visible;
                 interactionPanel.Visibility = Visibility.Visible;
-                interactionTxt.Text = Node.Collapsed? "Left Mouse Click to Expand" : "Left Mouse Click to Collapse";
+                interactionTxt.Text = Node.IsExpanded? "Left Mouse Click to Collapse" : "Left Mouse Click to Expand";
             }
         }
         public static string GetFullValueStr(uint value)
