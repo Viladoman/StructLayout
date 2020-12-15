@@ -20,9 +20,10 @@ namespace StructLayout
 
             foreach (string str in split)
             {
-                if (!list.Contains(str))
+                string trimmedStr = str.Trim();
+                if (!list.Contains(trimmedStr))
                 {
-                    list.Add(str);
+                    list.Add(trimmedStr);
                 }
             }
         }
@@ -33,15 +34,15 @@ namespace StructLayout
 
             foreach (string str in split)
             {
-                list.Remove(str);
+                list.Remove(str.Trim());
             }
         }
 
         private static bool StringHasContent(string input)
         {
-            foreach(char c in input)
+            foreach (char c in input)
             {
-                if ( c != ' ' && c != '"')
+                if ( c != ' ' && c != '"' && c != '\\' && c != '/')
                 {
                     return true;
                 }
