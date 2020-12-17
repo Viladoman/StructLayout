@@ -8,7 +8,7 @@
         Background="{DynamicResource {x:Static common:ColorTheme.Background}}"
         Title="About Struct Layout"
         Height="250"
-        Width="400"
+        Width="450"
         MinHeight="10"
         MinWidth="300"
         ResizeMode="CanResizeWithGrip"
@@ -51,9 +51,14 @@
         <StackPanel Grid.Row="0" Margin="10">
             <TextBlock Text="Struct Layout" FontSize="20"/>
             <Separator/>
-            <TextBlock Margin="0,0,0,5" Text="Visual Studio Extension for C++ struct memory layout visualization" />
+            <TextBlock x:Name="descriptionTxt" Margin="0,0,0,5"/>
             <Separator/>
-            <TextBlock Text="Author: Ramon Viladomat" />
+            <TextBlock>
+                Author: Ramon Viladomat - 
+                <Hyperlink NavigateUri="https://twitter.com/Viladoman" RequestNavigate="Hyperlink_OpenURL">
+                    <TextBlock Text="@Viladoman"/>
+                </Hyperlink>
+            </TextBlock>
             <TextBlock x:Name="extVersionTxt"/>
             <TextBlock x:Name="clangVersionTxt"/>
         </StackPanel>

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Navigation;
 using System.Xml;
 
 namespace Company.Product
@@ -12,6 +14,8 @@ namespace Company.Product
 
         public string Version { get; set; }
 
+        public string Description { get; set; }
+
         public VsixManifest(string manifestPath)
         {
             var doc = new XmlDocument();
@@ -21,9 +25,11 @@ namespace Company.Product
 
             var metaData = doc.DocumentElement.ChildNodes.Cast<XmlElement>().First(x => x.Name == "Metadata");
             var identity = metaData.ChildNodes.Cast<XmlElement>().First(x => x.Name == "Identity");
+            var descNode = metaData.ChildNodes.Cast<XmlElement>().First(x => x.Name == "Description");
 
             Id = identity.GetAttribute("Id");
             Version = identity.GetAttribute("Version");
+            Description = descNode.InnerText;
         }
 
         public static VsixManifest GetManifest()
@@ -52,6 +58,7 @@ namespace StructLayout
 
             var manifest = Company.Product.VsixManifest.GetManifest();
 
+            descriptionTxt.Text = manifest.Description;
             extVersionTxt.Text = "Version: " + manifest.Version;
             clangVersionTxt.Text = "Clang Version: 11.0.0";
         }
@@ -77,6 +84,13 @@ namespace StructLayout
         private void OnClose(object sender, object e)
         {
             this.Close();
+        }
+
+        private void Hyperlink_OpenURL(object sender, RequestNavigateEventArgs e)
+        {
+            this.Close();
+            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri));
+            e.Handled = true;
         }
     }
 }
