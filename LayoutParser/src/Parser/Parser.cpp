@@ -24,6 +24,7 @@
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/TargetSelect.h>
 #include <iostream>
 
 #pragma warning(pop)    
@@ -336,13 +337,27 @@ namespace Parser
         IO::Log(str.str().c_str());
     }
 
+    void InitializeLLVM()
+    { 
+        static bool initialized = false;
+        if (!initialized)
+        {
+            llvm::InitializeNativeTarget();
+            llvm::InitializeNativeTargetAsmParser();
+
+            llvm::outs().SetCustomConsole(&ConsoleLog);
+            llvm::outs().SetUnbuffered();
+            llvm::errs().SetCustomConsole(&ConsoleLog);
+            llvm::errs().SetUnbuffered();
+
+            initialized = true;
+        }
+    }
+
 	bool Parse(const char* filename, int argc, const char* argv[])
 	{ 
-        llvm::outs().SetCustomConsole(&ConsoleLog);
-        llvm::outs().SetUnbuffered();
-        llvm::errs().SetCustomConsole(&ConsoleLog);
-        llvm::errs().SetUnbuffered();
-        
+        InitializeLLVM();
+
         //Parse command line 
         std::vector<std::string> SourcePaths; 
         SourcePaths.push_back(filename);
