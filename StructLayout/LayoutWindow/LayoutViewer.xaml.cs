@@ -226,6 +226,7 @@ namespace StructLayout
             scrollViewer.MouseMove += ScrollViewer_OnMouseMove;
             scrollViewer.MouseLeave += ScrollViewer_OnMouseLeave;
             scrollViewer.MouseLeftButtonUp += ScrollViewer_OnClick;
+            scrollViewer.MouseRightButtonUp += ScrollViewer_OnMouseContext;
 
             displayAlignmentValue.TextChanged += DisplayAlign_Changed;
         }
@@ -988,25 +989,79 @@ namespace StructLayout
             contextMenuStrip.Show(System.Windows.Forms.Control.MousePosition);
         }
 
-        private void ScrollViewer_OnClick(object sender, MouseButtonEventArgs e)
+        private void CreateContextualMenu(LayoutNode node)
         {
-            if (Hover == null)
+            System.Windows.Forms.ContextMenuStrip contextMenuStrip = new System.Windows.Forms.ContextMenuStrip();
+
+            //Open Location
+            //TODO ~ ramonv ~ to be implemented
+
+            //Expand/Collapse
+            if (node.Children.Count > 0)
+            {
+                if (contextMenuStrip.Items.Count > 0) contextMenuStrip.Items.Add(new System.Windows.Forms.ToolStripSeparator());
+
+                var element = new System.Windows.Forms.ToolStripMenuItem(node.IsExpanded ? "Collapse" : "Expand");
+                element.Click += (sender, e) => ToggleCollapse(node);
+                contextMenuStrip.Items.Add(element);
+            }
+
+            //Separator
+            if (contextMenuStrip.Items.Count > 0 && (node.Name.Length > 0 || node.Type.Length > 0))
+            {
+                contextMenuStrip.Items.Add(new System.Windows.Forms.ToolStripSeparator());
+            }
+
+            //Clipboard
+            if (node.Name.Length > 0)
+            {
+                var element = new System.Windows.Forms.ToolStripMenuItem("Copy Name");
+                element.Click += (sender, e) => Clipboard.SetText(node.Name);
+                contextMenuStrip.Items.Add(element);
+            }
+
+            if (node.Type.Length > 0)
+            {
+                var element = new System.Windows.Forms.ToolStripMenuItem("Copy Type");
+                element.Click += (sender, e) => Clipboard.SetText(node.Type);
+                contextMenuStrip.Items.Add(element);
+            }
+
+            contextMenuStrip.Show(System.Windows.Forms.Control.MousePosition);
+        }
+
+        private void ToggleCollapse(LayoutNode node)
+        {
+            if (node == null)
             {
                 return;
             }
 
-            if (Hover.IsExpanded)
+            if (node.IsExpanded)
             {
-                CollapseNode(Hover);
+                CollapseNode(node);
                 RefreshShapes();
             }
-            else if (Hover.IsSharedMemory() && Hover.Children.Count > 1)
+            else if (node.IsSharedMemory() && node.Children.Count > 1)
             {
-                CreateChildSelectionMenu(Hover);
-            } 
-            else if (Hover.Children.Count > 0)
+                CreateChildSelectionMenu(node);
+            }
+            else if (node.Children.Count > 0)
             {
-                TriggerNodeExpansion(Hover);
+                TriggerNodeExpansion(node);
+            }
+        }
+
+        private void ScrollViewer_OnClick(object sender, MouseButtonEventArgs e)
+        {
+            ToggleCollapse(Hover);
+        }
+
+        private void ScrollViewer_OnMouseContext(object sender, MouseButtonEventArgs e)
+        {
+            if (Hover != null)
+            {
+                CreateContextualMenu(Hover);
             }
         }
 
