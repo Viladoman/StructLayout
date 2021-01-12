@@ -26,6 +26,19 @@ namespace Layout
     };
 
     // ----------------------------------------------------------------------------------------------------------
+    struct Location
+    { 
+        Location()
+            : line(0u)
+            , column(0u)
+        {}
+
+        std::string  filename; //TODO ~ ramonv ~ upgrade this to a FileID system
+        unsigned int line;
+        unsigned int column;
+    };
+
+    // ----------------------------------------------------------------------------------------------------------
     struct Node
     { 
         Node() 
@@ -41,6 +54,7 @@ namespace Layout
         TAmount            offset;
         TAmount            size;
         TAmount            align;
+        Location           location;
         Category           nature;
     };
 }

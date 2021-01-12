@@ -51,6 +51,19 @@ namespace IO
         }
 
         // -----------------------------------------------------------------------------------------------------------------
+        void BinarizeLocation(TBuffer& buffer, const Layout::Location& location)
+        { 
+            BinarizeString(buffer,location.filename);
+
+            if (!location.filename.empty())
+            { 
+                //valid filename, serialize also line and column
+                Binarize(buffer,location.line);
+                Binarize(buffer,location.column);
+            }
+        }
+
+        // -----------------------------------------------------------------------------------------------------------------
         void BinarizeNode(TBuffer& buffer,const Layout::Node& node)
         {       
             BinarizeString(buffer,node.type);
@@ -59,6 +72,8 @@ namespace IO
             Binarize(buffer,node.size);
             Binarize(buffer,node.align);
             Binarize(buffer,node.nature);
+
+            BinarizeLocation(buffer,node.location);
 
             Binarize(buffer,static_cast<unsigned int>(node.children.size()));
             for (const Layout::Node* child : node.children)

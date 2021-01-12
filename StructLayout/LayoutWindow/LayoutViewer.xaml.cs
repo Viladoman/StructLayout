@@ -1,3 +1,4 @@
+using Microsoft.VisualStudio.Shell;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -989,12 +990,25 @@ namespace StructLayout
             contextMenuStrip.Show(System.Windows.Forms.Control.MousePosition);
         }
 
+        private void OpenLocation(LayoutLocation location)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            if (location == null) return;
+            EditorUtils.OpenFile(location.Filename, location.Line, location.Column);
+        }
+
         private void CreateContextualMenu(LayoutNode node)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             System.Windows.Forms.ContextMenuStrip contextMenuStrip = new System.Windows.Forms.ContextMenuStrip();
 
             //Open Location
-            //TODO ~ ramonv ~ to be implemented
+            if ( node.Location != null )
+            {
+                var element = new System.Windows.Forms.ToolStripMenuItem("Open Location");
+                element.Click += (sender, e) => OpenLocation(node.Location);
+                contextMenuStrip.Items.Add(element);
+            }
 
             //Expand/Collapse
             if (node.Children.Count > 0)
@@ -1013,6 +1027,13 @@ namespace StructLayout
             }
 
             //Clipboard
+            if (node.Location != null)
+            {
+                var element = new System.Windows.Forms.ToolStripMenuItem("Copy Location");
+                element.Click += (sender, e) => Clipboard.SetText(node.Location.Filename + " ("+node.Location.Line+":"+node.Location.Column+")");
+                contextMenuStrip.Items.Add(element);
+            }
+
             if (node.Name.Length > 0)
             {
                 var element = new System.Windows.Forms.ToolStripMenuItem("Copy Name");
@@ -1059,6 +1080,7 @@ namespace StructLayout
 
         private void ScrollViewer_OnMouseContext(object sender, MouseButtonEventArgs e)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             if (Hover != null)
             {
                 CreateContextualMenu(Hover);

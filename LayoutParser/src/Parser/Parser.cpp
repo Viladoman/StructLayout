@@ -54,9 +54,27 @@ namespace ClangParser
             }
         }
 
+        void RetrieveLocation(Layout::Location& output, const clang::ASTContext& context, const clang::SourceLocation& location)
+        { 
+            const clang::SourceManager& sourceManager = context.getSourceManager();
+
+            if (!location.isValid()) return;
+ 
+            const clang::PresumedLoc startLocation = sourceManager.getPresumedLoc(location);
+
+            if (!startLocation.isValid()) return;
+            
+            //TODO ~ ramonv ~ use a string map to avoid having the same filenames over and over in the data stream ( remove redundancy )
+            output.filename = startLocation.getFilename();
+            output.line     = startLocation.getLine();
+            output.column   = startLocation.getColumn();
+        }
+
         Layout::Node* ComputeStruct(const clang::ASTContext& context, const clang::CXXRecordDecl* declaration, const bool includeVirtualBases = true)
         {
             Layout::Node* node = new Layout::Node();
+
+            RetrieveLocation(node->location,context,declaration->getLocation());
 
             const clang::ASTRecordLayout& layout = context.getASTRecordLayout(declaration);
 
@@ -180,6 +198,9 @@ namespace ClangParser
                         fieldNode->offset = fieldOffset.getQuantity();
                         fieldNode->size   = context.toCharUnitsFromBits(fieldInfo.Width).getQuantity();
                         fieldNode->align  = context.toCharUnitsFromBits(fieldInfo.Align).getQuantity();
+
+                        RetrieveLocation(fieldNode->location,context,field.getLocation());
+
                         node->children.push_back(fieldNode);
                     }
                 }

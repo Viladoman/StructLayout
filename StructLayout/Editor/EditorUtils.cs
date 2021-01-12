@@ -141,5 +141,33 @@ namespace StructLayout
                 window.ProxyShow();
             }
         }
+
+        static public void OpenFile(string filename, uint line, uint column)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            DTE2 applicationObject = ServiceProvider.GetService(typeof(SDTE)) as DTE2;
+            Assumes.Present(applicationObject);
+
+            Window window;
+            try
+            {
+                window = applicationObject.ItemOperations.OpenFile(filename, EnvDTE.Constants.vsViewKindTextView);
+            }
+            catch(Exception)
+            {
+                var content = new ParseMessageContent();
+                content.Message = "Unable to open file " + filename;
+                ParseMessageWindow.Display(content);
+                return;
+            }
+
+            if (window != null)
+            {
+                window.Activate();               
+                Document doc = window.Document;
+                TextSelection sel = (TextSelection)doc.Selection;
+                sel.MoveTo((int)line, (int)column);
+            }
+        }
     }
 }

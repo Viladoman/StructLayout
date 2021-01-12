@@ -93,6 +93,13 @@ namespace StructLayout
         public FormattedText Text { set; get; }
     }
 
+    public class LayoutLocation
+    {
+        public string Filename { set; get; }
+        public uint   Line { set; get; }
+        public uint   Column { set; get; }
+    }
+
     public class LayoutNode
     {
         public enum LayoutCategory
@@ -124,6 +131,7 @@ namespace StructLayout
         public uint Padding { get { return Size - RealSize; } }
 
         public LayoutCategory Category { set; get; }
+        public LayoutLocation Location { set; get; }
 
         public LayoutNode Parent { set; get; }
         public List<LayoutNode> Children { set; get; } = new List<LayoutNode>();
@@ -226,6 +234,22 @@ namespace StructLayout
             LayoutParser_SetLog(logFunc);
         }
 
+        private LayoutLocation ReadLocation(BinaryReader reader)
+        {
+            string filename = reader.ReadString();
+            if (filename.Length == 0)
+            {
+                return null;
+            }
+
+            LayoutLocation ret = new LayoutLocation { Filename = filename };
+
+            ret.Line   = reader.ReadUInt32(); 
+            ret.Column = reader.ReadUInt32();
+
+            return ret;
+        }
+
         private LayoutNode ReadNode(BinaryReader reader)
         {
             LayoutNode node = new LayoutNode();
@@ -236,6 +260,8 @@ namespace StructLayout
             node.Size = (uint)reader.ReadInt64();
             node.Align = (uint)reader.ReadInt64();
             node.Category = (LayoutNode.LayoutCategory)reader.ReadByte();
+
+            node.Location = ReadLocation(reader);
 
             uint numChildren = reader.ReadUInt32();
             for (uint i = 0; i < numChildren; ++i)
