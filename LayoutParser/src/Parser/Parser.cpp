@@ -247,19 +247,26 @@ namespace ClangParser
         FindStructAtLocationVisitor(const clang::SourceManager& sourceManager)
             : m_sourceManager(sourceManager)
             , m_best(nullptr)
+            , m_mainFileId(sourceManager.getMainFileID())
             , m_bestStartLine(0u)
             , m_bestStartCol(0u)
         {}
 
         bool VisitCXXRecordDecl(clang::CXXRecordDecl* declaration) 
         {
-            TryRecord(declaration,declaration->getSourceRange());
+            if (m_sourceManager.getFileID(declaration->getLocation()) == m_mainFileId)
+            { 
+                TryRecord(declaration,declaration->getSourceRange());
+            }
             return true;
         }
 
         bool VisitVarDecl(clang::VarDecl* declaration) 
         {          
-            TryRecord(declaration->getType()->getAsCXXRecordDecl(),declaration->getSourceRange());
+            if (m_sourceManager.getFileID(declaration->getLocation()) == m_mainFileId)
+            {
+                TryRecord(declaration->getType()->getAsCXXRecordDecl(),declaration->getSourceRange());
+            }
             return true;
         }
 
@@ -293,6 +300,7 @@ namespace ClangParser
     private:
         const clang::SourceManager& m_sourceManager;
         const clang::CXXRecordDecl* m_best;
+        const clang::FileID         m_mainFileId; 
 
         unsigned int m_bestStartLine;
         unsigned int m_bestStartCol; 
@@ -309,32 +317,13 @@ namespace ClangParser
             FindStructAtLocationVisitor visitor(sourceManager);
             for (auto& Decl : Decls) 
             {
-                const auto& FileID = sourceManager.getFileID(Decl->getLocation());
-                if (FileID == sourceManager.getMainFileID() && ContainsLocation(sourceManager,Decl->getSourceRange()))
-                {
-                    visitor.TraverseDecl(Decl);
-                }
+                visitor.TraverseDecl(Decl);
             }
 
             if (const clang::CXXRecordDecl* best = visitor.GetBest())
             {
                 g_queryResult = Helpers::ComputeStruct(context, best);
             }
-        }
-    private: 
-
-        bool ContainsLocation(const clang::SourceManager& sourceManager, const clang::SourceRange& sourceRange) const
-        { 
-            const clang::PresumedLoc startLocation = sourceManager.getPresumedLoc(sourceRange.getBegin());
-            const clang::PresumedLoc endLocation = sourceManager.getPresumedLoc(sourceRange.getEnd());
-
-            const unsigned int startLine = startLocation.getLine();
-            const unsigned int startCol  = startLocation.getColumn();
-            const unsigned int endLine   = endLocation.getLine();
-            const unsigned int endCol    = endLocation.getColumn();
-
-            return (g_locationFilter.row > startLine || (g_locationFilter.row == startLine && g_locationFilter.col >= startCol)) && 
-                   (g_locationFilter.row < endLine   || (g_locationFilter.row == endLine   && g_locationFilter.col <= endCol));
         }
     };
 
