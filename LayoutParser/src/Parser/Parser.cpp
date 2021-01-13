@@ -34,13 +34,14 @@
 
 namespace ClangParser 
 {
-    Layout::Node* g_queryResult = nullptr;
+    using TFilenameLookup = std::unordered_map<unsigned int,unsigned int>; 
+    TFilenameLookup        g_filenameLookup;
+
+    Layout::Result         g_result;
     Parser::LocationFilter g_locationFilter;
 
     namespace Helpers
     {
-        inline bool IsMSLayout(const clang::ASTContext& context) { return context.getTargetInfo().getCXXABI().isMicrosoft(); }
-
         void DestroyTree(Layout::Node* node)
         { 
             if (node)
@@ -54,6 +55,25 @@ namespace ClangParser
             }
         }
 
+        void ClearResult()
+        { 
+            g_filenameLookup.clear();
+            Helpers::DestroyTree(ClangParser::g_result.node);
+            g_result.node = nullptr;
+            g_result.files.clear();
+        }
+
+        unsigned int AddFileToDictionary(const clang::FileID fileId, const char* filename)
+        {
+            const unsigned int nextIndex = g_result.files.size();
+            std::pair<TFilenameLookup::iterator,bool> const& result = g_filenameLookup.insert(TFilenameLookup::value_type(fileId.getHashValue(),nextIndex));
+            if (result.second) 
+            { 
+                g_result.files.emplace_back(filename);
+            } 
+            return result.first->second;
+        }
+
         void RetrieveLocation(Layout::Location& output, const clang::ASTContext& context, const clang::SourceLocation& location)
         { 
             const clang::SourceManager& sourceManager = context.getSourceManager();
@@ -61,13 +81,13 @@ namespace ClangParser
             if (!location.isValid()) return;
  
             const clang::PresumedLoc startLocation = sourceManager.getPresumedLoc(location);
+            const clang::FileID fileId = startLocation.getFileID();
 
-            if (!startLocation.isValid()) return;
-            
-            //TODO ~ ramonv ~ use a string map to avoid having the same filenames over and over in the data stream ( remove redundancy )
-            output.filename = startLocation.getFilename();
-            output.line     = startLocation.getLine();
-            output.column   = startLocation.getColumn();
+            if (!startLocation.isValid() || !fileId.isValid()) return;
+
+            output.fileIndex = static_cast<int>(AddFileToDictionary(fileId, startLocation.getFilename()));
+            output.line      = startLocation.getLine();
+            output.column    = startLocation.getColumn();
         }
 
         Layout::Node* ComputeStruct(const clang::ASTContext& context, const clang::CXXRecordDecl* declaration, const bool includeVirtualBases = true)
@@ -87,7 +107,7 @@ namespace ClangParser
 
             const clang::CXXRecordDecl* primaryBase = layout.getPrimaryBase();
 
-            if(declaration->isDynamicClass() && !primaryBase && !Helpers::IsMSLayout(context))
+            if(declaration->isDynamicClass() && !primaryBase && !context.getTargetInfo().getCXXABI().isMicrosoft())
             {
                 //vtable pointer
                 Layout::Node* vPtrNode = new Layout::Node(); 
@@ -322,7 +342,7 @@ namespace ClangParser
 
             if (const clang::CXXRecordDecl* best = visitor.GetBest())
             {
-                g_queryResult = Helpers::ComputeStruct(context, best);
+                g_result.node = Helpers::ComputeStruct(context, best);
             }
         }
     };
@@ -399,14 +419,13 @@ namespace Parser
         return retCode == 0;
 	}
 
-	const Layout::Node* GetLayout()
+	const Layout::Result& GetLayout()
 	{ 
-        return ClangParser::g_queryResult;
+        return ClangParser::g_result;
 	}
 
     void Clear()
     { 
-        ClangParser::Helpers::DestroyTree(ClangParser::g_queryResult);
-        ClangParser::g_queryResult = nullptr;
+        ClangParser::Helpers::ClearResult();
     }
 }

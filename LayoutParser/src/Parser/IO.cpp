@@ -53,9 +53,9 @@ namespace IO
         // -----------------------------------------------------------------------------------------------------------------
         void BinarizeLocation(TBuffer& buffer, const Layout::Location& location)
         { 
-            BinarizeString(buffer,location.filename);
+            Binarize(buffer,location.fileIndex);
 
-            if (!location.filename.empty())
+            if (location.fileIndex != Layout::INVALID_FILE_INDEX)
             { 
                 //valid filename, serialize also line and column
                 Binarize(buffer,location.line);
@@ -81,6 +81,16 @@ namespace IO
                 BinarizeNode(buffer,*child);
             }  
         }
+
+        // -----------------------------------------------------------------------------------------------------------------
+        void BinarizeFiles(TBuffer& buffer, const Layout::TFiles& files)
+        {
+            Binarize(buffer,static_cast<unsigned int>(files.size()));
+            for (const std::string& file : files)
+            { 
+                BinarizeString(buffer,file);
+            }  
+        }
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -90,14 +100,17 @@ namespace IO
     }
 
     // -----------------------------------------------------------------------------------------------------------------
-    bool ToDataBuffer(const Layout::Node* node)
+    bool ToDataBuffer(const Layout::Result& result)
     { 
         g_dataBuffer.clear();
-        if (node)
+
+        if (result.node)
         {
-            Utils::BinarizeNode(g_dataBuffer,*(node));
+            Utils::BinarizeFiles(g_dataBuffer,result.files);
+            Utils::BinarizeNode(g_dataBuffer,*(result.node));
             return true;
         }
+
         return false;
     } 
 

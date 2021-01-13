@@ -6,7 +6,10 @@
 namespace Layout 
 {
     // ----------------------------------------------------------------------------------------------------------
-    using TAmount         = long long;
+    using TAmount = long long;
+    using TFiles  = std::vector<std::string>;
+
+    enum { INVALID_FILE_INDEX = -1 };
 
     // ----------------------------------------------------------------------------------------------------------
     enum class Category : unsigned char
@@ -29,11 +32,12 @@ namespace Layout
     struct Location
     { 
         Location()
-            : line(0u)
+            : fileIndex(INVALID_FILE_INDEX)
+            , line(0u)
             , column(0u)
         {}
 
-        std::string  filename; //TODO ~ ramonv ~ upgrade this to a FileID system
+        int          fileIndex;
         unsigned int line;
         unsigned int column;
     };
@@ -56,5 +60,16 @@ namespace Layout
         TAmount            align;
         Location           location;
         Category           nature;
+    };
+
+    // ----------------------------------------------------------------------------------------------------------
+    struct Result
+    { 
+        Result()
+            : node(nullptr)
+        {}
+
+        Node*  node;
+        TFiles files; 
     };
 }

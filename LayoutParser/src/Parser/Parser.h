@@ -1,7 +1,7 @@
 
 namespace Layout
 { 
-	struct Node; 
+	struct Result; 
 }
 
 namespace Parser
@@ -15,6 +15,6 @@ namespace Parser
 	void SetFilter(const LocationFilter& context);
 
 	bool Parse(const char* filename, int argc, const char* argv[]);
-	const Layout::Node* GetLayout();
+	const Layout::Result& GetLayout();
 	void Clear();
 }

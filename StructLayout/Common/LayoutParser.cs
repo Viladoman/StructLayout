@@ -1,11 +1,9 @@
 ﻿using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
@@ -234,15 +232,16 @@ namespace StructLayout
             LayoutParser_SetLog(logFunc);
         }
 
-        private LayoutLocation ReadLocation(BinaryReader reader)
+        private LayoutLocation ReadLocation(BinaryReader reader, List<string> files)
         {
-            string filename = reader.ReadString();
-            if (filename.Length == 0)
+            int fileIndex = reader.ReadInt32();
+
+            if (fileIndex < 0 || fileIndex >= files.Count)
             {
                 return null;
             }
 
-            LayoutLocation ret = new LayoutLocation { Filename = filename };
+            LayoutLocation ret = new LayoutLocation { Filename = files[fileIndex] };
 
             ret.Line   = reader.ReadUInt32(); 
             ret.Column = reader.ReadUInt32();
@@ -250,7 +249,7 @@ namespace StructLayout
             return ret;
         }
 
-        private LayoutNode ReadNode(BinaryReader reader)
+        private LayoutNode ReadNode(BinaryReader reader, List<string> files)
         {
             LayoutNode node = new LayoutNode();
             node.Type = reader.ReadString();
@@ -261,15 +260,28 @@ namespace StructLayout
             node.Align = (uint)reader.ReadInt64();
             node.Category = (LayoutNode.LayoutCategory)reader.ReadByte();
 
-            node.Location = ReadLocation(reader);
+            node.Location = ReadLocation(reader, files);
 
             uint numChildren = reader.ReadUInt32();
             for (uint i = 0; i < numChildren; ++i)
             {
-                node.AddChild(ReadNode(reader));
+                node.AddChild(ReadNode(reader, files));
             }
 
             return node;
+        }
+
+        private List<string> ReadFiles(BinaryReader reader)
+        {
+            uint numFiles = reader.ReadUInt32();
+            List<string> output = new List<string>((int)numFiles);
+
+            for (uint i = 0; i < numFiles; ++i)
+            {
+                output.Add(reader.ReadString());
+            }
+
+            return output;
         }
 
         private void FinalizeNodeRecursive(LayoutNode node)
@@ -386,8 +398,6 @@ namespace StructLayout
 
         private void FixSharedMemory(LayoutNode node)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
             for (int i = 1; i < node.Children.Count;)
             {
                 var thisNode = node.Children[i];
@@ -415,8 +425,6 @@ namespace StructLayout
 
         private void FixOverlaps(LayoutNode node)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
             FixUnions(node);
 
             if (!node.IsSharedMemory())
@@ -434,8 +442,6 @@ namespace StructLayout
 
         public void FinalizeNode(LayoutNode node)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
             FixOverlaps(node);
 
             node.Expand();
@@ -512,7 +518,8 @@ namespace StructLayout
 
                     using (BinaryReader reader = new BinaryReader(new MemoryStream(managedArray)))
                     {
-                        ret.Layout = ReadNode(reader);
+                        List<string> files = ReadFiles(reader);
+                        ret.Layout = ReadNode(reader,files);
                         FinalizeNode(ret.Layout);
                     }
 
