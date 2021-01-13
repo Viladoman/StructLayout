@@ -1,4 +1,3 @@
-using Microsoft.VisualStudio.Shell;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -997,12 +996,20 @@ namespace StructLayout
             EditorUtils.OpenFile(location.Filename, location.Line, location.Column);
         }
 
+        private System.Windows.Forms.ToolStripMenuItem CreateContextMenu(string label, EventHandler onClick)
+        {
+            var element = new System.Windows.Forms.ToolStripMenuItem(label);
+            element.Click += onClick;
+            return element;
+        }
+
         private void CreateContextualMenu(LayoutNode node)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             System.Windows.Forms.ContextMenuStrip contextMenuStrip = new System.Windows.Forms.ContextMenuStrip();
 
-            bool hasLocation = node.Location != null;
+            bool hasFieldLocation = node.FieldLocation != null;
+            bool hasTypeLocation = node.TypeLocation != null;
             bool hasParent = node.Parent != null;
             bool hasChildren = node.Children.Count > 0;
 
@@ -1010,11 +1017,14 @@ namespace StructLayout
             bool hasType = node.Type.Length > 0;
 
             //Open Location
-            if (hasLocation)
+            if (hasFieldLocation)
             {
-                var element = new System.Windows.Forms.ToolStripMenuItem("Open Location");
-                element.Click += (sender, e) => OpenLocation(node.Location);
-                contextMenuStrip.Items.Add(element);
+                contextMenuStrip.Items.Add(CreateContextMenu("Open Field Location", (sender, e) => OpenLocation(node.FieldLocation)));
+            }
+
+            if (hasTypeLocation)
+            {
+                contextMenuStrip.Items.Add(CreateContextMenu("Open Type Location", (sender, e) => OpenLocation(node.TypeLocation)));
             }
 
             //Separator
@@ -1026,44 +1036,39 @@ namespace StructLayout
             //Expand/Collapse
             if (hasParent)
             {
-                var element = new System.Windows.Forms.ToolStripMenuItem("Collapse Parent");
-                element.Click += (sender, e) => ToggleCollapse(node.Parent);
-                contextMenuStrip.Items.Add(element);
+                contextMenuStrip.Items.Add(CreateContextMenu("Collapse Parent", (sender, e) => ToggleCollapse(node.Parent)));
             }
 
             if (hasChildren)
             { 
-                var element = new System.Windows.Forms.ToolStripMenuItem(node.IsExpanded ? "Collapse" : "Expand");
-                element.Click += (sender, e) => ToggleCollapse(node);
-                contextMenuStrip.Items.Add(element);
+                contextMenuStrip.Items.Add(CreateContextMenu(node.IsExpanded ? "Collapse" : "Expand", (sender, e) => ToggleCollapse(node)));
             }
 
             //Separator
-            if (contextMenuStrip.Items.Count > 0 && (hasLocation || hasName || hasType))
+            if (contextMenuStrip.Items.Count > 0 && (hasFieldLocation || hasTypeLocation || hasName || hasType))
             {
                 contextMenuStrip.Items.Add(new System.Windows.Forms.ToolStripSeparator());
             }
 
             //Clipboard
-            if (hasLocation)
-            {
-                var element = new System.Windows.Forms.ToolStripMenuItem("Copy Filename");
-                element.Click += (sender, e) => Clipboard.SetText(node.Location.Filename);
-                contextMenuStrip.Items.Add(element);
-            }
-
             if (hasName)
             {
-                var element = new System.Windows.Forms.ToolStripMenuItem("Copy Name");
-                element.Click += (sender, e) => Clipboard.SetText(node.Name);
-                contextMenuStrip.Items.Add(element);
+                contextMenuStrip.Items.Add(CreateContextMenu("Copy Field Name", (sender, e) => Clipboard.SetText(node.Name)));
+            }
+
+            if (hasFieldLocation)
+            {
+                contextMenuStrip.Items.Add(CreateContextMenu("Copy Field Filename", (sender, e) => Clipboard.SetText(node.FieldLocation.Filename)));
             }
 
             if (hasType)
             {
-                var element = new System.Windows.Forms.ToolStripMenuItem("Copy Type");
-                element.Click += (sender, e) => Clipboard.SetText(node.Type);
-                contextMenuStrip.Items.Add(element);
+                contextMenuStrip.Items.Add(CreateContextMenu("Copy Type Name", (sender, e) => Clipboard.SetText(node.Type)));
+            }
+
+            if (hasTypeLocation)
+            {
+                contextMenuStrip.Items.Add(CreateContextMenu("Copy Type Filename", (sender, e) => Clipboard.SetText(node.TypeLocation.Filename)));
             }
 
             contextMenuStrip.Show(System.Windows.Forms.Control.MousePosition);

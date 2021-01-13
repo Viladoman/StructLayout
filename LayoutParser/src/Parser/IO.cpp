@@ -73,7 +73,8 @@ namespace IO
             Binarize(buffer,node.align);
             Binarize(buffer,node.nature);
 
-            BinarizeLocation(buffer,node.location);
+            BinarizeLocation(buffer,node.typeLocation);
+            BinarizeLocation(buffer,node.fieldLocation);
 
             Binarize(buffer,static_cast<unsigned int>(node.children.size()));
             for (const Layout::Node* child : node.children)

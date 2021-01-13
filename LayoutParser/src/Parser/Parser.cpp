@@ -94,7 +94,7 @@ namespace ClangParser
         {
             Layout::Node* node = new Layout::Node();
 
-            RetrieveLocation(node->location,context,declaration->getLocation());
+            RetrieveLocation(node->typeLocation,context,declaration->getLocation());
 
             const clang::ASTRecordLayout& layout = context.getASTRecordLayout(declaration);
 
@@ -180,6 +180,9 @@ namespace ClangParser
                     fieldNode->type   = field.getType().getAsString(); //check if this or qualified types form function is better
                     fieldNode->offset = fieldOffset.getQuantity();
                     fieldNode->nature = Layout::Category::ComplexField;
+
+                    RetrieveLocation(fieldNode->fieldLocation,context,field.getLocation());
+
                     node->children.push_back(fieldNode);
                 }
                 else
@@ -219,7 +222,7 @@ namespace ClangParser
                         fieldNode->size   = context.toCharUnitsFromBits(fieldInfo.Width).getQuantity();
                         fieldNode->align  = context.toCharUnitsFromBits(fieldInfo.Align).getQuantity();
 
-                        RetrieveLocation(fieldNode->location,context,field.getLocation());
+                        RetrieveLocation(fieldNode->fieldLocation,context,field.getLocation());
 
                         node->children.push_back(fieldNode);
                     }

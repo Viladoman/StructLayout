@@ -58,7 +58,8 @@ namespace Layout
         TAmount            offset;
         TAmount            size;
         TAmount            align;
-        Location           location;
+        Location           typeLocation;
+        Location           fieldLocation;
         Category           nature;
     };
 

@@ -129,7 +129,8 @@ namespace StructLayout
         public uint Padding { get { return Size - RealSize; } }
 
         public LayoutCategory Category { set; get; }
-        public LayoutLocation Location { set; get; }
+        public LayoutLocation TypeLocation { set; get; }
+        public LayoutLocation FieldLocation { set; get; }
 
         public LayoutNode Parent { set; get; }
         public List<LayoutNode> Children { set; get; } = new List<LayoutNode>();
@@ -260,7 +261,8 @@ namespace StructLayout
             node.Align = (uint)reader.ReadInt64();
             node.Category = (LayoutNode.LayoutCategory)reader.ReadByte();
 
-            node.Location = ReadLocation(reader, files);
+            node.TypeLocation = ReadLocation(reader, files);
+            node.FieldLocation = ReadLocation(reader, files);
 
             uint numChildren = reader.ReadUInt32();
             for (uint i = 0; i < numChildren; ++i)
