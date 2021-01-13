@@ -148,10 +148,11 @@ namespace StructLayout
             DTE2 applicationObject = ServiceProvider.GetService(typeof(SDTE)) as DTE2;
             Assumes.Present(applicationObject);
 
-            Window window;
+            Window window = null;
+            Document doc = null;
             try
             {
-                window = applicationObject.ItemOperations.OpenFile(filename, EnvDTE.Constants.vsViewKindTextView);
+                window = applicationObject.ItemOperations.OpenFile(filename.Replace('/', '\\'));
             }
             catch(Exception)
             {
@@ -161,10 +162,23 @@ namespace StructLayout
                 return;
             }
 
-            if (window != null)
+            if (window == null)
+            {
+                //sometimes it opens but it does not give a window element ( check if opened already )
+                Document activeDoc = GetActiveDocument();
+                if (activeDoc != null && Path.GetFileName(activeDoc.FullName) == Path.GetFileName(filename))
+                {
+                    doc = activeDoc;
+                }     
+            }
+            else 
             {
                 window.Activate();               
-                Document doc = window.Document;
+                doc = window.Document;
+            }
+
+            if (doc != null)
+            {
                 TextSelection sel = (TextSelection)doc.Selection;
                 sel.MoveTo((int)line, (int)column);
             }
