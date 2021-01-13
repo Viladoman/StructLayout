@@ -1002,46 +1002,64 @@ namespace StructLayout
             ThreadHelper.ThrowIfNotOnUIThread();
             System.Windows.Forms.ContextMenuStrip contextMenuStrip = new System.Windows.Forms.ContextMenuStrip();
 
+            bool hasLocation = node.Location != null;
+            bool hasParent = node.Parent != null;
+            bool hasChildren = node.Children.Count > 0;
+
+            bool hasName = node.Name.Length > 0; 
+            bool hasType = node.Type.Length > 0;
+
             //Open Location
-            if ( node.Location != null )
+            if (hasLocation)
             {
                 var element = new System.Windows.Forms.ToolStripMenuItem("Open Location");
                 element.Click += (sender, e) => OpenLocation(node.Location);
                 contextMenuStrip.Items.Add(element);
             }
 
-            //Expand/Collapse
-            if (node.Children.Count > 0)
+            //Separator
+            if (contextMenuStrip.Items.Count > 0 && (hasParent || hasChildren))
             {
-                if (contextMenuStrip.Items.Count > 0) contextMenuStrip.Items.Add(new System.Windows.Forms.ToolStripSeparator());
+                contextMenuStrip.Items.Add(new System.Windows.Forms.ToolStripSeparator());
+            }
 
+            //Expand/Collapse
+            if (hasParent)
+            {
+                var element = new System.Windows.Forms.ToolStripMenuItem("Collapse Parent");
+                element.Click += (sender, e) => ToggleCollapse(node.Parent);
+                contextMenuStrip.Items.Add(element);
+            }
+
+            if (hasChildren)
+            { 
                 var element = new System.Windows.Forms.ToolStripMenuItem(node.IsExpanded ? "Collapse" : "Expand");
                 element.Click += (sender, e) => ToggleCollapse(node);
                 contextMenuStrip.Items.Add(element);
             }
 
             //Separator
-            if (contextMenuStrip.Items.Count > 0 && (node.Name.Length > 0 || node.Type.Length > 0))
+            if (contextMenuStrip.Items.Count > 0 && (hasLocation || hasName || hasType))
             {
                 contextMenuStrip.Items.Add(new System.Windows.Forms.ToolStripSeparator());
             }
 
             //Clipboard
-            if (node.Location != null)
+            if (hasLocation)
             {
-                var element = new System.Windows.Forms.ToolStripMenuItem("Copy Location");
-                element.Click += (sender, e) => Clipboard.SetText(node.Location.Filename + " ("+node.Location.Line+":"+node.Location.Column+")");
+                var element = new System.Windows.Forms.ToolStripMenuItem("Copy Filename");
+                element.Click += (sender, e) => Clipboard.SetText(node.Location.Filename);
                 contextMenuStrip.Items.Add(element);
             }
 
-            if (node.Name.Length > 0)
+            if (hasName)
             {
                 var element = new System.Windows.Forms.ToolStripMenuItem("Copy Name");
                 element.Click += (sender, e) => Clipboard.SetText(node.Name);
                 contextMenuStrip.Items.Add(element);
             }
 
-            if (node.Type.Length > 0)
+            if (hasType)
             {
                 var element = new System.Windows.Forms.ToolStripMenuItem("Copy Type");
                 element.Click += (sender, e) => Clipboard.SetText(node.Type);
