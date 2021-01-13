@@ -1,3 +1,4 @@
+using Microsoft.VisualStudio.Shell;
 using System;
 using System.Globalization;
 using System.Linq;
