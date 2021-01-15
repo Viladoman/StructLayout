@@ -86,14 +86,13 @@ namespace StructLayout
         /// <param name="e">The event args.</param>
         private void Execute(object sender, EventArgs e)
         {
-            this.package.JoinableTaskFactory.RunAsync(async delegate
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            LayoutWindow win = EditorUtils.GetLayoutWindow(true);
+            if (win != null)
             {
-                ToolWindowPane window = await this.package.ShowToolWindowAsync(typeof(LayoutWindow), 0, true, this.package.DisposalToken);
-                if ((null == window) || (null == window.Frame))
-                {
-                    throw new NotSupportedException("Cannot create tool window");
-                }
-            });
+                EditorUtils.FocusWindow(win);
+            }
         }
     }
 }
