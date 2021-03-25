@@ -100,7 +100,7 @@ namespace ClangParser
 
             //basic data
             node->type   = declaration->getQualifiedNameAsString();
-            node->size   = layout.getSize().getQuantity(); 
+            node->size   = includeVirtualBases? layout.getSize().getQuantity() : layout.getNonVirtualSize().getQuantity();
             node->align  = layout.getAlignment().getQuantity();
 
             //Check for bases 
@@ -159,8 +159,8 @@ namespace ClangParser
                 Layout::Node* vPtrNode = new Layout::Node();
                 vPtrNode->nature = Layout::Category::VBTablePtr;
                 vPtrNode->offset = layout.getVBPtrOffset().getQuantity();
-                vPtrNode->size   = context.getTargetInfo().getPointerWidth(0);
-                vPtrNode->align  = context.getTargetInfo().getPointerAlign(0);
+                vPtrNode->size   = context.toCharUnitsFromBits(context.getTargetInfo().getPointerWidth(0)).getQuantity();
+                vPtrNode->align  = context.toCharUnitsFromBits(context.getTargetInfo().getPointerAlign(0)).getQuantity();
                 node->children.push_back(vPtrNode);
             }
 
