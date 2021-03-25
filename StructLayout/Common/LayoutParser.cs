@@ -356,7 +356,7 @@ namespace StructLayout
                 {
                     AdjustBitfieldNode(thisNode);
 
-                    if (prevNode != null && prevNode.Category == LayoutNode.LayoutCategory.Bitfield && thisNode.Offset == prevNode.Offset)
+                    if (prevNode != null && prevNode.Category == LayoutNode.LayoutCategory.Bitfield && (thisNode.Offset == prevNode.Offset || thisNode.Offset < prevNode.Offset + prevNode.Size))
                     {
                         MergeBitfieldNodes(thisNode, prevNode);
                         node.Children.RemoveAt(i);
