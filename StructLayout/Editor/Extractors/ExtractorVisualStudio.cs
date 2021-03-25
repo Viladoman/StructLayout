@@ -109,6 +109,12 @@ namespace StructLayout
                 AppendMSBuildStringToList(properties.IncludeDirectories, evaluator.Evaluate(cl.FullIncludePath));
                 AppendMSBuildStringToList(properties.ForceIncludes, evaluator.Evaluate(cl.ForcedIncludeFiles));
                 AppendMSBuildStringToList(properties.PrepocessorDefinitions, evaluator.Evaluate(cl.PreprocessorDefinitions));
+
+                //PCH
+                if (cl.UsePrecompiledHeader != pchOption.pchNone)
+                {
+                    AppendMSBuildStringToList(properties.ForceIncludes, evaluator.Evaluate(cl.PrecompiledHeaderThrough));
+                }
             }
             else if (nmake != null)
             {
