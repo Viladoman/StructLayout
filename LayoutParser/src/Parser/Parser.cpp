@@ -298,7 +298,7 @@ namespace ClangParser
     private: 
         void TryRecord(const clang::CXXRecordDecl* declaration, const clang::SourceRange& sourceRange)
         { 
-            if (declaration && ( declaration->isClass() || declaration->isStruct() ) && !declaration->isDependentType() && declaration->getDefinition() && !declaration->isInvalidDecl() && declaration->isCompleteDefinition())
+            if (declaration && !declaration->isDependentType() && declaration->getDefinition() && !declaration->isInvalidDecl() && declaration->isCompleteDefinition())
             { 
                 //Check range
                 const clang::PresumedLoc startLocation = m_sourceManager.getPresumedLoc(sourceRange.getBegin());
