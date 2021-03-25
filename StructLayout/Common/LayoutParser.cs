@@ -300,6 +300,15 @@ namespace StructLayout
                 node.RealSize += realSizeOffset <= child.Offset ? child.RealSize : 0;
                 realSizeOffset = Math.Max(child.Offset+child.Size,realSizeOffset);
             }
+
+            //For shared memory nodes, children will be overlaped 
+            if (node.Category == LayoutNode.LayoutCategory.Shared || node.Category == LayoutNode.LayoutCategory.Union)
+            {
+                foreach (LayoutNode child in node.Children)
+                {
+                    node.RealSize = Math.Max(child.RealSize, node.RealSize);
+                }
+            }
         }
 
         private void FixUnions(LayoutNode node)
