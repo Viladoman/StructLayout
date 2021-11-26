@@ -96,6 +96,12 @@ namespace StructLayout
 
                 switch (result.Status)
                 {
+                    case ParseResult.StatusCode.InvalidOutputDir:
+                        content.Message = "Unable to create the directory for the generated parser results.";
+                        break;
+                    case ParseResult.StatusCode.VersionMismatch:
+                        content.Message = "Parser result generated version does not match the current version."; 
+                        break;
                     case ParseResult.StatusCode.InvalidInput:
                         content.Message = "Parser had Invalid Input.";
                         break;

@@ -1,7 +1,7 @@
 #include "Parser/IO.h"
 #include "Parser/LayoutDefinitions.h"
 #include "Parser/Parser.h"
-
+/*
 #define DLLEXPORT __declspec(dllexport)
 
 namespace Utils
@@ -61,6 +61,7 @@ namespace Utils
 
         return false;
     }
+    
 }
 
 extern "C"
@@ -87,4 +88,18 @@ extern "C"
         IO::Clear();
     }
 }
+*/
 
+int main(int argc, const char* argv[])
+{
+    if (Parser::Parse(argc, &argv[0]))
+    {
+        //TODO ~ ramonv ~ store to disk - output file ( maybe do it inside the Parse ) ( kill this file and move to Parser.cpp ) 
+        //IO::ToDataBuffer(Parser::GetLayout());
+
+        //Parser::Clear();
+        return 0;
+    }
+
+    return -1;
+}

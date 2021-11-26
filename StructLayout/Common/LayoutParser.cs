@@ -191,6 +191,8 @@ namespace StructLayout
     {
         public enum StatusCode
         {
+            InvalidOutputDir,
+            VersionMismatch,
             InvalidInput,
             ParseFailed,
             NotFound,
@@ -206,31 +208,37 @@ namespace StructLayout
     {
         public bool PrintCommandLine { get; set; } = false;
 
-        delegate void ParserLog(string str);
-        [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
-        static extern double LayoutParser_SetLog([MarshalAs(UnmanagedType.FunctionPtr)] ParserLog func);
-
-        [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool LayoutParser_ParseLocation(string commandline, string fullFilename, uint row, uint col);
-
-        [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr LayoutParser_GetData(ref uint size);
-
-        [DllImport("LayoutParser.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void LayoutParser_Clear();
-
-        private static string Log { set; get; } = "";
-        private static ParserLog logFunc;
-
-        private static void ProcessLog(string str)
+        public const uint VERSION = 1;
+      
+        public string GetExtensionInstallationDirectory()
         {
-            Log += str;
+            try
+            {
+                var uri = new Uri(typeof(StructLayoutPackage).Assembly.CodeBase, UriKind.Absolute);
+                return Path.GetDirectoryName(uri.LocalPath);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
-        public static void SetupParser()
+        private string GetToolPath(string localPath)
         {
-            logFunc = new ParserLog(ProcessLog);
-            LayoutParser_SetLog(logFunc);
+            string installDirectory = GetExtensionInstallationDirectory();
+            string ret = installDirectory == null ? null : installDirectory + '\\' + localPath;
+            return File.Exists(ret) ? ret : null;
+        }
+
+        private string GetLayoutParserToolPath()
+        {
+            return GetToolPath(@"External\LayoutParser.exe");
+        }
+
+        private string GetGeneratedPath()
+        {
+            string installDirectory = GetExtensionInstallationDirectory();
+            return installDirectory == null ? null : installDirectory + @"\Generated";
         }
 
         private LayoutLocation ReadLocation(BinaryReader reader, List<string> files)
@@ -460,16 +468,85 @@ namespace StructLayout
             FinalizeNodeRecursive(node);
         }
 
+        private bool CreateDirectory(string path)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            try
+            {
+                Directory.CreateDirectory(path);
+            }
+            catch (Exception e)
+            {
+                OutputLog.Error("Unable to create directory " + path + ". " + e.ToString());
+                return false;
+            }
+
+            return true;
+        }
+
+        public ParseResult LoadParseResult( string fullPath )
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            ParseResult ret = new ParseResult();
+
+            if (!File.Exists(fullPath))
+            {
+                OutputLog.Log("No structure found at the given location.");
+                ret.Status = ParseResult.StatusCode.NotFound;
+                return ret;
+            }
+
+            
+            FileStream fileStream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using (BinaryReader reader = new BinaryReader(fileStream))
+            {
+                // Read version
+                uint thisVersion = reader.ReadUInt32();
+                if (thisVersion != VERSION)
+                {
+                    OutputLog.Error("Version mismatch! Expected " + VERSION + " - Found " + thisVersion);
+                    ret.Status = ParseResult.StatusCode.VersionMismatch;
+                }
+                else if (reader.BaseStream.Position == reader.BaseStream.Length)
+                {
+                    OutputLog.Log("No structure found at the given location.");
+                    ret.Status = ParseResult.StatusCode.NotFound;
+                }
+                else
+                {
+                    List<string> files = ReadFiles(reader);
+                    ret.Layout = ReadNode(reader, files);
+                    FinalizeNode(ret.Layout);
+
+                    OutputLog.Log("Found structure " + ret.Layout.Type + ".");
+                    ret.Status = ParseResult.StatusCode.Found;
+                }
+            }
+            
+            fileStream.Close();
+            return ret;
+        }
+
         public async Task<ParseResult> ParseAsync(ProjectProperties projProperties, DocumentLocation location)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            ParseResult ret = new ParseResult();
-
             if (location.Filename == null || location.Filename.Length == 0)
             {
                 OutputLog.Error("No file provided for parsing");
+                ParseResult ret = new ParseResult();
                 ret.Status = ParseResult.StatusCode.InvalidInput;
+                return ret;
+            }
+
+            //TODO ~ ramonv ~ give the option in the settings to specify where to store this temporary file 
+            string outputDir = GetGeneratedPath();
+            if (!CreateDirectory(outputDir))
+            {
+                ParseResult ret = new ParseResult();
+                ret.Status = ParseResult.StatusCode.InvalidOutputDir;
                 return ret;
             }
 
@@ -487,71 +564,41 @@ namespace StructLayout
             string language  = Path.GetExtension(location.Filename) == ".c"? "" : " -x c++"; //do not force c++ on .c files 
             string archStr   = projProperties != null && projProperties.Target == ProjectProperties.TargetType.x86 ? " -m32" : " -m64";
 
-            string toolCmd = AdjustPath(location.Filename) + " --" + language + archStr + standard + flags + defines + includes + forceInc + workDir + extra;
+            string clangCmd = language + archStr + standard + flags + defines + includes + forceInc + workDir + extra;
+
+            string outputPath = outputDir + @"\tempResult.slbin";
+            string contextCmd = AdjustPath(location.Filename) + " -r=" + location.Line + " -c=" + location.Column + " -o=" + AdjustPath(outputPath);
+
+            string toolCmd = contextCmd + " --" + clangCmd;
 
             OutputLog.Focus();
             OutputLog.Log("Looking for structures at " + location.Filename + ":" + location.Line + ":" + location.Column+"...");
 
             if (PrintCommandLine)
             {
-                OutputLog.Log("COMMAND LINE: " + toolCmd);
+                OutputLog.Log("CLANG ARGUMENTS: " + clangCmd);
+                OutputLog.Log("GENERATED FILE: " + outputPath);
             }
-
-            Log = "";
 
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
-            var valid = false;
-           
-            valid = await System.Threading.Tasks.Task.Run(() => LayoutParser_ParseLocation(toolCmd, location.Filename, location.Line, location.Column));
+            int exitCode = await ExternalProcess.ExecuteAsync(GetLayoutParserToolPath(), toolCmd);
+            bool valid = exitCode == 0;
 
             watch.Stop();
             const long TicksPerMicrosecond = (TimeSpan.TicksPerMillisecond / 1000);
             string timeStr = " ("+GetTimeStr((ulong)(watch.ElapsedTicks / TicksPerMicrosecond))+")";
 
-            if (Log.Length > 0)
-            {
-                OutputLog.Log("Execution Log:\n" + Log);
-                ret.ParserLog = Log;
-                Log = "";
-            }
-
-            if (valid)
-            {
-                //capture data
-                uint size = 0;
-                IntPtr result = LayoutParser_GetData(ref size);
-
-                if (size > 0)
-                {
-                    byte[] managedArray = new byte[size];
-                    Marshal.Copy(result, managedArray, 0, (int)size);
-
-                    using (BinaryReader reader = new BinaryReader(new MemoryStream(managedArray)))
-                    {
-                        List<string> files = ReadFiles(reader);
-                        ret.Layout = ReadNode(reader,files);
-                        FinalizeNode(ret.Layout);
-                    }
-
-                    OutputLog.Log("Found structure " + ret.Layout.Type + "." + timeStr);
-                    ret.Status = ParseResult.StatusCode.Found;
-                }
-                else
-                {
-                    OutputLog.Log("No structure found at the given location." + timeStr);
-                    ret.Status = ParseResult.StatusCode.NotFound;
-                }
-            }
-            else
+            if (!valid)
             {
                 OutputLog.Error("Unable to scan the given location." + timeStr);
+                ParseResult ret = new ParseResult();
                 ret.Status = ParseResult.StatusCode.ParseFailed;
+                return ret;
             }
 
-            LayoutParser_Clear();
-
-            return ret;
+            OutputLog.Log("File parsing completed! " + timeStr);
+            return LoadParseResult(outputPath);
         }
 
         private string GetStandardFlag(ProjectProperties.StandardVersion standard)

@@ -25,6 +25,11 @@ namespace StructLayout
             } 
         }
 
+        public static IVsOutputWindowPane GetPane()
+        {
+            return paneInstance;
+        }
+
         public static void Initialize(IServiceProvider serviceProvider)
         {
             ServiceProvider = serviceProvider;

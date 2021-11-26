@@ -52,8 +52,7 @@ namespace StructLayout
             // Do any initialization that requires the UI thread after switching to the UI thread.
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            OutputLog.Initialize(this);
-            LayoutParser.SetupParser();
+            OutputLog.Initialize(this);            
             SettingsManager.Instance.Initialize(this);
             EditorUtils.Initialize(this);
             await LayoutWindowCommand.InitializeAsync(this);

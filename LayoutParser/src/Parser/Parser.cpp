@@ -1,7 +1,3 @@
-#ifdef _MSC_VER
-#pragma warning(disable: 4146) // unary minus operator applied to unsigned type, result still unsigned
-#endif
-
 #include "Parser.h"
 
 #pragma warning(push, 0)    
@@ -29,16 +25,24 @@
 
 #pragma warning(pop)    
 
+#include <unordered_map>
+
 #include "LayoutDefinitions.h"
 #include "IO.h"
 
 namespace ClangParser 
 {
-    using TFilenameLookup = std::unordered_map<unsigned int,unsigned int>; 
+    struct LocationFilter
+    {
+        unsigned int row;
+        unsigned int col;
+    };
+
+    using TFilenameLookup = std::unordered_map<unsigned int,size_t>; 
     TFilenameLookup        g_filenameLookup;
 
     Layout::Result         g_result;
-    Parser::LocationFilter g_locationFilter;
+    LocationFilter         g_locationFilter;
 
     namespace Helpers
     {
@@ -63,9 +67,9 @@ namespace ClangParser
             g_result.files.clear();
         }
 
-        unsigned int AddFileToDictionary(const clang::FileID fileId, const char* filename)
+        size_t AddFileToDictionary(const clang::FileID fileId, const char* filename)
         {
-            const unsigned int nextIndex = g_result.files.size();
+            const size_t nextIndex = g_result.files.size();
             std::pair<TFilenameLookup::iterator,bool> const& result = g_filenameLookup.insert(TFilenameLookup::value_type(fileId.getHashValue(),nextIndex));
             if (result.second) 
             { 
@@ -358,77 +362,49 @@ namespace ClangParser
     };
 }
 
+namespace CommandLine
+{
+    //group
+    llvm::cl::OptionCategory g_commandLineCategory("StructLayout Parser Options");
+
+    //commands
+    llvm::cl::opt<std::string>  g_outputFilename("output", llvm::cl::desc("Specify output filename"), llvm::cl::value_desc("filename"), llvm::cl::cat(g_commandLineCategory));
+    llvm::cl::opt<unsigned int> g_locationRow("locationRow", llvm::cl::desc("Specify input filename row to inspect"), llvm::cl::value_desc("number"), llvm::cl::cat(g_commandLineCategory));
+    llvm::cl::opt<unsigned int> g_locationCol("locationCol", llvm::cl::desc("Specify input filename column to inspect"), llvm::cl::value_desc("number"), llvm::cl::cat(g_commandLineCategory));
+
+    //aliases
+    llvm::cl::alias g_shortOutputFilenameOption("o", llvm::cl::desc("Alias for -output"), llvm::cl::aliasopt(g_outputFilename));
+    llvm::cl::alias g_shortLocationRowOption("r", llvm::cl::desc("Alias for -locationRow"), llvm::cl::aliasopt(g_locationRow));
+    llvm::cl::alias g_shortLocationColOption("c", llvm::cl::desc("Alias for -locationCol"), llvm::cl::aliasopt(g_locationCol));    
+}
+
 namespace Parser
 { 
-    void SetFilter(const LocationFilter& filter)
+    void SetFilter(const ClangParser::LocationFilter& filter)
     { 
         ClangParser::g_locationFilter = filter;
     }
-        
-    void ConsoleLog(llvm::StringRef str)
-    { 
-        IO::Log(str.str().c_str());
-    }
 
-    void InitializeLLVM()
-    { 
-        static bool initialized = false;
-        if (!initialized)
+	bool Parse(int argc, const char* argv[])
+	{ 
+        llvm::InitializeNativeTarget();
+        llvm::InitializeNativeTargetAsmParser();
+
+        llvm::Expected<clang::tooling::CommonOptionsParser> optionsParser = clang::tooling::CommonOptionsParser::create(argc, argv, CommandLine::g_commandLineCategory);
+        clang::tooling::ClangTool tool(optionsParser->getCompilations(), optionsParser->getSourcePathList());
+
+        SetFilter(ClangParser::LocationFilter{ CommandLine::g_locationRow, CommandLine::g_locationCol });
+
+        const int retCode = tool.run(clang::tooling::newFrontendActionFactory<ClangParser::Action>().get());
+
+        bool ret = retCode == 0;
+        if (ret)
         {
-            llvm::InitializeNativeTarget();
-            llvm::InitializeNativeTargetAsmParser();
-
-            llvm::outs().SetCustomConsole(&ConsoleLog);
-            llvm::outs().SetUnbuffered();
-            llvm::errs().SetCustomConsole(&ConsoleLog);
-            llvm::errs().SetUnbuffered();
-
-            initialized = true;
-        }
-    }
-
-	bool Parse(const char* filename, int argc, const char* argv[])
-	{ 
-        InitializeLLVM();
-
-        //Parse command line 
-        std::vector<std::string> SourcePaths; 
-        SourcePaths.push_back(filename);
-
-        std::unique_ptr<clang::tooling::CompilationDatabase> Compilations;
-        std::string ErrorMessage;
-        Compilations = clang::tooling::FixedCompilationDatabase::loadFromCommandLine(argc, argv, ErrorMessage);
-
-        if (!ErrorMessage.empty()) 
-        { 
-            ErrorMessage.append("\n");
-            llvm::errs() << ErrorMessage;
+            const char* outputFileName = CommandLine::g_outputFilename.size() == 0 ? "output.slbin" : CommandLine::g_outputFilename.c_str();
+            ret = IO::ToFile(ClangParser::g_result, outputFileName);
         }
 
-        if (!Compilations) 
-        {    
-            Compilations = clang::tooling::CompilationDatabase::autoDetectFromSource(filename, ErrorMessage);
-            
-            if (!Compilations) 
-            {
-                llvm::errs() << "Error while trying to load a compilation database:\n" << ErrorMessage << "Running without flags.\n";
-                Compilations.reset(new clang::tooling::FixedCompilationDatabase(".", std::vector<std::string>()));
-            }
-        }
-
-        clang::tooling::ClangTool tool(*Compilations,SourcePaths);
-
-        const int retCode = tool.run(clang::tooling::newFrontendActionFactory<ClangParser::Action>().get()); 
-        return retCode == 0;
-	}
-
-	const Layout::Result& GetLayout()
-	{ 
-        return ClangParser::g_result;
-	}
-
-    void Clear()
-    { 
         ClangParser::Helpers::ClearResult();
-    }
+        return ret;
+	}
 }

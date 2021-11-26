@@ -10,6 +10,12 @@
 # Generated when a Git operation is conflicting.
 *.orig
 
+# Personal extensions
+*.vcxproj.user
+*.scor
+*.scor.*
+*.slbin
+
 # DLLs
 *.dll
 

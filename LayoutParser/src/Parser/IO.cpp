@@ -7,133 +7,99 @@
 
 namespace IO
 { 
-    using TBuffer = std::vector<char>;
-    TBuffer g_dataBuffer;
+    enum { DATA_VERSION = 1 };
 
-    TLogFunc g_logFunc = nullptr;
+    using TBuffer = FILE*;
+    using U8 = char;
 
     namespace Utils
     {
         // -----------------------------------------------------------------------------------------------------------------
-        template<typename T> void Binarize(TBuffer& buffer, T input)
+        template<typename T> void Binarize(FILE* stream, T input)
         {
-            buffer.resize(buffer.size()+sizeof(T));
-            memcpy(&(*(buffer.end()-sizeof(T))),&input,sizeof(T));
+            fwrite(&input, sizeof(T), 1, stream);
         }
 
-        // -----------------------------------------------------------------------------------------------------------------
-        template<> void Binarize<char>(TBuffer& buffer, char input)
-        { 
-            buffer.push_back(input);
-        }
-
-        // -----------------------------------------------------------------------------------------------------------------
-        void BinarizeString(TBuffer& buffer, std::string input)
-        { 
-            const size_t strSize = input.length(); 
-
+        // -----------------------------------------------------------------------------------------------------------
+        void BinarizeString(FILE* stream, const std::string& str)
+        {
             //Perform size encoding in 7bitSize format
-            size_t len = strSize;
-            do 
-            { 
-                const char val = len < 0x80? len & 0x7F : (len & 0x7F) | 0x80;
-                Binarize(buffer,val);
-                len >>= 7;
+            size_t strSize = str.length();
+            do
+            {
+                const U8 val = strSize < 0x80 ? strSize & 0x7F : (strSize & 0x7F) | 0x80;
+                fwrite(&val, sizeof(U8), 1, stream);
+                strSize >>= 7;
             }
-            while(len);
+            while (strSize);
 
-            if (strSize)
-            { 
-                //Copy the string
-                buffer.resize(buffer.size()+strSize);
-                memcpy(&(*(buffer.end()-strSize)),&input[0],strSize);
-            }
+            fwrite(str.c_str(), str.length(), 1, stream);
         }
 
         // -----------------------------------------------------------------------------------------------------------------
-        void BinarizeLocation(TBuffer& buffer, const Layout::Location& location)
+        void BinarizeLocation(FILE* stream, const Layout::Location& location)
         { 
-            Binarize(buffer,location.fileIndex);
+            Binarize(stream,location.fileIndex);
 
             if (location.fileIndex != Layout::INVALID_FILE_INDEX)
             { 
                 //valid filename, serialize also line and column
-                Binarize(buffer,location.line);
-                Binarize(buffer,location.column);
+                Binarize(stream,location.line);
+                Binarize(stream,location.column);
             }
         }
 
         // -----------------------------------------------------------------------------------------------------------------
-        void BinarizeNode(TBuffer& buffer,const Layout::Node& node)
+        void BinarizeNode(FILE* stream,const Layout::Node& node)
         {       
-            BinarizeString(buffer,node.type);
-            BinarizeString(buffer,node.name);
-            Binarize(buffer,node.offset);
-            Binarize(buffer,node.size);
-            Binarize(buffer,node.align);
-            Binarize(buffer,node.nature);
+            BinarizeString(stream,node.type);
+            BinarizeString(stream,node.name);
+            Binarize(stream,node.offset);
+            Binarize(stream,node.size);
+            Binarize(stream,node.align);
+            Binarize(stream,node.nature);
 
-            BinarizeLocation(buffer,node.typeLocation);
-            BinarizeLocation(buffer,node.fieldLocation);
+            BinarizeLocation(stream,node.typeLocation);
+            BinarizeLocation(stream,node.fieldLocation);
 
-            Binarize(buffer,static_cast<unsigned int>(node.children.size()));
+            Binarize(stream,static_cast<unsigned int>(node.children.size()));
             for (const Layout::Node* child : node.children)
             { 
-                BinarizeNode(buffer,*child);
+                BinarizeNode(stream,*child);
             }  
         }
 
         // -----------------------------------------------------------------------------------------------------------------
-        void BinarizeFiles(TBuffer& buffer, const Layout::TFiles& files)
+        void BinarizeFiles(FILE* stream, const Layout::TFiles& files)
         {
-            Binarize(buffer,static_cast<unsigned int>(files.size()));
+            Binarize(stream,static_cast<unsigned int>(files.size()));
             for (const std::string& file : files)
             { 
-                BinarizeString(buffer,file);
+                BinarizeString(stream,file);
             }  
         }
     }
 
-    // -----------------------------------------------------------------------------------------------------------------
-    void Clear()
-    { 
-        g_dataBuffer.clear();
-    }
+    bool ToFile(const Layout::Result& result, const char* filename)
+    {
+        FILE* stream;
+        const errno_t openResult = fopen_s(&stream, filename, "wb");
+        if (openResult)
+        {
+            return false;
+        }
 
-    // -----------------------------------------------------------------------------------------------------------------
-    bool ToDataBuffer(const Layout::Result& result)
-    { 
-        g_dataBuffer.clear();
+        Utils::Binarize(stream, DATA_VERSION);
 
         if (result.node)
         {
-            Utils::BinarizeFiles(g_dataBuffer,result.files);
-            Utils::BinarizeNode(g_dataBuffer,*(result.node));
-            return true;
+            Utils::BinarizeFiles(stream, result.files);
+            Utils::BinarizeNode(stream, *(result.node));
         }
 
-        return false;
-    } 
+        fclose(stream);
 
-    // -----------------------------------------------------------------------------------------------------------------
-    char* GetDataBuffer(unsigned int& size)
-    { 
-        size = static_cast<unsigned int>(g_dataBuffer.size());
-        return g_dataBuffer.empty()? nullptr : &g_dataBuffer[0];
+        return true;
     }
 
-    // -----------------------------------------------------------------------------------------------------------------
-    void SetLogFunc(TLogFunc func)
-    { 
-        g_logFunc = func;
-    }
-
-    // -----------------------------------------------------------------------------------------------------------------
-    void Log(const char* str)
-    {
-        if (g_logFunc)
-        { 
-            g_logFunc(str);
-        } 
-    }
 }

@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="Common\ColorTheme.cs" />
     <Compile Include="Common\Documentation.cs" />
+    <Compile Include="Common\ExternalProcess.cs" />
     <Compile Include="Common\FileWatcher.cs" />
     <Compile Include="Common\LayoutColors.cs" />
     <Compile Include="Common\LayoutParser.cs" />
@@ -145,7 +146,8 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="LayoutParser.dll">
+    <Content Include="..\LayoutParser\bin\Release\LayoutParser.exe">
+      <Link>External\LayoutParser.exe</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="LayoutWindow\Resources\LayoutWindowCommand.png" />
