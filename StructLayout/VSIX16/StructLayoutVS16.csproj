@@ -32,7 +32,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;VS16</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -40,60 +40,12 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;VS16</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Common\ColorTheme.cs" />
-    <Compile Include="Common\Documentation.cs" />
-    <Compile Include="Common\ExternalProcess.cs" />
-    <Compile Include="Common\FileWatcher.cs" />
-    <Compile Include="Common\LayoutColors.cs" />
-    <Compile Include="Common\LayoutParser.cs" />
-    <Compile Include="Common\OutputLog.cs" />
-    <Compile Include="Editor\Commands\AboutCommand.cs" />
-    <Compile Include="Editor\Commands\DocumentationCommand.cs" />
-    <Compile Include="Editor\EditorUtils.cs" />
-    <Compile Include="Editor\Extractors\ExtractorCMake.cs" />
-    <Compile Include="Editor\Extractors\ExtractorBase.cs" />
-    <Compile Include="Editor\Extractors\ExtractorManual.cs" />
-    <Compile Include="Editor\Extractors\ExtractorUnreal.cs" />
-    <Compile Include="Editor\Extractors\ExtractorVisualStudio.cs" />
-    <Compile Include="Editor\MacroEvaluator.cs" />
-    <Compile Include="Editor\ParseMessageControl.xaml.cs">
-      <DependentUpon>ParseMessageControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Editor\ParseMessageWindow.cs" />
-    <Compile Include="Editor\Commands\ReportIssueCommand.cs" />
-    <Compile Include="Editor\Commands\SettingsCommand.cs" />
-    <Compile Include="Settings\AboutWindow.xaml.cs">
-      <DependentUpon>AboutWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Settings\SettingsControl.xaml.cs">
-      <DependentUpon>SettingsControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Settings\SettingsWindow.cs" />
-    <Compile Include="Settings\SolutionSettings.cs" />
-    <Compile Include="Common\WindowProxy.cs" />
-    <Compile Include="Editor\EditorProcessor.cs" />
-    <Compile Include="LayoutWindow\LayoutNodeTooltip.xaml.cs">
-      <DependentUpon>LayoutNodeTooltip.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="LayoutWindow\LayoutViewer.xaml.cs">
-      <DependentUpon>LayoutViewer.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="LayoutWindow\LayoutWindow.cs" />
-    <Compile Include="LayoutWindow\LayoutWindowCommand.cs" />
-    <Compile Include="LayoutWindow\LayoutWindowControl.xaml.cs">
-      <DependentUpon>LayoutWindowControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Editor\Commands\ParseCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StructLayoutPackage.cs" />
-    <Compile Include="StructLayoutSettings.cs">
-      <SubType>Component</SubType>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
@@ -120,46 +72,25 @@
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="15.0.1" ExcludeAssets="runtime" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Editor\ParseMessageControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="LayoutWindow\LayoutNodeTooltip.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="LayoutWindow\LayoutViewer.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="LayoutWindow\LayoutWindowControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Settings\AboutWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Settings\SettingsControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="..\LayoutParser\bin\Release\LayoutParser.exe">
+    <Content Include="..\..\LayoutParser\bin\Release\LayoutParser.exe">
       <Link>External\LayoutParser.exe</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="LayoutWindow\Resources\LayoutWindowCommand.png" />
-    <Content Include="StructLayout.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <Content Include="..\SharedFiles\StructLayout.png">
+      <Link>Resources\StructLayout.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <VSCTCompile Include="StructLayoutPackage.vsct">
+    <Content Include="..\SharedFiles\StructLayoutCommands.png">
+      <Link>Resources\StructLayoutCommands.png</Link>
+    </Content>
+    <VSCTCompile Include="..\SharedFiles\StructLayoutPackage.vsct">
+      <Link>StructLayoutPackage.vsct</Link>
       <ResourceName>Menus.ctmenu</ResourceName>
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup />
+  <Import Project="..\Shared\Shared.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

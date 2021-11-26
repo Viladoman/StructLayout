@@ -5,8 +5,8 @@
         <DisplayName>Struct Layout</DisplayName>
         <Description xml:space="preserve">C++ struct memory layout viewer</Description>
         <MoreInfo>https://github.com/Viladoman/StructLayout</MoreInfo>
-        <Icon>StructLayout.png</Icon>
-        <PreviewImage>StructLayout.png</PreviewImage>
+        <Icon>Resources\StructLayout.png</Icon>
+        <PreviewImage>Resources\StructLayout.png</PreviewImage>
         <Tags>cpp memory struct class debugging cache cacheline layout</Tags>
     </Metadata>
     <Installation>

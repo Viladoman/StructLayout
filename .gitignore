@@ -21,8 +21,14 @@
 
 # VSIX
 StructLayout/.vs/
-StructLayout/bin/
-StructLayout/obj/
+
+StructLayout/VSIX16/.vs/
+StructLayout/VSIX16/bin/
+StructLayout/VSIX16/obj/
+
+StructLayout/VSIX17/.vs/
+StructLayout/VSIX17/bin/
+StructLayout/VSIX17/obj/
 
 # Layout Parser
 LayoutParser/.vs/
