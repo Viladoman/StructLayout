@@ -27,7 +27,7 @@ namespace StructLayout
             VCConfiguration config = prj.ActiveConfiguration;
             if (config == null) return null;
 
-            VCPlatform platform = config.Platform;
+            VCPlatform platform = config.Platform as VCPlatform;
             if (platform == null) return null;
 
             var vctools = config.Tools as IVCCollection;
@@ -87,7 +87,7 @@ namespace StructLayout
 
         private ProjectProperties.StandardVersion GetStandardVersion(VCConfiguration config)
         {
-            IVCRulePropertyStorage generalRule = config.Rules.Item("ConfigurationGeneral");
+            IVCRulePropertyStorage generalRule = config.Rules.Item("ConfigurationGeneral") as IVCRulePropertyStorage;
             string value = null;
 
             try { value = generalRule == null ? null : generalRule.GetEvaluatedPropertyValue("LanguageStandard"); } catch (Exception) { }

@@ -22,7 +22,7 @@ namespace StructLayout
             Project project = EditorUtils.GetActiveProject();
             VCProject prj = project == null ? null : project.Object as VCProject;
             VCConfiguration config = prj == null ? null : prj.ActiveConfiguration;
-            VCPlatform platform = config == null ? null : config.Platform;
+            VCPlatform platform = config == null ? null : config.Platform as VCPlatform;
 
             if (platform != null)
             {

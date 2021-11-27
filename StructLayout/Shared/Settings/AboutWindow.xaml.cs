@@ -60,7 +60,7 @@ namespace StructLayout
 
             descriptionTxt.Text = manifest.Description;
             extVersionTxt.Text = "Version: " + manifest.Version;
-            clangVersionTxt.Text = "Clang Version: 12.0.0";
+            clangVersionTxt.Text = "Clang Version: 13.0.0";
         }
 
         private void OnReportIssue(object sender, object e)
