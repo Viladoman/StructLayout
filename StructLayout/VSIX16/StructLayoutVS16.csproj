@@ -54,6 +54,9 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.VisualStudio.VCProjectEngine, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -67,9 +70,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="15.0.1" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.VisualStudio.VCProjectEngine">
-      <Version>16.7.30328.74</Version>
-    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\LayoutParser\bin\Release\LayoutParser.exe">

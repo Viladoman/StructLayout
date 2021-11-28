@@ -20,6 +20,7 @@
 *.dll
 
 # VSIX
+.vs/
 StructLayout/.vs/
 
 StructLayout/VSIX16/.vs/
