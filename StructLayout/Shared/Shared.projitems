@@ -17,11 +17,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Common\LayoutParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\OutputLog.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\WindowProxy.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\Commands\AboutCommand.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\Commands\DocumentationCommand.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\Commands\ParseCommand.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\Commands\ReportIssueCommand.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\Commands\SettingsCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\CustomCommands.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\EditorProcessor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\EditorUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Extractors\ExtractorBase.cs" />
@@ -41,7 +37,6 @@
       <DependentUpon>LayoutViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)LayoutWindow\LayoutWindow.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LayoutWindow\LayoutWindowCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LayoutWindow\LayoutWindowControl.xaml.cs">
       <DependentUpon>LayoutWindowControl.xaml</DependentUpon>
     </Compile>
