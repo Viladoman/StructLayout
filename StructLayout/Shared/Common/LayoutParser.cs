@@ -397,6 +397,24 @@ namespace StructLayout
             parent.Children.Remove(nodeB);
         }
 
+        private void FixEmptyTypes(LayoutNode node)
+        {
+            for (int i = 0; i < node.Children.Count;)
+            {
+                var childNode = node.Children[i];
+                if (childNode.Size == 0)
+                {
+                    //We don't accept elements of 0 size ( can be Empty Base Optimization or something unexpected )
+                    node.Children.RemoveAt(i);
+                    node.Extra.Add(childNode);
+                }
+                else
+                {
+                    ++i;
+                }
+            }
+        }
+
         private void FixSharedMemory(LayoutNode node)
         {
             for (int i = 1; i < node.Children.Count;)
@@ -406,16 +424,7 @@ namespace StructLayout
 
                 if (thisNode.Offset == prevNode.Offset)
                 {
-                    if (prevNode.IsBaseCategory() && prevNode.Size == 1)
-                    {
-                        //Empty base optimization
-                        node.Extra.Add(prevNode);
-                        node.Children.RemoveAt(i - 1);
-                    }
-                    else
-                    {
-                        ShareNodes(prevNode,thisNode);
-                    }
+                    ShareNodes(prevNode,thisNode);
                 }
                 else
                 {
@@ -430,6 +439,7 @@ namespace StructLayout
 
             if (!node.IsSharedMemory())
             {
+                FixEmptyTypes(node);
                 FixBitfields(node);
                 FixSharedMemory(node);
             }

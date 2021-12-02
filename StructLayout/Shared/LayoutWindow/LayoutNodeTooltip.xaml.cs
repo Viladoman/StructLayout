@@ -131,13 +131,14 @@ namespace StructLayout
                 extraStack.Visibility = Visibility.Visible;
                 var title = new TextBlock();
 
-                title.Text = "Empty Base Optimization:";
+                title.Text = "Hidden Structures:";
                 extraStack.Children.Add(title);
 
                 foreach (LayoutNode child in Node.Extra)
                 {
                     var desc = new TextBlock();
                     desc.Text = "- " + (child.Type.Length > 0 ? child.Type : child.Category.ToString()) + (child.Name.Length > 0 ? " " + child.Name : "");
+                    desc.Text += " ( " + (child.IsBaseCategory() ? "Empty Base Optimization" : "Unknown Empty Structure") + " )";
                     extraStack.Children.Add(desc);
                 }
             }
