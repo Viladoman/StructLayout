@@ -4,10 +4,13 @@ using System.Threading.Tasks;
 
 namespace StructLayout
 {
-    public static class ExternalProcess
+    public class ExternalProcess
     {
-        public static int ExecuteSync(string toolPath, string arguments)
+        public string Log { set; get; } = null;
+
+        public int ExecuteSync(string toolPath, string arguments)
         {
+            ClearLog();
             var process = StartProcess(toolPath, arguments);
 
             if (process == null)
@@ -20,8 +23,9 @@ namespace StructLayout
             return process.ExitCode;
         }
 
-        public static async Task<int> ExecuteAsync(string toolPath, string arguments)
+        public async Task<int> ExecuteAsync(string toolPath, string arguments)
         {
+            ClearLog();
             var process = StartProcess(toolPath, arguments);
 
             if (process == null)
@@ -34,7 +38,7 @@ namespace StructLayout
             return process.ExitCode;
         }
 
-        private static Process StartProcess(string toolPath, string arguments)
+        private Process StartProcess(string toolPath, string arguments)
         {
             var process = new Process();
 
@@ -59,7 +63,7 @@ namespace StructLayout
             return process;
         }
 
-        private static void WaitForExit(Process process)
+        private void WaitForExit(Process process)
         {
             //Handle output
             while (!process.StandardOutput.EndOfStream || !process.StandardError.EndOfStream)
@@ -78,16 +82,29 @@ namespace StructLayout
             process.WaitForExit();
         }
 
-        private static void OutputLine(string str)
+        private void OutputLine(string str)
         {
             if (str != null)
             {
+                AppendToLog(str);
 #pragma warning disable 414, VSTHRD010
                 OutputLog.GetPane().OutputStringThreadSafe(str + '\n');
 #pragma warning restore VSTHRD010
             }
         }
 
+        private void ClearLog()
+        {
+            Log = Log == null ? null : "";
+        }
+
+        private void AppendToLog(string str)
+        {
+            if (Log != null)
+            {
+                Log += str + '\n';
+            }
+        }
     }
 }
  

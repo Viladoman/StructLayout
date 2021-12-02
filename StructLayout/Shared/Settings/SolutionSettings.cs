@@ -46,6 +46,9 @@ namespace StructLayout
 
         [UIDescription(Label = "Enable Warnings", Tooltip = "If true, the clang parser will output the warnings found.")]
         public bool EnableWarnings { set; get; } = false;
+
+        [UIDescription(Label = "Parser Output Folder", Tooltip = "File location where the Clang Parser will output the layout results. This files are temporary. This field will default to the extension installation folder. (This fields allows $(SolutionDir) style macros)")]
+        public string ParserOutputFolder { set; get; } = "";
     }
 
     public class SettingsManager

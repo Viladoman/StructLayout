@@ -10,6 +10,7 @@ namespace StructLayout
     public abstract class IExtractor 
     {
         public abstract ProjectProperties GetProjectData();
+        public abstract string EvaluateMacros(string input);
 
         protected static void AppendMSBuildStringToList(List<string> list, string input)
         {

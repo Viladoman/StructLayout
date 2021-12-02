@@ -103,7 +103,14 @@ namespace StructLayout
 
             return ret;
         }
-   
+
+        public override string EvaluateMacros(string input)
+        {
+            var evaluatorExtra = new MacroEvaluatorExtra();          
+            var evaluatorPlatform = new MacroEvaluatorCMake();
+            return evaluatorPlatform.Evaluate(evaluatorExtra.Evaluate(input));
+        }
+
         private CMakeConfiguration GetActiveConfiguration()
         {
             ThreadHelper.ThrowIfNotOnUIThread();

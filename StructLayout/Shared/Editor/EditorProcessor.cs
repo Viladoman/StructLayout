@@ -61,6 +61,34 @@ namespace StructLayout
             return extractor == null? null : extractor.GetProjectData();
         }
 
+        private string GetParserOutputDirectory()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            var customSettings = SettingsManager.Instance.Settings;
+            string dir = customSettings == null ? null : customSettings.ParserOutputFolder;          
+
+            if (dir == null || dir.Length == 0)
+            {
+                //default to the extension installation directory
+                dir = @"$(ExtensionInstallationDir)Generated";
+            }
+
+            dir = GetProjectExtractor().EvaluateMacros(dir);
+
+            if (dir != null && dir.Length > 0)
+            {
+                //make sure the directory has a proper format
+                char lastchar = dir[dir.Length - 1];
+                if (lastchar != '\\' && lastchar != '/')
+                {
+                    dir += '\\';
+                }
+            }
+
+            return dir;
+        }
+
         private void ApplyUserSettingsToWindow(LayoutWindow window, GeneralSettingsPageGrid settings)
         {
             if (window == null || settings == null) return;
@@ -80,11 +108,11 @@ namespace StructLayout
             if (content.Log != null && content.Log.Length > 0)
             {
                 //Special Issue Messages
-                if (content.Log.Contains("error: use of overloaded operator '==' is ambiguous (with operand types 'const FName' and 'const FPrimaryAssetType')"))
-                {
-                    content.Doc = Documentation.Link.UnrealIssue_1;
-                    content.Message = "Errors found while parsing.\nThis is a known Unreal Engine issue.\nPress the Documentation Button for more details.";
-                }
+                //if (content.Log.Contains("error: use of overloaded operator '==' is ambiguous (with operand types 'const FName' and 'const FPrimaryAssetType')"))
+                //{
+                    //content.Doc = Documentation.Link.UnrealIssue_1;
+                    //content.Message = "Errors found while parsing.\nThis is a known Unreal Engine issue.\nPress the Documentation Button for more details.";
+                //}
             }
         }
 
@@ -97,7 +125,7 @@ namespace StructLayout
                 switch (result.Status)
                 {
                     case ParseResult.StatusCode.InvalidOutputDir:
-                        content.Message = "Unable to create the directory for the generated parser results.";
+                        content.Message = "Unable to create the directory for the generated parser results.\nPlease make sure the parser output directory set in the Extension Options is valid and writable.";
                         break;
                     case ParseResult.StatusCode.VersionMismatch:
                         content.Message = "Parser result generated version does not match the current version."; 
@@ -114,7 +142,7 @@ namespace StructLayout
                 }
 
                 content.Log = result.ParserLog;
-                content.ShowOptions = result.Status == ParseResult.StatusCode.ParseFailed;
+                content.ShowOptions = result.Status == ParseResult.StatusCode.ParseFailed || result.Status == ParseResult.StatusCode.InvalidOutputDir;
 
                 CheckForSpecialResults(content);
 
@@ -149,6 +177,7 @@ namespace StructLayout
 
             GeneralSettingsPageGrid settings = EditorUtils.GetGeneralSettings();
             parser.PrintCommandLine = settings.OptionParserShowCommandLine;
+            parser.OutputDirectory = GetParserOutputDirectory();
 
             //TODO ~ ramonv ~ add parsing queue to avoid multiple queries at the same time
            

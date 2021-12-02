@@ -123,6 +123,11 @@ namespace StructLayout
                 return moduleName; 
             }
 
+            if (macroStr == @"$(ExtensionInstallationDir)")
+            {
+                return EditorUtils.GetExtensionInstallationDirectory();
+            }
+
             return null;
         }
     }

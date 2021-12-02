@@ -82,6 +82,21 @@ namespace StructLayout
             return ret;
         }
 
+        public override string EvaluateMacros(string input)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            var evaluatorExtra = new MacroEvaluatorExtra();
+            string output = evaluatorExtra.Evaluate(input);
+
+            Project project = EditorUtils.GetActiveProject();
+            VCProject prj = project.Object as VCProject;
+            VCConfiguration config = prj == null? null : prj.ActiveConfiguration;
+            VCPlatform platform = config == null? null : config.Platform as VCPlatform;
+            var evaluatorVS = platform == null? null : new MacroEvaluatorVisualPlatform(platform);
+            return evaluatorVS == null ? output : evaluatorVS.Evaluate(output);
+        }
+
         protected virtual void CaptureExtraProperties(ProjectProperties projProperties, IMacroEvaluator evaluator){ }
         protected virtual void ProcessPostProjectData(ProjectProperties projProperties) { }
 

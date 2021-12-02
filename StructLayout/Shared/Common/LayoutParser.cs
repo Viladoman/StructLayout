@@ -207,38 +207,20 @@ namespace StructLayout
     public class LayoutParser
     {
         public bool PrintCommandLine { get; set; } = false;
+        public string OutputDirectory { get; set; } = null;
 
         public const uint VERSION = 1;
       
-        public string GetExtensionInstallationDirectory()
-        {
-            try
-            {
-                var uri = new Uri(typeof(StructLayoutPackage).Assembly.CodeBase, UriKind.Absolute);
-                return Path.GetDirectoryName(uri.LocalPath);
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
         private string GetToolPath(string localPath)
         {
-            string installDirectory = GetExtensionInstallationDirectory();
-            string ret = installDirectory == null ? null : installDirectory + '\\' + localPath;
+            string installDirectory = EditorUtils.GetExtensionInstallationDirectory();
+            string ret = installDirectory == null ? null : installDirectory + localPath;
             return File.Exists(ret) ? ret : null;
         }
 
         private string GetLayoutParserToolPath()
         {
             return GetToolPath(@"External\LayoutParser.exe");
-        }
-
-        private string GetGeneratedPath()
-        {
-            string installDirectory = GetExtensionInstallationDirectory();
-            return installDirectory == null ? null : installDirectory + @"\Generated";
         }
 
         private LayoutLocation ReadLocation(BinaryReader reader, List<string> files)
@@ -468,7 +450,7 @@ namespace StructLayout
             FinalizeNodeRecursive(node);
         }
 
-        private bool CreateDirectory(string path)
+        private string CreateDirectory(string path)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -478,11 +460,12 @@ namespace StructLayout
             }
             catch (Exception e)
             {
-                OutputLog.Error("Unable to create directory " + path + ". " + e.ToString());
-                return false;
+                string errorStr = "Unable to create directory '" + path + "'.\n" + e.ToString();
+                OutputLog.Error(errorStr);
+                return errorStr;
             }
 
-            return true;
+            return null;
         }
 
         public ParseResult LoadParseResult( string fullPath )
@@ -497,7 +480,6 @@ namespace StructLayout
                 ret.Status = ParseResult.StatusCode.NotFound;
                 return ret;
             }
-
             
             FileStream fileStream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using (BinaryReader reader = new BinaryReader(fileStream))
@@ -541,12 +523,13 @@ namespace StructLayout
                 return ret;
             }
 
-            //TODO ~ ramonv ~ give the option in the settings to specify where to store this temporary file 
-            string outputDir = GetGeneratedPath();
-            if (!CreateDirectory(outputDir))
+            string errorStr = CreateDirectory(OutputDirectory);
+
+            if (errorStr != null)
             {
                 ParseResult ret = new ParseResult();
                 ret.Status = ParseResult.StatusCode.InvalidOutputDir;
+                ret.ParserLog = errorStr;
                 return ret;
             }
 
@@ -566,7 +549,7 @@ namespace StructLayout
 
             string clangCmd = language + archStr + standard + flags + defines + includes + forceInc + workDir + extra;
 
-            string outputPath = outputDir + @"\tempResult.slbin";
+            string outputPath = OutputDirectory + @"tempResult.slbin";
             string contextCmd = AdjustPath(location.Filename) + " -r=" + location.Line + " -c=" + location.Column + " -o=" + AdjustPath(outputPath);
 
             string toolCmd = contextCmd + " --" + clangCmd;
@@ -582,7 +565,10 @@ namespace StructLayout
 
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
-            int exitCode = await ExternalProcess.ExecuteAsync(GetLayoutParserToolPath(), toolCmd);
+            ExternalProcess externalProcess = new ExternalProcess();
+            externalProcess.Log = ""; //Set a valid log
+
+            int exitCode = await externalProcess.ExecuteAsync(GetLayoutParserToolPath(), toolCmd);
             bool valid = exitCode == 0;
 
             watch.Stop();
@@ -594,6 +580,7 @@ namespace StructLayout
                 OutputLog.Error("Unable to scan the given location." + timeStr);
                 ParseResult ret = new ParseResult();
                 ret.Status = ParseResult.StatusCode.ParseFailed;
+                ret.ParserLog = externalProcess.Log;
                 return ret;
             }
 

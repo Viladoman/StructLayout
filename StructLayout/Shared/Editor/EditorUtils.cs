@@ -64,6 +64,19 @@ namespace StructLayout
             return (Path.HasExtension(solution.FullName) ? Path.GetDirectoryName(solution.FullName) : solution.FullName) + '\\';
         }
 
+        static public string GetExtensionInstallationDirectory()
+        {
+            try
+            {
+                var uri = new Uri(typeof(StructLayoutPackage).Assembly.CodeBase, UriKind.Absolute);
+                return Path.GetDirectoryName(uri.LocalPath) + '\\';
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         static public EditorMode GetEditorMode()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
