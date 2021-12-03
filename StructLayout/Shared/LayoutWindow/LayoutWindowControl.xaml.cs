@@ -45,9 +45,9 @@
             viewer.SetLayout(result.Layout);
         }
 
-        public void SetGridNumberBase(LayoutViewer.GridBase gridBase)
+        public void RefreshDefaults()
         {
-            viewer.SetGridNumberBase(gridBase);
+            viewer.RefreshDefaults();
         }
 
         public void OpenSettings(object a, object e)

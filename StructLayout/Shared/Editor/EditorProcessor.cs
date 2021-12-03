@@ -92,7 +92,7 @@ namespace StructLayout
         private void ApplyUserSettingsToWindow(LayoutWindow window, GeneralSettingsPageGrid settings)
         {
             if (window == null || settings == null) return;
-            window.SetGridNumberBase(settings.OptionViewerGridBase);
+            window.RefreshDefaults();
         }
 
         public void OnUserSettingsChanged()

@@ -5,8 +5,6 @@ namespace StructLayout
 {
     public class GeneralSettingsPageGrid : DialogPage
     {
-        private LayoutViewer.GridBase gridNumberBase = LayoutViewer.GridBase.Hexadecimal;
-
         [Category("Parser")]
         [DisplayName("Print Command Line")]
         [Description("Print the command line argument passed to the parser in the Tool output pane")]
@@ -16,9 +14,28 @@ namespace StructLayout
         [DisplayName("Grid Number Base")]
         [Description("Base for the numbers in the viewer grid rows and columns")]
         public LayoutViewer.GridBase OptionViewerGridBase { 
-            get { return gridNumberBase; } 
-            set { gridNumberBase = value; ThreadHelper.ThrowIfNotOnUIThread(); EditorProcessor.Instance.OnUserSettingsChanged(); } 
+            get { return LayoutViewer.DefaultGridNumberBase; } 
+            set { LayoutViewer.DefaultGridNumberBase = value; ThreadHelper.ThrowIfNotOnUIThread(); EditorProcessor.Instance.OnUserSettingsChanged(); } 
         }
+
+        [Category("Viewer")]
+        [DisplayName("Default Display Alignment")]
+        [Description("Default value for the viewer display alignment")]
+        public LayoutViewer.DisplayAlignmentType OptionDefaultDisplayAlignment 
+        { 
+            get { return LayoutViewer.DefaultDisplayAlignment; } 
+            set { LayoutViewer.DefaultDisplayAlignment = value; }
+        }
+
+        [Category("Viewer")]
+        [DisplayName("Default Display Mode")]
+        [Description("Default value for the viewer display mode")]
+        public LayoutViewer.DisplayMode OptionDefaultDisplayMode
+        {
+            get { return LayoutViewer.DefaultDisplayMode; }
+            set { LayoutViewer.DefaultDisplayMode = value; }
+        }
+
     }
 }
 

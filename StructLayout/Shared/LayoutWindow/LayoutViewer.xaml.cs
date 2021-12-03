@@ -146,22 +146,22 @@ namespace StructLayout
 
     public partial class LayoutViewer : UserControl
     {
-        private enum DisplayAlignmentType
+        public enum DisplayAlignmentType
         {
-            Struct, 
+            Struct = 0, 
             Cacheline, 
             Custom
         }
 
         public enum DisplayMode
         {
-             Stack, 
+             Stack = 0, 
              Flat
         }
 
         public enum GridBase
         {
-            Decimal,
+            Decimal = 0,
             Hexadecimal,
         }
 
@@ -178,6 +178,10 @@ namespace StructLayout
         const double MarginTop    = 25;
         const double MarginBottom = 25;
         const double paddingSize  = 5;
+
+        public static DisplayAlignmentType DefaultDisplayAlignment { set; get; } = DisplayAlignmentType.Struct;
+        public static DisplayMode DefaultDisplayMode { set; get; } = DisplayMode.Stack;
+        public static GridBase DefaultGridNumberBase { set; get; } = GridBase.Hexadecimal;
 
         private Typeface Font = new Typeface("Verdana");
         private Pen gridPen   = new Pen(new SolidColorBrush(Color.FromArgb(100, 0, 0, 0)), 1);
@@ -208,19 +212,23 @@ namespace StructLayout
 
         public LayoutViewer()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             InitializeComponent();
             this.DataContext = this;
 
             overlayBrush.Opacity = 0.3;
             SetDisplayGridColumns(8);
 
+            GridNumberBase = DefaultGridNumberBase;
+
             tooltipTimer.Tick += ShowTooltip;
 
             displayAlignementComboBox.ItemsSource = Enum.GetValues(typeof(DisplayAlignmentType)).Cast<DisplayAlignmentType>();
-            displayAlignementComboBox.SelectedIndex = 0;
+            displayAlignementComboBox.SelectedIndex = (int)DefaultDisplayAlignment;
 
             displayModeComboBox.ItemsSource = Enum.GetValues(typeof(DisplayMode)).Cast<DisplayMode>();
-            displayModeComboBox.SelectedIndex = 0;
+            displayModeComboBox.SelectedIndex = (int)DefaultDisplayMode;
 
             scrollViewer.Loaded += ScrollViewer_OnLoaded;
             scrollViewer.On2DMouseScroll += ScrollViewer_On2DMouseScroll;
@@ -248,11 +256,11 @@ namespace StructLayout
             }
         }
 
-        public void SetGridNumberBase(GridBase newBase)
+        public void RefreshDefaults()
         {
-            if (newBase != GridNumberBase)
+            if (DefaultGridNumberBase != GridNumberBase)
             {
-                GridNumberBase = newBase;
+                GridNumberBase = DefaultGridNumberBase;
 
                 RenderGrid();
                 RefreshShapes();

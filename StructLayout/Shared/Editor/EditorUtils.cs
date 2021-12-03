@@ -25,6 +25,8 @@ namespace StructLayout
         {
             Package = package;
             ServiceProvider = package;
+
+            GetGeneralSettings(); //Force a settings load and propagation
         }
 
         static public GeneralSettingsPageGrid GetGeneralSettings()

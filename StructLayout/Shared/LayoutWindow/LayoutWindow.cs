@@ -45,9 +45,9 @@ namespace StructLayout
             (this.Content as LayoutWindowControl).SetResult(result);
         }
 
-        public void SetGridNumberBase(LayoutViewer.GridBase gridBase)
+        public void RefreshDefaults()
         {
-            (this.Content as LayoutWindowControl).SetGridNumberBase(gridBase);
+            (this.Content as LayoutWindowControl).RefreshDefaults();
         }
     }
 }
