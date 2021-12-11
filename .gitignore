@@ -31,10 +31,14 @@ StructLayout/VSIX17/.vs/
 StructLayout/VSIX17/bin/
 StructLayout/VSIX17/obj/
 
-# Layout Parser
-LayoutParser/.vs/
-LayoutParser/tmp/
-LayoutParser/bin/
+# Layout Parsers
+Parsers/ClangLayout/.vs/
+Parsers/ClangLayout/tmp/
+Parsers/ClangLayout/bin/
+
+Parsers/PDBLayout/.vs/
+Parsers/PDBLayout/tmp/
+Parsers/PDBLayout/bin/
 
 # LLVM project
 llvm-project*

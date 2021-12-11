@@ -71,7 +71,7 @@
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.0.5232" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\LayoutParser\bin\Release\LayoutParser.exe">
+    <Content Include="..\..\Parsers\ClangLayout\bin\Release\ClangLayout.exe">
       <Link>External\LayoutParser.exe</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

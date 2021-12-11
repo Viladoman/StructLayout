@@ -72,7 +72,7 @@
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="15.0.1" ExcludeAssets="runtime" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\LayoutParser\bin\Release\LayoutParser.exe">
+    <Content Include="..\..\Parsers\ClangLayout\bin\Release\ClangLayout.exe">
       <Link>External\LayoutParser.exe</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

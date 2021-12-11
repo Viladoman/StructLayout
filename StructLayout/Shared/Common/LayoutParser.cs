@@ -218,9 +218,9 @@ namespace StructLayout
             return File.Exists(ret) ? ret : null;
         }
 
-        private string GetLayoutParserToolPath()
+        private string GetClangLayoutParserToolPath()
         {
-            return GetToolPath(@"External\LayoutParser.exe");
+            return GetToolPath(@"External\ClangLayout.exe");
         }
 
         private LayoutLocation ReadLocation(BinaryReader reader, List<string> files)
@@ -570,7 +570,7 @@ namespace StructLayout
             if (PrintCommandLine)
             {
                 OutputLog.Log("CLANG ARGUMENTS: " + clangCmd);
-                OutputLog.Log("GENERATED FILE: " + outputPath);
+                //OutputLog.Log("GENERATED FILE: " + outputPath);
             }
 
             var watch = System.Diagnostics.Stopwatch.StartNew();
@@ -578,7 +578,7 @@ namespace StructLayout
             ExternalProcess externalProcess = new ExternalProcess();
             externalProcess.Log = ""; //Set a valid log
 
-            int exitCode = await externalProcess.ExecuteAsync(GetLayoutParserToolPath(), toolCmd);
+            int exitCode = await externalProcess.ExecuteAsync(GetClangLayoutParserToolPath(), toolCmd);
             bool valid = exitCode == 0;
 
             watch.Stop();
