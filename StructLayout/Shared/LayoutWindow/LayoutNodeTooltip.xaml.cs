@@ -69,7 +69,7 @@ namespace StructLayout
             }
 
             //LayoutData
-            layout1Txt.Text = "Offset: " + GetFullValueStr(Node.Offset) + " - Size: "  + GetFullValueStr(Node.Size) + " - Align: " + GetFullValueStr(Node.Align);
+            layout1Txt.Text = "Offset: " + GetFullValueStr(Node.Offset) + " - Size: "  + GetFullValueStr(Node.Size) + " - Align: " + (Node.Align == 0? "???" : GetFullValueStr(Node.Align));
 
             layout2Txt.Visibility = Node.RealSize == Node.Size ? Visibility.Collapsed : Visibility.Visible;
             layout2Txt.Text = "Real Size: " + GetFullValueStr(Node.RealSize) + " - Padding: " + GetFullValueStr(Node.Padding);

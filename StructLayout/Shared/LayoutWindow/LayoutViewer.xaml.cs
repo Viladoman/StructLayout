@@ -585,7 +585,7 @@ namespace StructLayout
 
             if (DisplayGridColumns != input)
             {
-                DisplayGridColumns = input;
+                DisplayGridColumns = Math.Max(1,input);
                 RefreshNodeRenderData();
 
                 SetupCanvas();
