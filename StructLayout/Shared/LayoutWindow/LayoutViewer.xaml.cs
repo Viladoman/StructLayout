@@ -180,6 +180,7 @@ namespace StructLayout
         const double paddingSize  = 5;
 
         public static DisplayAlignmentType DefaultDisplayAlignment { set; get; } = DisplayAlignmentType.Struct;
+        public static uint DefaultDisplayCustomAlignment { set; get; } = 8;
         public static DisplayMode DefaultDisplayMode { set; get; } = DisplayMode.Stack;
         public static GridBase DefaultGridNumberBase { set; get; } = GridBase.Hexadecimal;
 
@@ -218,8 +219,7 @@ namespace StructLayout
             this.DataContext = this;
 
             overlayBrush.Opacity = 0.3;
-            SetDisplayGridColumns(8);
-
+            SetDisplayGridColumns(DefaultDisplayCustomAlignment);
             GridNumberBase = DefaultGridNumberBase;
 
             tooltipTimer.Tick += ShowTooltip;

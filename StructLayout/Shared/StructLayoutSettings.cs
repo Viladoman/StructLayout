@@ -26,7 +26,16 @@ namespace StructLayout
             get { return LayoutViewer.DefaultDisplayAlignment; } 
             set { LayoutViewer.DefaultDisplayAlignment = value; }
         }
-
+        
+        [Category("Viewer")]
+        [DisplayName("Default Display Alignment Custom")]
+        [Description("The custom alignment to set by default")]
+        public uint OptionDefaultDisplayAlignmentCustomValue
+        {
+            get { return LayoutViewer.DefaultDisplayCustomAlignment; }
+            set { LayoutViewer.DefaultDisplayCustomAlignment = value; }
+        }
+        
         [Category("Viewer")]
         [DisplayName("Default Display Mode")]
         [Description("Default value for the viewer display mode")]
