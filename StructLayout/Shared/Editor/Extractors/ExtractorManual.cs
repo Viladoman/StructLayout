@@ -36,6 +36,13 @@ namespace StructLayout
             return ret;
         }
 
+        public override string GetPDBPath()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            return EvaluateMacros(SettingsManager.Instance.Settings.PDBLocation);
+        }
+
         public override string EvaluateMacros(string input)
         {
             ThreadHelper.ThrowIfNotOnUIThread();

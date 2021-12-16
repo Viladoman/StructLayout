@@ -82,18 +82,52 @@ namespace StructLayout
             return ret;
         }
 
-        public override string EvaluateMacros(string input)
+        public override string GetPDBPath()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            var evaluatorExtra = new MacroEvaluatorExtra();
-            string output = evaluatorExtra.Evaluate(input);
+            //First look next to the generated file
+            Project project = EditorUtils.GetActiveProject();
+            VCProject prj = project.Object as VCProject;
+            VCConfiguration config = prj == null ? null : prj.ActiveConfiguration;
+            VCPlatform platform = config == null ? null : config.Platform as VCPlatform;
+
+            IVCRulePropertyStorage generalRule = config.Rules.Item("ConfigurationGeneral") as IVCRulePropertyStorage;
+            string outputPath = null;
+            string targetName = null;
+            try { outputPath = generalRule == null ? null : generalRule.GetEvaluatedPropertyValue("OutDir"); } catch (Exception) { }
+            try { targetName = generalRule == null ? null : generalRule.GetEvaluatedPropertyValue("TargetName"); } catch (Exception) { }
+
+            string fullpdbPath = outputPath == null || targetName == null? null : outputPath + targetName + ".pdb";
+
+            //TODO ~ ramonv ~ Check if present, if not look for other options
+            //"the second place the debugger looks is the hard coded build directory embedded in the Debug Directories in the PE file" ( PE (portable executable), executable/dll )
+            //it might be worth then just passing in the dll or exe to parser
+            //"If the PDB file is not in the first two locations, and a Symbol Server is set up for the on the machine, the debugger looks in the Symbol Server cache directory.
+            //Finally, if the debugger does not find the PDB file in the Symbol Server cache directory, it looks in the Symbol Server itself. "
+
+            return fullpdbPath == null? null : EvaluateMacros(fullpdbPath, platform);
+        }
+
+        public override string EvaluateMacros(string input)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
 
             Project project = EditorUtils.GetActiveProject();
             VCProject prj = project.Object as VCProject;
             VCConfiguration config = prj == null? null : prj.ActiveConfiguration;
             VCPlatform platform = config == null? null : config.Platform as VCPlatform;
-            var evaluatorVS = platform == null? null : new MacroEvaluatorVisualPlatform(platform);
+
+            return EvaluateMacros(input, platform);
+        }
+
+        private string EvaluateMacros(string input, VCPlatform platform)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            var evaluatorExtra = new MacroEvaluatorExtra();
+            string output = evaluatorExtra.Evaluate(input);
+            var evaluatorVS = platform == null ? null : new MacroEvaluatorVisualPlatform(platform);
             return evaluatorVS == null ? output : evaluatorVS.Evaluate(output);
         }
 

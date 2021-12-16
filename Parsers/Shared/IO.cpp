@@ -1,7 +1,9 @@
 #include "IO.h"
 
-#include <vector>
+#include <cstdio>
+#include <cstdarg>
 #include <string>
+#include <vector>
 
 #include "LayoutDefinitions.h"
 
@@ -11,6 +13,64 @@ namespace IO
 
     using TBuffer = FILE*;
     using U8 = char;
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Logging
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    struct GlobalParams
+    {
+        GlobalParams()
+            : verbosity(Verbosity::Progress)
+        {}
+
+        Verbosity verbosity;
+    };
+
+    GlobalParams g_globals;
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // -----------------------------------------------------------------------------------------------------------
+    void SetVerbosityLevel(const Verbosity level)
+    {
+        g_globals.verbosity = level;
+    }
+
+    // -----------------------------------------------------------------------------------------------------------
+    void Log(const Verbosity level, const char* format, ...)
+    {
+        if (level <= g_globals.verbosity)
+        {
+            va_list argptr;
+            va_start(argptr, format);
+            vfprintf(stderr, format, argptr);
+            va_end(argptr);
+        }
+    }
+
+    // -----------------------------------------------------------------------------------------------------------
+    void LogTime(const Verbosity level, const char* prefix, long miliseconds)
+    {
+        long seconds = miliseconds / 1000;
+        miliseconds = miliseconds - (seconds * 1000);
+
+        long minutes = seconds / 60;
+        seconds = seconds - (minutes * 60);
+
+        long hours = minutes / 60;
+        minutes = minutes - (hours * 60);
+
+        if (hours)   Log(level, "%s%02uh %02um", prefix, hours, minutes);
+        else if (minutes) Log(level, "%s%02um %02us", prefix, minutes, seconds);
+        else if (seconds) Log(level, "%s%02us %02ums", prefix, seconds, miliseconds);
+        else              Log(level, "%s%02ums", prefix, miliseconds);
+    }
+
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Logging
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     namespace Utils
     {

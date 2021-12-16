@@ -7,6 +7,12 @@ namespace StructLayout
 {
     public class EditorProcessor
     {
+        public enum ParserTool
+        {
+            Clang,
+            PDB
+        };
+
         private static readonly Lazy<EditorProcessor> lazy = new Lazy<EditorProcessor>(() => new EditorProcessor());
         public static EditorProcessor Instance { get { return lazy.Value; } }
 
@@ -116,31 +122,33 @@ namespace StructLayout
             }
         }
 
+        private string GetErrorMessage(ParseResult.StatusCode code)
+        {
+            switch (code)
+            {
+                case ParseResult.StatusCode.InvalidInput:     return "Parser had Invalid Input.";
+                case ParseResult.StatusCode.InvalidLocation:  return "Unable to retrieve current document position.";
+                case ParseResult.StatusCode.InvalidProject:   return "Unable to retrieve the project configuration";
+                case ParseResult.StatusCode.InvalidOutputDir: return "Unable to create the directory for the generated parser results.\nPlease make sure the parser output directory set in the Extension Options is valid and writable.";
+                case ParseResult.StatusCode.InvalidPDB:       return "Unable to find the PDB file.";
+                case ParseResult.StatusCode.VersionMismatch:  return "Parser result generated version does not match the current version.";
+                case ParseResult.StatusCode.ParseFailed:      return "Errors found while parsing.\nUpdate the Extension's options as needed for a succesful compilation.\nCheck the 'Struct Layout' output pane for more information.";
+                case ParseResult.StatusCode.Found:            return null;
+                case ParseResult.StatusCode.NotFound:         return "No structure found at the given position.\nTry performing the query from a structure definition or initialization.";
+                case ParseResult.StatusCode.UnknownTool:      return "The system does not know how to use the provided layout tool.";
+                case ParseResult.StatusCode.Unknown:
+                default:                                      return "Unkown error. Please contact with the author!";
+            }
+
+
+        } 
+
         private void DisplayResult(ParseResult result)
         {
             if (result.Status != ParseResult.StatusCode.Found)
             {
                 var content = new ParseMessageContent();
-
-                switch (result.Status)
-                {
-                    case ParseResult.StatusCode.InvalidOutputDir:
-                        content.Message = "Unable to create the directory for the generated parser results.\nPlease make sure the parser output directory set in the Extension Options is valid and writable.";
-                        break;
-                    case ParseResult.StatusCode.VersionMismatch:
-                        content.Message = "Parser result generated version does not match the current version."; 
-                        break;
-                    case ParseResult.StatusCode.InvalidInput:
-                        content.Message = "Parser had Invalid Input.";
-                        break;
-                    case ParseResult.StatusCode.ParseFailed:
-                        content.Message = "Errors found while parsing.\nUpdate the Extension's options as needed for a succesful compilation.\nCheck the 'Struct Layout' output pane for more information.";
-                        break;
-                    case ParseResult.StatusCode.NotFound:
-                        content.Message = "No structure found at the given position.\nTry performing the query from a structure definition or initialization.";
-                        break;
-                }
-
+                content.Message = GetErrorMessage(result.Status);
                 content.Log = result.ParserLog;
                 content.ShowOptions = result.Status == ParseResult.StatusCode.ParseFailed || result.Status == ParseResult.StatusCode.InvalidOutputDir;
 
@@ -156,38 +164,50 @@ namespace StructLayout
 
             OutputLog.Clear();
 
-            EditorUtils.SaveActiveDocument();
-
-            DocumentLocation location = GetCurrentLocation();
-            if (location == null)
+            LayoutWindow prewin = EditorUtils.GetLayoutWindow(false);
+            if (prewin != null)
             {
-                string msg = "Unable to retrieve current document position.";
-                OutputLog.Error(msg);
-                ParseMessageWindow.Display(new ParseMessageContent(msg));
-            }
-
-            ProjectProperties properties = GetProjectData();
-            if (properties == null)
-            {
-                string msg = "Unable to retrieve the project configuration";
-                OutputLog.Error(msg);
-                ParseMessageWindow.Display(new ParseMessageContent(msg));
-                return;
+                prewin.SetProcessing();
             }
 
             GeneralSettingsPageGrid settings = EditorUtils.GetGeneralSettings();
             parser.PrintCommandLine = settings.OptionParserShowCommandLine;
             parser.OutputDirectory = GetParserOutputDirectory();
 
-            //TODO ~ ramonv ~ add parsing queue to avoid multiple queries at the same time
-           
-            LayoutWindow prewin = EditorUtils.GetLayoutWindow(false);
-            if (prewin != null) 
-            { 
-                prewin.SetProcessing();
-            } 
+            SolutionSettings solutionSettings = SettingsManager.Instance.Settings;
 
-            ParseResult result = await parser.ParseAsync(properties, location);
+            //TODO ~ ramonv ~ add parsing queue to avoid multiple queries at the same time
+
+            ParseResult result;
+            DocumentLocation location = GetCurrentLocation();
+            if (location == null)
+            {
+                OutputLog.Error(GetErrorMessage(ParseResult.StatusCode.InvalidLocation));
+                result = new ParseResult { Status = ParseResult.StatusCode.InvalidLocation };
+            }
+            else if (solutionSettings.ExtractionTool == ParserTool.Clang)
+            {
+                EditorUtils.SaveActiveDocument();
+
+                ProjectProperties properties = GetProjectData();
+                if (properties == null)
+                {
+                    OutputLog.Error(GetErrorMessage(ParseResult.StatusCode.InvalidProject));
+                    result = new ParseResult { Status = ParseResult.StatusCode.InvalidProject };
+                }
+                else
+                {
+                    result = await parser.ParseClangAsync(properties, location); 
+                }
+            }
+            else if (solutionSettings.ExtractionTool == ParserTool.PDB)
+            {
+                result = await parser.ParsePDBAsync(GetProjectExtractor().GetPDBPath(), location);
+            }
+            else
+            {
+                result = new ParseResult();
+            }
 
             //Only create or focus the window if we have a valid result
             LayoutWindow win = EditorUtils.GetLayoutWindow(result.Status == ParseResult.StatusCode.Found);

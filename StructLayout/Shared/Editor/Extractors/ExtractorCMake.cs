@@ -104,6 +104,11 @@ namespace StructLayout
             return ret;
         }
 
+        public override string GetPDBPath()
+        {
+            return EvaluateMacros(SettingsManager.Instance.Settings.PDBLocation);
+        }
+
         public override string EvaluateMacros(string input)
         {
             var evaluatorExtra = new MacroEvaluatorExtra();          

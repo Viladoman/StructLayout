@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
@@ -191,7 +190,12 @@ namespace StructLayout
     {
         public enum StatusCode
         {
+            Unknown,
+            UnknownTool,
+            InvalidLocation, 
+            InvalidProject,
             InvalidOutputDir,
+            InvalidPDB,
             VersionMismatch,
             InvalidInput,
             ParseFailed,
@@ -199,15 +203,15 @@ namespace StructLayout
             Found
         }
 
-        public LayoutNode Layout { set; get; }
-        public StatusCode Status { set; get; }
-        public string ParserLog { set; get; }
+        public LayoutNode Layout { set; get; } = null;
+        public StatusCode Status { set; get; } = StatusCode.Unknown;
+        public string ParserLog { set; get; } = null;
     }
 
     public class LayoutParser
     {
         public bool PrintCommandLine { get; set; } = false;
-        public string OutputDirectory { get; set; } = null;
+        public string OutputDirectory { get; set; } = null;        
 
         public const uint VERSION = 1;
       
@@ -221,6 +225,11 @@ namespace StructLayout
         private string GetClangLayoutParserToolPath()
         {
             return GetToolPath(@"External\ClangLayout.exe");
+        }
+
+        private string GetPDBLayoutParserToolPath()
+        {
+            return GetToolPath(@"External\PDBLayout.exe");
         }
 
         private LayoutLocation ReadLocation(BinaryReader reader, List<string> files)
@@ -521,26 +530,20 @@ namespace StructLayout
             return ret;
         }
 
-        public async Task<ParseResult> ParseAsync(ProjectProperties projProperties, DocumentLocation location)
+        public async Task<ParseResult> ParseClangAsync(ProjectProperties projProperties, DocumentLocation location)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             if (location.Filename == null || location.Filename.Length == 0)
             {
                 OutputLog.Error("No file provided for parsing");
-                ParseResult ret = new ParseResult();
-                ret.Status = ParseResult.StatusCode.InvalidInput;
-                return ret;
+                return new ParseResult { Status = ParseResult.StatusCode.InvalidInput };
             }
 
             string errorStr = CreateDirectory(OutputDirectory);
-
             if (errorStr != null)
             {
-                ParseResult ret = new ParseResult();
-                ret.Status = ParseResult.StatusCode.InvalidOutputDir;
-                ret.ParserLog = errorStr;
-                return ret;
+                return new ParseResult { Status = ParseResult.StatusCode.InvalidOutputDir, ParserLog = errorStr };
             }
 
             AdjustPaths(projProperties.IncludeDirectories);
@@ -579,22 +582,68 @@ namespace StructLayout
             externalProcess.Log = ""; //Set a valid log
 
             int exitCode = await externalProcess.ExecuteAsync(GetClangLayoutParserToolPath(), toolCmd);
-            bool valid = exitCode == 0;
-
             watch.Stop();
-            const long TicksPerMicrosecond = (TimeSpan.TicksPerMillisecond / 1000);
-            string timeStr = " ("+GetTimeStr((ulong)(watch.ElapsedTicks / TicksPerMicrosecond))+")";
 
-            if (!valid)
+            if (exitCode != 0)
             {
-                OutputLog.Error("Unable to scan the given location." + timeStr);
-                ParseResult ret = new ParseResult();
-                ret.Status = ParseResult.StatusCode.ParseFailed;
-                ret.ParserLog = externalProcess.Log;
-                return ret;
+                OutputLog.Error("Unable to scan the given location. (" + GetTimeStr(watch) + ")");
+                return new ParseResult { Status = ParseResult.StatusCode.ParseFailed, ParserLog = externalProcess.Log };
             }
 
-            OutputLog.Log("File parsing completed! " + timeStr);
+            OutputLog.Log("File parsing completed! (" + GetTimeStr(watch) + ")");
+            return LoadParseResult(outputPath);
+        }
+
+        public async Task<ParseResult> ParsePDBAsync(string pdbPath, DocumentLocation location)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            if (pdbPath == null || pdbPath.Length == 0)
+            {
+                OutputLog.Error("PDB File not found!");
+                return new ParseResult { Status = ParseResult.StatusCode.InvalidPDB };
+            }
+
+            if (location.Filename == null || location.Filename.Length == 0)
+            {
+                OutputLog.Error("No file provided for parsing");
+                return new ParseResult { Status = ParseResult.StatusCode.InvalidInput };
+            }
+
+            string errorStr = CreateDirectory(OutputDirectory);
+            if (errorStr != null)
+            {
+                return new ParseResult { Status = ParseResult.StatusCode.InvalidOutputDir, ParserLog = errorStr };
+            }
+            string outputPath = OutputDirectory + @"tempResult.slbin";
+
+            string toolCmd = "-i "+ AdjustPath(pdbPath) + " -lf " + AdjustPath(location.Filename) + " -lr " + location.Line + " -o " + AdjustPath(outputPath);
+
+            OutputLog.Focus();
+            OutputLog.Log("Looking for structures at " + location.Filename + ":" + location.Line + ":");
+
+            if (PrintCommandLine)
+            {
+                OutputLog.Log("PDBLayout ARGUMENTS: " + toolCmd);
+                //OutputLog.Log("GENERATED FILE: " + outputPath);
+            }
+
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
+            ExternalProcess externalProcess = new ExternalProcess();
+            externalProcess.Log = ""; //Set a valid log
+
+            int exitCode = await externalProcess.ExecuteAsync(GetPDBLayoutParserToolPath(), toolCmd);
+
+            watch.Stop();
+
+            if (exitCode != 0)
+            {
+                OutputLog.Error("Unable to scan the given location. (" + GetTimeStr(watch) + ")");
+                return new ParseResult { Status = ParseResult.StatusCode.ParseFailed, ParserLog = externalProcess.Log };
+            }
+
+            OutputLog.Log("File parsing completed! (" + GetTimeStr(watch) + ")");
             return LoadParseResult(outputPath);
         }
 
@@ -662,5 +711,12 @@ namespace StructLayout
             if (us > 0) { return us + " μs"; }
             return "< 1 μs";
         }
+
+        static public string GetTimeStr(System.Diagnostics.Stopwatch watch)
+        {
+            const long TicksPerMicrosecond = (TimeSpan.TicksPerMillisecond / 1000);
+            return GetTimeStr((ulong)(watch.ElapsedTicks / TicksPerMicrosecond));
+        }
+
     }
 }

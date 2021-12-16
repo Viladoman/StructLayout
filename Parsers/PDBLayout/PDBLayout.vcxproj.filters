@@ -1,24 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Shared">
-      <UniqueIdentifier>{0a931ad1-07b5-4870-83d6-1a07775e268f}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\PDBReader.cpp" />
     <ClCompile Include="..\Shared\IO.cpp">
       <Filter>Shared</Filter>
     </ClCompile>
-    <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\Parser.cpp" />
+    <ClCompile Include="src\CommandLine.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\PDBReader.h" />
     <ClInclude Include="..\Shared\IO.h">
       <Filter>Shared</Filter>
     </ClInclude>
     <ClInclude Include="..\Shared\LayoutDefinitions.h">
       <Filter>Shared</Filter>
     </ClInclude>
-    <ClInclude Include="src\Parser.h" />
+    <ClInclude Include="src\CommandLine.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Shared">
+      <UniqueIdentifier>{a802738e-95fc-4185-8cf9-3bef82b2e2c5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

@@ -20,13 +20,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\Parser\IO.cpp" />
-    <ClCompile Include="src\Parser\Parser.cpp" />
+    <ClCompile Include="src\Parser.cpp" />
+    <ClCompile Include="..\Shared\IO.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Parser\IO.h" />
-    <ClInclude Include="src\Parser\LayoutDefinitions.h" />
-    <ClInclude Include="src\Parser\Parser.h" />
+    <ClInclude Include="src\Parser.h" />
+    <ClInclude Include="..\Shared\IO.h" />
+    <ClInclude Include="..\Shared\LayoutDefinitions.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -107,7 +107,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\llvm-project\clang\include;$(SolutionDir)..\..\llvm-project\llvm\include;$(SolutionDir)..\..\llvm-project\build\tools\clang\include;$(SolutionDir)..\..\llvm-project\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\llvm-project\clang\include;$(SolutionDir)..\..\llvm-project\llvm\include;$(SolutionDir)..\..\llvm-project\build\tools\clang\include;$(SolutionDir)..\..\llvm-project\build\include;$(SolutionDir)..\Shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -124,7 +124,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\llvm-project\clang\include;$(SolutionDir)..\..\llvm-project\llvm\include;$(SolutionDir)..\..\llvm-project\build\tools\clang\include;$(SolutionDir)..\..\llvm-project\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\llvm-project\clang\include;$(SolutionDir)..\..\llvm-project\llvm\include;$(SolutionDir)..\..\llvm-project\build\tools\clang\include;$(SolutionDir)..\..\llvm-project\build\include;$(SolutionDir)..\Shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -144,7 +144,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\llvm-project\clang\include;$(SolutionDir)..\..\llvm-project\llvm\include;$(SolutionDir)..\..\llvm-project\build\tools\clang\include;$(SolutionDir)..\..\llvm-project\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\llvm-project\clang\include;$(SolutionDir)..\..\llvm-project\llvm\include;$(SolutionDir)..\..\llvm-project\build\tools\clang\include;$(SolutionDir)..\..\llvm-project\build\include;$(SolutionDir)..\Shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -161,7 +161,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\llvm-project\clang\include;$(SolutionDir)..\..\llvm-project\llvm\include;$(SolutionDir)..\..\llvm-project\build\tools\clang\include;$(SolutionDir)..\..\llvm-project\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\llvm-project\clang\include;$(SolutionDir)..\..\llvm-project\llvm\include;$(SolutionDir)..\..\llvm-project\build\tools\clang\include;$(SolutionDir)..\..\llvm-project\build\include;$(SolutionDir)..\Shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
