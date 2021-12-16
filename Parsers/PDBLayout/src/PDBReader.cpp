@@ -8,14 +8,17 @@ namespace PDBReader
 {
     namespace Helpers
     {
+        // -----------------------------------------------------------------------------------------------------------
         template<typename T> T Max(T a, T b) { return a > b ? a : b; }
 
+        // -----------------------------------------------------------------------------------------------------------
         IDiaEnumSymbols* FindChildren(IDiaSymbol* symbol, enum SymTagEnum symTag)
         {
             IDiaEnumSymbols* children;
             return symbol && symbol->findChildrenEx(symTag, nullptr, nsNone, &children) == S_OK ? children : nullptr;
         }
 
+        // -----------------------------------------------------------------------------------------------------------
         template<typename OBJECT, typename T, typename R>
         R* Next(T* enumeration, HRESULT(OBJECT::* TNextFunction)(ULONG, R**, ULONG*))
         {
@@ -24,6 +27,7 @@ namespace PDBReader
             return enumeration && (enumeration->*TNextFunction)(1, &next, &fetched) == S_OK && fetched == 1 ? next : nullptr;
         }
         
+        // -----------------------------------------------------------------------------------------------------------
         template< typename R, typename OBJECT >
         R QueryDIAFunction(OBJECT* obj, HRESULT(OBJECT::* TFunctionName)(R*))
         {
@@ -31,6 +35,7 @@ namespace PDBReader
             return obj && (obj->*TFunctionName)(&a) == S_OK ? a : R();
         }
 
+        // -----------------------------------------------------------------------------------------------------------
         bool SameFilename(const wchar_t* a, const wchar_t* b)
         {
             if (a && b)
@@ -41,6 +46,7 @@ namespace PDBReader
             return false;
         }
 
+        // -----------------------------------------------------------------------------------------------------------
         std::string wchar2string(const wchar_t* str)
         {
             std::string ret;
@@ -52,6 +58,7 @@ namespace PDBReader
         }
     }
 
+    // -----------------------------------------------------------------------------------------------------------
     IDiaSession* OpenPDBSession(const wchar_t* filename)
     {
         IDiaSession* session = nullptr;
@@ -84,150 +91,11 @@ namespace PDBReader
         return session;
     }
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /*
-    BOOL CDebugInfos::GetFunctionLines( IDiaSymbol* pSymbol, CLinkListTemplate<CDebugInfosSourcesInfos>* pLinkListSourcesInfos)
-{
-    HRESULT hr;
-    ULONGLONG length = 0;
-    DWORD isect = 0;
-    DWORD offset = 0;
-    CDebugInfosSourcesInfos* pSourceInfos;
-    IDiaEnumLineNumbers* pLines=NULL;
-    DWORD celt;
-    IDiaLineNumber* pLine=NULL;
-    IDiaSourceFile* pSrc;
-    BSTR FileName;
+    std::string GetTypeName(IDiaSymbol* type);
 
-    pSymbol->get_addressSection( &isect );
-    pSymbol->get_addressOffset( &offset );
-    pSymbol->get_length( &length );
-    if (( isect == 0 ) || ( length == 0 ))
-        return FALSE;
-
-    hr=this->pDiaSession->findLinesByAddr( isect, offset, static_cast<DWORD>( length ), &pLines ) ;
-
-    if ( FAILED(hr) || (!pLines))
-        return FALSE;
-
-    pLine = NULL;
-    while ( SUCCEEDED( pLines->Next( 1, &pLine, &celt ) ) && celt == 1 )
-    {
-        if (!pLine)
-            break;
-
-        pSourceInfos=new CDebugInfosSourcesInfos();
-
-        //get file name
-        pLine->get_sourceFile( &pSrc );
-        pSrc->get_fileName(&FileName);
-#if (defined(UNICODE)||defined(_UNICODE))
-        _tcscpy(pSourceInfos->FileName,FileName);
-#else
-        CAnsiUnicodeConvert::UnicodeToAnsi(FileName,pSourceInfos->FileName,MAX_PATH);
-#endif
-        SysFreeString(FileName);
-
-        // get line number
-        pLine->get_lineNumber( &pSourceInfos->LineNumber );
-
-        // get section index
-        pLine->get_addressSection( &pSourceInfos->SectionIndex );
-
-        // get address offset
-        pLine->get_addressOffset( &pSourceInfos->Offset );
-
-        // and pSymbol->get_virtualAddress gives relative address from image base <-- the one which interest us and is often called RVA
-        pLine->get_virtualAddress( &pSourceInfos->RelativeVirtualAddress );
-
-#ifdef _DEBUG
-        TCHAR Output[2*MAX_PATH];
-        _stprintf(Output, _T("%s\r\n\tline %d at 0x%x:0x%x\r\n"),pSourceInfos->FileName, pSourceInfos->LineNumber, pSourceInfos->SectionIndex, pSourceInfos->Offset );
-        OutputDebugString(Output);                
-#endif
-
-        // add source infos to list
-        pLinkListSourcesInfos->AddItem(pSourceInfos);
-
-        pSrc->Release();
-        pSrc=NULL;
-        pLine->Release();
-        pLine = NULL;
-    }
-
-    if (pLine)
-        pLine->Release();
-
-    pLines->Release();
-
-    return TRUE;
-}
-
-    
-    */
-
-
-    /*
-    
-        void TryRecord(const clang::CXXRecordDecl* declaration, const clang::SourceRange& sourceRange)
-        { 
-            if (declaration && !declaration->isDependentType() && declaration->getDefinition() && !declaration->isInvalidDecl() && declaration->isCompleteDefinition())
-            { 
-                //Check range
-                const clang::PresumedLoc startLocation = m_sourceManager.getPresumedLoc(sourceRange.getBegin());
-                const clang::PresumedLoc endLocation = m_sourceManager.getPresumedLoc(sourceRange.getEnd());
-
-                const unsigned int startLine = startLocation.getLine();
-                const unsigned int startCol  = startLocation.getColumn();
-                const unsigned int endLine   = endLocation.getLine();
-                const unsigned int endCol    = endLocation.getColumn();
-                
-                if ( (g_locationFilter.row > startLine || (g_locationFilter.row == startLine && g_locationFilter.col >= startCol)) && 
-                    (g_locationFilter.row < endLine    || (g_locationFilter.row == endLine   && g_locationFilter.col <= endCol))   &&
-                    (startLine > m_bestStartLine || (startLine == m_bestStartLine && startCol > m_bestStartCol)))
-                { 
-                    m_best = declaration; 
-                    m_bestStartLine = startLine;
-                    m_bestStartCol  = startCol;
-                }
-            }
-        }
-    
-    */
-
-    /*
-    
-    //Clang implementation ( check if this works better )
-     static bool GetDeclarationForSymbol(const PDBSymbol &symbol,
-                                     Declaration &decl) {
-   auto &raw_sym = symbol.getRawSymbol();
-   auto first_line_up = raw_sym.getSrcLineOnTypeDefn();
-  
-   if (!first_line_up) {
-     auto lines_up = symbol.getSession().findLineNumbersByAddress(
-         raw_sym.getVirtualAddress(), raw_sym.getLength());
-     if (!lines_up)
-       return false;
-     first_line_up = lines_up->getNext();
-     if (!first_line_up)
-       return false;
-   }
-   uint32_t src_file_id = first_line_up->getSourceFileId();
-   auto src_file_up = symbol.getSession().getSourceFileById(src_file_id);
-   if (!src_file_up)
-     return false;
-  
-   FileSpec spec(src_file_up->getFileName());
-   decl.SetFile(spec);
-   decl.SetColumn(first_line_up->getColumnNumber());
-   decl.SetLine(first_line_up->getLineNumber());
-   return true;
- }
-  
-    
-    */
-
+    // -----------------------------------------------------------------------------------------------------------
     IDiaSymbol* FindSymbolAtLocation( IDiaSymbol* symbol, const wchar_t* filename, const DWORD line )
     {
         //TODO ~ ramonv ~ we could recurse inside the structs to find the real scope
@@ -243,60 +111,7 @@ namespace PDBReader
             const wchar_t*  childFilename = Helpers::QueryDIAFunction(childFile, &IDiaSourceFile::get_fileName);
             
             //TODO ~ ramonv ~ find a better way to scope this 
-            /*
-            if (location)
-            {
-                const wchar_t* name = Helpers::QueryDIAFunction(child, &IDiaSymbol::get_name);
-                if (name && wcscmp(name, L"Virtual::VD") == 0) 
-                {
 
-                    ULONGLONG length = 0;
-                    DWORD isect = 0;
-                    DWORD offset = 0;
-                    IDiaEnumLineNumbers* pLines = NULL;
-                    //DWORD celt;
-                    //IDiaLineNumber* pLine = NULL;
-                    //IDiaSourceFile* pSrc;
-                    //BSTR FileName;
-
-                    child->get_addressSection(&isect);
-                    child->get_addressOffset(&offset);
-                    child->get_length(&length);
-                    if ((isect != 0) && (length != 0))
-                    { 
-                        if (gS->findLinesByAddr(isect, offset, static_cast<DWORD>(length), &pLines) < 0)
-                        {
-                            while (IDiaLineNumber* pline = Helpers::Next(pLines, &IDiaEnumLineNumbers::Next))
-                            {
-                                const DWORD a = Helpers::QueryDIAFunction(pline, &IDiaLineNumber::get_lineNumber);
-                                const DWORD b = Helpers::QueryDIAFunction(pline, &IDiaLineNumber::get_columnNumber);
-
-                                static int az = a + b;
-                                ++az;
-                            }
-                        }
-                    }
-
-                    
-                    //const ULONGLONG virtualAddr = Helpers::QueryDIAFunction(child, &IDiaSymbol::get_virtualAddress);
-                    //const ULONGLONG length = Helpers::QueryDIAFunction(child, &IDiaSymbol::get_length);
-
-                    IDiaEnumLineNumbers* result;
-                    //if (g_session->findLinesByVA(virtualAddr, length, &result) < 0 )
-                    if (g_session->findLines(child, childFile, &result) < 0)
-                    {
-                        while (IDiaLineNumber* pline = Helpers::Next(result, &IDiaEnumLineNumbers::Next))
-                        {
-                             const DWORD a = Helpers::QueryDIAFunction(pline, &IDiaLineNumber::get_lineNumber);
-                             const DWORD b = Helpers::QueryDIAFunction(pline, &IDiaLineNumber::get_columnNumber);
-
-                             static int az = a + b; 
-                             ++az;
-                        }
-                    }
-                }
-            }
-            */
             if (location && lineNumber == line && childFilename && Helpers::SameFilename(childFilename, filename))
             {
                 ret = child;
@@ -310,6 +125,7 @@ namespace PDBReader
         return ret;
     }
 
+    // -----------------------------------------------------------------------------------------------------------
     const char* GetSimpleTypeName(IDiaSymbol* type)
     {
         const enum BasicType basicType = static_cast<enum BasicType>(Helpers::QueryDIAFunction(type, &IDiaSymbol::get_baseType));
@@ -353,8 +169,7 @@ namespace PDBReader
         }
     }
 
-    std::string GetTypeName(IDiaSymbol* type);
-
+    // -----------------------------------------------------------------------------------------------------------
     std::string GetArrayTypeName(IDiaSymbol* type)
     {
         IDiaSymbol* innerType = Helpers::QueryDIAFunction(type, &IDiaSymbol::get_type);
@@ -375,6 +190,7 @@ namespace PDBReader
         return GetTypeName(innerType) + '[' + std::to_string(arrayCount) + ']';
     }
 
+    // -----------------------------------------------------------------------------------------------------------
     std::string GetTypeName(IDiaSymbol* type)
     {
         std::string ret = "";
@@ -437,6 +253,7 @@ namespace PDBReader
         return ret;
     }
 
+    // -----------------------------------------------------------------------------------------------------------
     Layout::Node* ComputeType(IDiaSymbol* type)
     {
         if (type == nullptr)
@@ -550,6 +367,7 @@ namespace PDBReader
         return node;
     }
 
+    // -----------------------------------------------------------------------------------------------------------
     bool ExportResult(Layout::Result& result, const wchar_t* outputPath)
     {
         const std::string outputStr = Helpers::wchar2string(outputPath);
@@ -557,6 +375,7 @@ namespace PDBReader
         return IO::ToFile(result, outputFileName);
     }
 
+    // -----------------------------------------------------------------------------------------------------------
     bool ExportAtLocation(const wchar_t* pdbFile, const wchar_t* filename, const int line, const wchar_t* outputPath)
 	{
         if (!pdbFile)
