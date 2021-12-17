@@ -76,6 +76,10 @@
       <Link>External\LayoutParser.exe</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="..\..\Parsers\PDBLayout\bin\x64\Release\msdia140.dll">
+      <Link>External\msdia140.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="..\..\Parsers\PDBLayout\bin\x64\Release\PDBLayout.exe">
       <Link>External\PDBLayout.exe</Link>
       <IncludeInVSIX>true</IncludeInVSIX>

@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "IO.h"
 #include "LayoutDefinitions.h"
 
@@ -9,7 +11,21 @@ namespace PDBReader
     namespace Helpers
     {
         // -----------------------------------------------------------------------------------------------------------
+        template<typename T> T Min(T a, T b) { return a > b ? b : a; }
         template<typename T> T Max(T a, T b) { return a > b ? a : b; }
+
+        // -----------------------------------------------------------------------------------------------------------
+        template<typename T>
+        unsigned GetTrailingZeroes(T x) 
+        {
+            if (x == 0)
+            {
+                return sizeof(T) * 8;
+            }
+            unsigned bits = 0;
+            for (; (x & 1) == 0; ++bits, x >>= 1) {}
+            return bits;
+        }
 
         // -----------------------------------------------------------------------------------------------------------
         IDiaEnumSymbols* FindChildren(IDiaSymbol* symbol, enum SymTagEnum symTag)
@@ -66,12 +82,10 @@ namespace PDBReader
 
         if ( NoOleCoCreate( CLSID_DiaSourceAlt, IID_IDiaDataSource, (void**)(&source) ) < 0 )
         {
-            // We were not able to find the dia library on the registry. Try to create it
+            // We were not able to find the dia library on the registry try to find it locally
             if ( NoRegCoCreate(L"msdia140.dll", CLSID_DiaSourceAlt, IID_IDiaDataSource, (void**)(&source) ) < 0)
             {
-                //TODO ~ ramonv ~ give better instructions for this
-                //TODO ~ ramonv ~ return error codes so we can properly send people to the docs form the extension
-                LOG_ERROR( "Unable to find the msdia140.dll on the registry. Try running the command......");
+                LOG_ERROR( "Unable to find the msdia140.dll on the registry or locally.");
                 return nullptr;
             }
         }
@@ -96,9 +110,9 @@ namespace PDBReader
     std::string GetTypeName(IDiaSymbol* type);
 
     // -----------------------------------------------------------------------------------------------------------
-    IDiaSymbol* FindSymbolAtLocation( IDiaSymbol* symbol, const wchar_t* filename, const DWORD line )
+    IDiaSymbol* FindSymbolAtLocation( IDiaSession* session, IDiaSymbol* symbol, const wchar_t* filename, const DWORD line )
     {
-        //TODO ~ ramonv ~ we could recurse inside the structs to find the real scope
+        //TODO ~ ramonv ~ find a way to better retrieve this
 
         IDiaSymbol* ret = nullptr;
 
@@ -108,19 +122,14 @@ namespace PDBReader
             IDiaLineNumber* location      = Helpers::QueryDIAFunction(child,     &IDiaSymbol::getSrcLineOnTypeDefn);
             const DWORD     lineNumber    = Helpers::QueryDIAFunction(location,  &IDiaLineNumber::get_lineNumber);
             IDiaSourceFile* childFile     = Helpers::QueryDIAFunction(location,  &IDiaLineNumber::get_sourceFile);
+            const DWORD     childFileId   = Helpers::QueryDIAFunction(childFile, &IDiaSourceFile::get_uniqueId);
             const wchar_t*  childFilename = Helpers::QueryDIAFunction(childFile, &IDiaSourceFile::get_fileName);
-            
-            //TODO ~ ramonv ~ find a better way to scope this 
 
-            if (location && lineNumber == line && childFilename && Helpers::SameFilename(childFilename, filename))
+            if (location && childFilename && lineNumber == line && Helpers::SameFilename(childFilename, filename))
             {
-                ret = child;
-                break;
-            }
+                return child;
+            }           
         }
-
-        if (children)
-            children->Release();
             
         return ret;
     }
@@ -254,6 +263,36 @@ namespace PDBReader
     }
 
     // -----------------------------------------------------------------------------------------------------------
+    Layout::TAmount GuessAlignment(Layout::Node* node, IDiaSymbol* type)
+    {
+        //TODO ~ ramonv ~ char array[MAX_] fails ( validate with size too )
+
+        const Layout::TAmount maxOffsetAlign = node->offset == 0? 1024 : (1 << Helpers::GetTrailingZeroes(node->offset));
+
+        const enum SymTagEnum tag = static_cast<enum SymTagEnum>(Helpers::QueryDIAFunction(type, &IDiaSymbol::get_symTag));
+        switch (tag)
+        {      
+        case SymTagUDT:
+        {
+            Layout::TAmount align = 1;
+            for (Layout::Node* childNode : node->children)
+            {
+                align = Helpers::Max(align,childNode->align);
+            }
+            return Helpers::Min(maxOffsetAlign, Helpers::Max(Layout::TAmount(1u), Helpers::Min(align, node->size)));
+        }
+        case SymTagArrayType:
+            return GuessAlignment(node, Helpers::QueryDIAFunction(type, &IDiaSymbol::get_type));
+
+        case SymTagEnum:
+        case SymTagBaseType:
+        case SymTagPointerType:
+        default:
+            return Helpers::Min(maxOffsetAlign,Helpers::Max(Layout::TAmount(1u),node->size));
+        }
+    }
+
+    // -----------------------------------------------------------------------------------------------------------
     Layout::Node* ComputeType(IDiaSymbol* type)
     {
         if (type == nullptr)
@@ -261,13 +300,10 @@ namespace PDBReader
             return nullptr;
         }
 
-        //TODO ~ ramonv ~ guess alignment ( if children align to max children - else min(size,pack) /validate with offset )
-
         Layout::Node* node = new Layout::Node();
 
         node->type   = GetTypeName(type);
         node->size   = Helpers::QueryDIAFunction(type, &IDiaSymbol::get_length);
-        node->align  = 0u; //TODO ~ ramonv ~ figure this out
 
         IDiaEnumSymbols* children = Helpers::FindChildren(type, SymTagNull);
         while (IDiaSymbol* child = Helpers::Next(children, &IDiaEnumSymbols::Next))
@@ -295,7 +331,7 @@ namespace PDBReader
                 baseNode->nature = Layout::Category::NVBase; //TODO ~ ramonv ~ revisist this check virtual bases
                 node->children.push_back(baseNode);
             }
-            else if(!Helpers::QueryDIAFunction(child, &IDiaSymbol::get_isStatic))
+            else //if(!Helpers::QueryDIAFunction(child, &IDiaSymbol::get_isStatic))
             {
                 enum LocationType locationType = static_cast<enum LocationType>(Helpers::QueryDIAFunction(child, &IDiaSymbol::get_locationType));
                 if (locationType == LocIsThisRel || locationType == LocIsNull || locationType == LocIsBitField)
@@ -312,6 +348,7 @@ namespace PDBReader
                         fieldNode->name = Helpers::wchar2string(Helpers::QueryDIAFunction(child, &IDiaSymbol::get_name));
                         fieldNode->offset = Helpers::QueryDIAFunction(child, &IDiaSymbol::get_offset);
                         fieldNode->nature = Layout::Category::ComplexField;
+                        fieldNode->align  = GuessAlignment(fieldNode, childType);
 
                         node->children.push_back(fieldNode);
                     }
@@ -328,7 +365,7 @@ namespace PDBReader
                         
                         fieldNode->offset = Helpers::QueryDIAFunction(child, &IDiaSymbol::get_offset);
                         fieldNode->size   = Helpers::QueryDIAFunction(childType, &IDiaSymbol::get_length);
-                        fieldNode->align  = 0u; //TODO ~ ramonv ~ to fix ( beware of arrays ) 
+                        fieldNode->align  = GuessAlignment(fieldNode, childType);
 
                         if (childTag == SymTagPointerType)
                         {
@@ -362,8 +399,9 @@ namespace PDBReader
             }
         }
 
-        //TODO ~ sort symbols by offset
+        std::stable_sort(node->children.begin(), node->children.begin(), [](Layout::Node* a, Layout::Node* b) { return a->offset < b->offset; });
 
+        node->align = GuessAlignment(node, type);
         return node;
     }
 
@@ -396,9 +434,15 @@ namespace PDBReader
             return false;
         }
 
-        Layout::Result result;
         IDiaSession* session = OpenPDBSession(pdbFile);
-        IDiaSymbol* symbol = FindSymbolAtLocation(Helpers::QueryDIAFunction(session, &IDiaSession::get_globalScope), filename, line);
+
+        if (!session)
+        {
+            return false;
+        }
+
+        Layout::Result result;
+        IDiaSymbol* symbol = FindSymbolAtLocation(session, Helpers::QueryDIAFunction(session, &IDiaSession::get_globalScope), filename, line);
         result.node = ComputeType(symbol);
 
         return ExportResult(result, outputPath);
