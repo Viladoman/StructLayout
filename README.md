@@ -2,10 +2,13 @@
 
 Visual Studio Extension for C++ struct memory layout visualization
 
+[![MarketPlace2022](https://img.shields.io/badge/Visual_Studio_Marketplace-VS2022-green.svg)](https://marketplace.visualstudio.com/items?itemName=RamonViladomat.StructLayout2022)
 [![MarketPlace](https://img.shields.io/badge/Visual_Studio_Marketplace-VS2019-green.svg)](https://marketplace.visualstudio.com/items?itemName=RamonViladomat.StructLayout)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate?hosted_button_id=QWTUS8PNK5X5A)
 
-[Download latest from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=RamonViladomat.StructLayout)
+[Download latest from the Visual Studio Marketplace 2022](https://marketplace.visualstudio.com/items?itemName=RamonViladomat.StructLayout2022)
+
+[Download latest from the Visual Studio Marketplace 2017/2019](https://marketplace.visualstudio.com/items?itemName=RamonViladomat.StructLayout)
 
 ## Motivation
 
@@ -46,7 +49,7 @@ When a Layout request is made the extension does the following:
 
 ## Documentation
 - [Configurations and Options](https://github.com/Viladoman/StructLayout/wiki/Configurations)
-- [Working Unreal Engine 4](https://github.com/Viladoman/StructLayout/wiki/Unreal-Engine-4-Configuration)
+- [Using Unreal Engine](https://github.com/Viladoman/StructLayout/wiki/Unreal-Engine-Configuration)
 - [Building the VSIX](https://github.com/Viladoman/StructLayout/wiki/Building-the-VSIX)
 
 ## References
