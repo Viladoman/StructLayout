@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TextManager.Interop;
 using System;
+using System.IO;
 
 namespace StructLayout
 {
@@ -134,13 +135,20 @@ namespace StructLayout
                 case ParseResult.StatusCode.VersionMismatch:  return "Parser result generated version does not match the current version.";
                 case ParseResult.StatusCode.ParseFailed:      return "Errors found while parsing.\nUpdate the Extension's options as needed for a succesful compilation.\nCheck the 'Struct Layout' output pane for more information.";
                 case ParseResult.StatusCode.Found:            return null;
-                case ParseResult.StatusCode.NotFound:         return "No structure found at the given position.\nTry performing the query from a structure definition or initialization.";
+                case ParseResult.StatusCode.NotFound:
+                    return SettingsManager.Instance.Settings.ExtractionTool == ParserTool.PDB?
+                        "No structure found at the given position.\n" +
+                        "This might happen by any of the following reasons:\n" + 
+                        "- The query wasn't done at the first line of the structure.\n" +
+                        "- The PDB is not up to date\n" + 
+                        "- The PDB does not have the requested symbol\n"
+                        :
+                        "No structure found at the given position.\nTry performing the query from a structure definition or initialization.";
+
                 case ParseResult.StatusCode.UnknownTool:      return "The system does not know how to use the provided layout tool.";
                 case ParseResult.StatusCode.Unknown:
                 default:                                      return "Unkown error. Please contact with the author!";
             }
-
-
         } 
 
         private void DisplayResult(ParseResult result)
@@ -202,7 +210,22 @@ namespace StructLayout
             }
             else if (solutionSettings.ExtractionTool == ParserTool.PDB)
             {
-                result = await parser.ParsePDBAsync(GetProjectExtractor().GetPDBPath(), location);
+                string pdbPath = GetProjectExtractor().GetPDBPath();
+
+                if (pdbPath == null || pdbPath.Length == 0)
+                {
+                    OutputLog.Error(GetErrorMessage(ParseResult.StatusCode.InvalidPDB));
+                    result = new ParseResult { Status = ParseResult.StatusCode.InvalidPDB };
+                }
+                else if (!File.Exists(pdbPath))
+                {
+                    OutputLog.Error("Unable to find the PDB file at location " + pdbPath);
+                    result = new ParseResult { Status = ParseResult.StatusCode.InvalidPDB };
+                }
+                else
+                {
+                    result = await parser.ParsePDBAsync(pdbPath, location);
+                }
             }
             else
             {

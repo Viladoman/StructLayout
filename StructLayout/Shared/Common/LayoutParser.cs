@@ -598,12 +598,6 @@ namespace StructLayout
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            if (pdbPath == null || pdbPath.Length == 0)
-            {
-                OutputLog.Error("PDB File not found!");
-                return new ParseResult { Status = ParseResult.StatusCode.InvalidPDB };
-            }
-
             if (location.Filename == null || location.Filename.Length == 0)
             {
                 OutputLog.Error("No file provided for parsing");
