@@ -34,18 +34,28 @@ The flat mode skips all groups and only shows one layer, producing a more compac
 
 ## How it works
 
-Struct Layout uses Clang LibTooling internally to parse the C++ files and extract the memory layout information.
+Struct Layout can use different systems to parse the C++ files and extract the memory layout information. Depending on the complexity and quirks of the build system and Visual Studio setup one option will be more convinent than the others. The method used can be changed in the [Extension Options Window](https://github.com/Viladoman/StructLayout/wiki/Configurations)
 
 When a Layout request is made the extension does the following: 
 + Retrieve the active document and cursor position. 
-+ Extract the relevant file and project properties (cl or nmake).
-  1. Include directories
-  2. Force includes
-  3. Preprocessor definitions
-  4. Exclude directories
-+ Add the extra parameters from the extension options.
-+ Trigger the LayoutParser (Clang libtooling application) with all the arguments gathered.
++ Extract the relevant project context.
++ Add/Override any extra parameters from the extension options.
++ Trigger the selected LayoutParser with all the arguments gathered.
 + Visualize the results or print any issues found in the *StructLayout Output Pane*. 
+
+### Clang Libtooling
+
+This method will process the file location through a Clang LibTooling executable which will parse the current file and headers. This method can give really accurate results as it retrieves the data directly from the Clang AST but it will need the exact build context to be able to properly understand all the code.
+
+When a query to the clang libtooling is triggered the extension will try to gather the following data from the active project and configuration: 
+1. Include directories
+2. Force includes
+3. Preprocessor definitions
+4. Exclude directories
+
+### PDB 
+
+This method takes advantage of the fact that the pdb (Program DataBase) will most likely contain all the layout information for all user defined types. This application uses the DIA SDK (Debug Interface Access) to open and query the pdb. This system can be useful if our setup is not ready to be compiled with a Clang compiler, the build system is quite complex hitting some corner cases or we have some MSVC specific code. The caveat is that we would need to compile the projects before performing any queries keeping the pdbs up to date. 
 
 ## Documentation
 - [Configurations and Options](https://github.com/Viladoman/StructLayout/wiki/Configurations)
@@ -53,8 +63,9 @@ When a Layout request is made the extension does the following:
 - [Building the VSIX](https://github.com/Viladoman/StructLayout/wiki/Building-the-VSIX)
 
 ## References
-- [Visual Studio 2019](https://visualstudio.microsoft.com/vs/)
+- [Visual Studio](https://visualstudio.microsoft.com/vs/)
 - [LLVM](http://llvm.org/)
+- [DIA SDK](https://docs.microsoft.com/en-us/visualstudio/debugger/debug-interface-access/debug-interface-access-sdk)
 
 ## Contributing
 This project is open to code contributions. 
