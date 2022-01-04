@@ -19,8 +19,8 @@ namespace StructLayout
         }
 
         public string Filename { get; }
-        public uint Line { get; }
-        public uint Column { get; }
+        public uint Line { set; get; }
+        public uint Column { set; get; }
     };
 
     public class ProjectProperties
