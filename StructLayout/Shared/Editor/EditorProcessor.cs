@@ -39,6 +39,61 @@ namespace StructLayout
             return new DocumentLocation(activeDocument.FullName, (uint)(line+1),(uint)(col+1));
         }
 
+        private CodeElement FindStructureAtLocation(CodeElements elements, uint line, uint column)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (elements != null)
+            {
+                foreach (CodeElement element in elements)
+                {
+                    TextPoint elementStart = element.StartPoint;
+                    TextPoint elementEnd = element.EndPoint;
+
+                    if ( line >= elementStart.Line && line <= elementEnd.Line )
+                    {
+                        if (element.Kind == vsCMElement.vsCMElementUnion)
+                        {
+                            return element;
+                        }
+                        else if (element.Kind == vsCMElement.vsCMElementClass || element.Kind == vsCMElement.vsCMElementStruct )
+                        {
+                            CodeElements subElements = element.Kind == vsCMElement.vsCMElementClass ? ((CodeClass)element).Members : ((CodeStruct)element).Members;
+                            CodeElement foundSubElement = FindStructureAtLocation(subElements, line, column); 
+                            return foundSubElement == null? element : foundSubElement;
+                        }
+                        else if (element.Kind == vsCMElement.vsCMElementNamespace)
+                        {
+                            CodeElement found = FindStructureAtLocation(((CodeNamespace)element).Members, line, column);
+                            if (found != null)
+                            {
+                                return found;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private void RefineLocationForPDB(DocumentLocation location)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            //Use VS intellisense data to find the struct scope and store the first line before querying the pdb information
+            Document activeDocument = EditorUtils.GetActiveDocument();
+            ProjectItem projItem = activeDocument == null? null : activeDocument.ProjectItem;
+            FileCodeModel model = activeDocument == null ? null : projItem.FileCodeModel;
+            CodeElements globalElements = model == null ? null : model.CodeElements;
+            CodeElement structure = FindStructureAtLocation(globalElements, location.Line, location.Column);
+            if (structure != null)
+            {
+                TextPoint start = structure.GetStartPoint();
+                location.Line = start.Line < 0? location.Line : (uint)start.Line;
+            }
+        }
+
         private IExtractor GetProjectExtractor()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -139,9 +194,9 @@ namespace StructLayout
                     return SettingsManager.Instance.Settings.ExtractionTool == ParserTool.PDB?
                         "No structure found at the given position.\n" +
                         "This might happen by any of the following reasons:\n" + 
-                        "- The query wasn't done at the first line of the structure.\n" +
                         "- The PDB is not up to date\n" + 
-                        "- The PDB does not have the requested symbol\n"
+                        "- The PDB does not have the requested symbol\n" +
+                        "- The query wasn't done at the first line of the structure (Intellisense disabled).\n"
                         :
                         "No structure found at the given position.\nTry performing the query from a structure definition or initialization.";
 
@@ -224,6 +279,7 @@ namespace StructLayout
                 }
                 else
                 {
+                    RefineLocationForPDB(location);
                     result = await parser.ParsePDBAsync(pdbPath, location);
                 }
             }

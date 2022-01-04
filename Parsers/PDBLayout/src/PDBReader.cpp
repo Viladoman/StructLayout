@@ -610,13 +610,13 @@ namespace PDBReader
     // -----------------------------------------------------------------------------------------------------------
     IDiaSymbol* FindSymbolAtLocation(const SessionContext& context, const wchar_t* filename, const DWORD line)
     {
-        //TODO ~ ramonv ~ find a way to better retrieve this
-
-        IDiaSymbol* ret = nullptr;
+        unsigned int totalUdtCount = 0u;
 
         IDiaEnumSymbols* children = Helpers::FindChildren(context.globalScope, SymTagUDT);
         while (IDiaSymbol* child = Helpers::Next(children, &IDiaEnumSymbols::Next))
         {
+            ++totalUdtCount;
+
             IDiaLineNumber* location = Helpers::QueryDIAFunction(child, &IDiaSymbol::getSrcLineOnTypeDefn);
             const DWORD     lineNumber = Helpers::QueryDIAFunction(location, &IDiaLineNumber::get_lineNumber);
             IDiaSourceFile* childFile = Helpers::QueryDIAFunction(location, &IDiaLineNumber::get_sourceFile);
@@ -629,7 +629,12 @@ namespace PDBReader
             }
         }
 
-        return ret;
+        if (totalUdtCount == 0)
+        {
+            LOG_WARNING("There were no User Defined Types found in the input symbol database.");
+        }
+
+        return nullptr;
     }
 
     // -----------------------------------------------------------------------------------------------------------
