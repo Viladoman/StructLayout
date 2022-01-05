@@ -52,13 +52,9 @@ namespace StructLayout
 
                     if ( line >= elementStart.Line && line <= elementEnd.Line )
                     {
-                        if (element.Kind == vsCMElement.vsCMElementUnion)
+                        if (element.Kind == vsCMElement.vsCMElementUnion || element.Kind == vsCMElement.vsCMElementClass || element.Kind == vsCMElement.vsCMElementStruct )
                         {
-                            return element;
-                        }
-                        else if (element.Kind == vsCMElement.vsCMElementClass || element.Kind == vsCMElement.vsCMElementStruct )
-                        {
-                            CodeElements subElements = element.Kind == vsCMElement.vsCMElementClass ? ((CodeClass)element).Members : ((CodeStruct)element).Members;
+                            CodeElements subElements = element.Kind == vsCMElement.vsCMElementStruct ? ((CodeStruct)element).Members : ((CodeClass)element).Members;
                             CodeElement foundSubElement = FindStructureAtLocation(subElements, line, column); 
                             return foundSubElement == null? element : foundSubElement;
                         }

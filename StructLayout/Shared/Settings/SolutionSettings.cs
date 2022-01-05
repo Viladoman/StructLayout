@@ -44,11 +44,15 @@ namespace StructLayout
 
     public class SolutionSettings
     {
-        [UIDescription(Label = "Automatic Extraction", Tooltip = "If true, it will try to extract the architecture, include paths, preprocessor macros... from the current solution.")]
-        public bool AutomaticExtraction { set; get; } = true;
-
         [UIDescription(Label = "Extraction Tool", Tooltip = "The approach used when a layout is queried. Clang: uses a clang frontend compilation to extract the layout, PDB: queries the generated pdb for the layout.")]
         public EditorProcessor.ParserTool ExtractionTool { set; get; } = EditorProcessor.ParserTool.Clang;
+
+        ////////////
+        // Common //
+        ////////////
+
+        [UIDescription(Label = "Automatic Extraction", Tooltip = "If true, it will try to extract the architecture, include paths, preprocessor macros... from the current solution.")]
+        public bool AutomaticExtraction { set; get; } = true;
 
         ///////////////////////////
         // Clang Parser Settings //
@@ -72,11 +76,16 @@ namespace StructLayout
         [UIDescription(Label = "Enable Warnings", FilterMethod = "IsClangParser", Tooltip = "If true, the clang parser will output the warnings found.")]
         public bool EnableWarnings { set; get; } = false;
 
-        ///////////////////////////
-        // Clang Parser Settings //
-        ///////////////////////////
+        /////////////////////////
+        // PDB Parser Settings //
+        /////////////////////////
+
         [UIDescription(Label = "PDB Location", FilterMethod = "DisplayPDBPath", Tooltip = "Specific location for the pdb to be parsed.")]
         public string PDBLocation { set; get; } = "";
+
+        ////////////
+        // Common //
+        ////////////
 
         [UIDescription(Label = "Parser Output Folder", Tooltip = "File location where the Clang Parser will output the layout results. This files are temporary. This field will default to the extension installation folder. (This fields allows $(SolutionDir) style macros)")]
         public string ParserOutputFolder { set; get; } = "";
