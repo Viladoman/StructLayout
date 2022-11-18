@@ -60,7 +60,7 @@ namespace StructLayout
 
             descriptionTxt.Text = manifest.Description;
             extVersionTxt.Text = "Version: " + manifest.Version;
-            clangVersionTxt.Text = "Clang Version: 14.0.5";
+            clangVersionTxt.Text = "Clang Version: 15.0.5";
             //TODO ~ Ramonv ~ add here also the other versions ( DIA SDK / RAW_PDB... )
         }
 
