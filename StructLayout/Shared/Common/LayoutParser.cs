@@ -3,9 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
+using Newtonsoft.Json;
 
 namespace StructLayout
 {
@@ -562,17 +564,42 @@ namespace StructLayout
 
             string clangCmd = language + archStr + standard + flags + defines + includes + forceInc + workDir + extra;
 
-            string outputPath = OutputDirectory + @"tempResult.slbin";
-            string contextCmd = AdjustPath(location.Filename) + " -r=" + location.Line + " -c=" + location.Column + " -o=" + AdjustPath(outputPath);
+            string outputPath = Path.Combine(OutputDirectory, "tempResult.slbin");
 
-            string toolCmd = contextCmd + " --" + clangCmd;
+            string compileCommandsDir = Path.Combine(OutputDirectory, "compile_commands");
+            errorStr = CreateDirectory(compileCommandsDir);
+            if (errorStr != null)
+            {
+                return new ParseResult { Status = ParseResult.StatusCode.InvalidOutputDir, ParserLog = errorStr };
+            }
+
+            string compileCommandsFilePath = Path.Combine(compileCommandsDir, "compile_commands.json");
+            using (StreamWriter compileCommandsFile = File.CreateText(compileCommandsFilePath))
+            using (JsonTextWriter writer = new JsonTextWriter(compileCommandsFile))
+            {
+                writer.Formatting = Formatting.Indented;
+                writer.WriteStartArray();
+                writer.WriteStartObject();
+                if (projProperties.WorkingDirectory != null)
+                {
+                    writer.WritePropertyName("directory");
+                    writer.WriteValue(projProperties.WorkingDirectory);
+                }
+                writer.WritePropertyName("command");
+                writer.WriteValue($"clang {clangCmd} {AdjustPath(location.Filename)}");
+                writer.WritePropertyName("file");
+                writer.WriteValue(location.Filename);
+            }
+
+            string toolCmd = $"-r={location.Line} -c={location.Column} -o={AdjustPath(outputPath)} -p {AdjustPath(compileCommandsDir)} {AdjustPath(location.Filename)}";
 
             OutputLog.Focus();
             OutputLog.Log("Looking for structures at " + location.Filename + ":" + location.Line + ":" + location.Column+"...");
 
             if (PrintCommandLine)
             {
-                OutputLog.Log("CLANG ARGUMENTS: " + clangCmd);
+                OutputLog.Log($"TOOL ARGUMENTS: {toolCmd}");
+                OutputLog.Log($"CLANG ARGUMENTS: {clangCmd}");
                 //OutputLog.Log("GENERATED FILE: " + outputPath);
             }
 
