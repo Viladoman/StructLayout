@@ -385,12 +385,18 @@ namespace Parser
         ClangParser::g_locationFilter = filter;
     }
 
-	bool Parse(int argc, const char* argv[])
-	{ 
+    bool Parse(int argc, const char* argv[])
+    { 
         llvm::InitializeNativeTarget();
         llvm::InitializeNativeTargetAsmParser();
 
         llvm::Expected<clang::tooling::CommonOptionsParser> optionsParser = clang::tooling::CommonOptionsParser::create(argc, argv, CommandLine::g_commandLineCategory);
+        if (!optionsParser)
+        {
+            llvm::errs() << "Failed to create options parser: " << llvm::toString(optionsParser.takeError()) << "\n";
+            return false;
+        }
+
         clang::tooling::ClangTool tool(optionsParser->getCompilations(), optionsParser->getSourcePathList());
 
         SetFilter(ClangParser::LocationFilter{ CommandLine::g_locationRow, CommandLine::g_locationCol });
@@ -406,5 +412,5 @@ namespace Parser
 
         ClangParser::Helpers::ClearResult();
         return ret;
-	}
+    }
 }
