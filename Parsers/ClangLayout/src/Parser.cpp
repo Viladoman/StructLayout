@@ -117,8 +117,8 @@ namespace ClangParser
                 Layout::Node* vPtrNode = new Layout::Node(); 
                 vPtrNode->nature = Layout::Category::VTablePtr; 
                 vPtrNode->offset = 0u; 
-                vPtrNode->size   = context.toCharUnitsFromBits(context.getTargetInfo().getPointerWidth(0)).getQuantity(); 
-                vPtrNode->align  = context.toCharUnitsFromBits(context.getTargetInfo().getPointerAlign(0)).getQuantity();
+                vPtrNode->size   = context.toCharUnitsFromBits(context.getTargetInfo().getPointerWidth(clang::LangAS::Default)).getQuantity();
+                vPtrNode->align  = context.toCharUnitsFromBits(context.getTargetInfo().getPointerAlign(clang::LangAS::Default)).getQuantity();
                 node->children.push_back(vPtrNode);
             }
             else if(layout.hasOwnVFPtr())
@@ -127,8 +127,8 @@ namespace ClangParser
                 Layout::Node* vPtrNode = new Layout::Node();
                 vPtrNode->nature = Layout::Category::VFTablePtr;
                 vPtrNode->offset = 0u;
-                vPtrNode->size   = context.toCharUnitsFromBits(context.getTargetInfo().getPointerWidth(0)).getQuantity();
-                vPtrNode->align  = context.toCharUnitsFromBits(context.getTargetInfo().getPointerAlign(0)).getQuantity();
+                vPtrNode->size   = context.toCharUnitsFromBits(context.getTargetInfo().getPointerWidth(clang::LangAS::Default)).getQuantity();
+                vPtrNode->align  = context.toCharUnitsFromBits(context.getTargetInfo().getPointerAlign(clang::LangAS::Default)).getQuantity();
                 node->children.push_back(vPtrNode);
             }
 
@@ -163,8 +163,8 @@ namespace ClangParser
                 Layout::Node* vPtrNode = new Layout::Node();
                 vPtrNode->nature = Layout::Category::VBTablePtr;
                 vPtrNode->offset = layout.getVBPtrOffset().getQuantity();
-                vPtrNode->size   = context.toCharUnitsFromBits(context.getTargetInfo().getPointerWidth(0)).getQuantity();
-                vPtrNode->align  = context.toCharUnitsFromBits(context.getTargetInfo().getPointerAlign(0)).getQuantity();
+                vPtrNode->size   = context.toCharUnitsFromBits(context.getTargetInfo().getPointerWidth(clang::LangAS::Default)).getQuantity();
+                vPtrNode->align  = context.toCharUnitsFromBits(context.getTargetInfo().getPointerAlign(clang::LangAS::Default)).getQuantity();
                 node->children.push_back(vPtrNode);
             }
 
