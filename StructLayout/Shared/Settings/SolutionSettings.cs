@@ -101,7 +101,7 @@ namespace StructLayout
         private SolutionEvents solutionEvents; //Super important if not copied the events get disposed and never triggered
         private DocumentEvents documentEvents; //Super important if not copied the events get disposed and never triggered
         
-        public SolutionSettings Settings { get; set; }
+        public SolutionSettings Settings { get; set; } = new SolutionSettings();
         private string Filename{ set; get; }
         private Common.FileWatcher Watcher { set; get; }  = new Common.FileWatcher();
 
