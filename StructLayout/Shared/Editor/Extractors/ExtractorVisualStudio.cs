@@ -3,11 +3,7 @@ using Microsoft;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.VCProjectEngine;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StructLayout
 {
@@ -144,6 +140,7 @@ namespace StructLayout
             if (value == "Default") { return ProjectProperties.StandardVersion.Default; }
             else if (value == "stdcpp14") { return ProjectProperties.StandardVersion.Cpp14; }
             else if (value == "stdcpp17") { return ProjectProperties.StandardVersion.Cpp17; }
+            else if (value == "stdcpp20") { return ProjectProperties.StandardVersion.Cpp20; }
             else if (value == "stdcpplatest") { return ProjectProperties.StandardVersion.Latest; }
 
             return ProjectProperties.StandardVersion.Latest;

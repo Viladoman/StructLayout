@@ -682,7 +682,7 @@ namespace StructLayout
                 case ProjectProperties.StandardVersion.Gnu14:  return " -std=gnu++14";
                 case ProjectProperties.StandardVersion.Gnu17:  return " -std=gnu++17";
                 case ProjectProperties.StandardVersion.Gnu20:  return " -std=gnu++20";
-                case ProjectProperties.StandardVersion.Latest: return " -std=c++2a";
+                case ProjectProperties.StandardVersion.Latest: return " -std=c++2b";
                 default: return "";
             }
         }
