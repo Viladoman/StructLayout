@@ -11,7 +11,8 @@ namespace StructLayout
         public enum ParserTool
         {
             Clang,
-            PDB
+            PDB, // TODO ~ ramonv ~ Make this RAWPDB by default if it turns out nice
+            //Intellisense,
         };
 
         private static readonly Lazy<EditorProcessor> lazy = new Lazy<EditorProcessor>(() => new EditorProcessor());
@@ -39,50 +40,10 @@ namespace StructLayout
             return new DocumentLocation(activeDocument.FullName, (uint)(line+1),(uint)(col+1));
         }
 
-        private CodeElement FindStructureAtLocation(CodeElements elements, uint line, uint column)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            if (elements != null)
-            {
-                foreach (CodeElement element in elements)
-                {
-                    TextPoint elementStart = element.StartPoint;
-                    TextPoint elementEnd = element.EndPoint;
-
-                    if ( line >= elementStart.Line && line <= elementEnd.Line )
-                    {
-                        if (element.Kind == vsCMElement.vsCMElementUnion || element.Kind == vsCMElement.vsCMElementClass || element.Kind == vsCMElement.vsCMElementStruct )
-                        {
-                            CodeElements subElements = element.Kind == vsCMElement.vsCMElementStruct ? ((CodeStruct)element).Members : ((CodeClass)element).Members;
-                            CodeElement foundSubElement = FindStructureAtLocation(subElements, line, column); 
-                            return foundSubElement == null? element : foundSubElement;
-                        }
-                        else if (element.Kind == vsCMElement.vsCMElementNamespace)
-                        {
-                            CodeElement found = FindStructureAtLocation(((CodeNamespace)element).Members, line, column);
-                            if (found != null)
-                            {
-                                return found;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return null;
-        }
-
         private void RefineLocationForPDB(DocumentLocation location)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-
-            //Use VS intellisense data to find the struct scope and store the first line before querying the pdb information
-            Document activeDocument = EditorUtils.GetActiveDocument();
-            ProjectItem projItem = activeDocument == null? null : activeDocument.ProjectItem;
-            FileCodeModel model = activeDocument == null ? null : projItem.FileCodeModel;
-            CodeElements globalElements = model == null ? null : model.CodeElements;
-            CodeElement structure = FindStructureAtLocation(globalElements, location.Line, location.Column);
+            CodeElement structure = CodeModelLayout.FindCodeElementAtLocation(location);
             if (structure != null)
             {
                 TextPoint start = structure.GetStartPoint();
@@ -279,6 +240,12 @@ namespace StructLayout
                     result = await parser.ParsePDBAsync(pdbPath, location);
                 }
             }
+            //else if (solutionSettings.ExtractionTool == ParserTool.Intellisense)
+            //{
+                //TODO ~ ramonv ~ call finalize from extractlayout (rename to parse and return a parseREsult already )
+                //actually move this inside the parser so the interface is the same 
+            //    result = parser.ParseExternalNode(CodeModelLayout.ExtractLayout(CodeModelLayout.FindCodeElementAtLocation(location)));
+            //}
             else
             {
                 result = new ParseResult();

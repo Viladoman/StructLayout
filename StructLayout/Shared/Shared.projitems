@@ -17,6 +17,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Common\LayoutParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\OutputLog.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\WindowProxy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\CodeModelLayout.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\CustomCommands.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\EditorProcessor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\EditorUtils.cs" />

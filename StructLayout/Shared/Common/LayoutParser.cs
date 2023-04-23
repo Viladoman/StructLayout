@@ -668,6 +668,28 @@ namespace StructLayout
             return LoadParseResult(outputPath);
         }
 
+        public ParseResult ParseExternalNode(LayoutNode node)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            ParseResult ret = new ParseResult();
+
+            if (node == null)
+            {
+                OutputLog.Log("No structure found at the given location.");
+                ret.Status = ParseResult.StatusCode.NotFound;
+            }
+            else
+            {
+                ret.Layout = node;
+                FinalizeNode(ret.Layout);
+                OutputLog.Log("Found structure " + ret.Layout.Type + ".");
+                ret.Status = ParseResult.StatusCode.Found;
+            }
+
+            return ret;
+        }
+
         private string GetStandardFlag(ProjectProperties.StandardVersion standard)
         {
             switch (standard)
