@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Text.Tagging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -41,6 +42,7 @@ namespace StructLayout
                 RefreshExtraStack();
                 RefreshTypeStack();
                 RefreshInteractionText();
+                RefreshErrorsText();
             }
         }
 
@@ -194,6 +196,22 @@ namespace StructLayout
                 interactionTxt.Text = Node.IsExpanded? "Left Mouse Click to Collapse" : "Left Mouse Click to Expand";
             }
         }
+
+        private void RefreshErrorsText()
+        {
+            if (Node.IsValid)
+            {
+                errorBorder.Visibility = Visibility.Collapsed;
+                errorPanel.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                errorBorder.Visibility = Visibility.Visible;
+                errorPanel.Visibility = Visibility.Visible;
+                errorTxt.Text = "CAUTION: This type information could not be properly extracted and might be incorrect.";
+            }
+        }
+
         public static string GetFullValueStr(uint value)
         {
             return value < 10? value.ToString() : value + " ( 0x" + value.ToString("X") + " )";

@@ -20,6 +20,10 @@
     <Grid Margin="10">
         <StackPanel>
             <TextBlock x:Name="headerTxt" FontWeight="Bold" FontSize="18" Margin="0,0,0,5"/>
+            <WrapPanel x:Name="errorPanel">
+                <TextBlock x:Name="errorTxt" FontStyle="Italic" Foreground="DarkRed" />
+            </WrapPanel>
+            <Border x:Name="errorBorder" BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,8" />
             <TextBlock x:Name="subheaderTxt" FontSize="14"/>
             <Border x:Name="layoutBorder" BorderBrush="Silver" BorderThickness="0,1,0,0" Margin="0,8" />
             <TextBlock x:Name="layout1Txt" />

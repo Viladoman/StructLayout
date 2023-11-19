@@ -12,7 +12,7 @@
 #include <clang/Basic/LangOptions.h>
 #include <clang/Basic/TargetInfo.h>
 #include <clang/Frontend/CompilerInstance.h>
-#include <clang/Frontend/FrontendAction.h>
+#include <clang/Frontend/FrontendActions.h>
 #include <clang/Tooling/CommonOptionsParser.h>
 #include <clang/Tooling/Tooling.h>
 
@@ -103,9 +103,10 @@ namespace ClangParser
             const clang::ASTRecordLayout& layout = context.getASTRecordLayout(declaration);
 
             //basic data
-            node->type   = declaration->getQualifiedNameAsString();
-            node->size   = includeVirtualBases? layout.getSize().getQuantity() : layout.getNonVirtualSize().getQuantity();
-            node->align  = layout.getAlignment().getQuantity();
+            node->isValid = !declaration->isInvalidDecl() && declaration->isCompleteDefinition();
+            node->type    = declaration->getQualifiedNameAsString();
+            node->size    = includeVirtualBases? layout.getSize().getQuantity() : layout.getNonVirtualSize().getQuantity();
+            node->align   = layout.getAlignment().getQuantity();
 
             //Check for bases 
 
@@ -154,6 +155,7 @@ namespace ClangParser
                 baseNode->offset = layout.getBaseClassOffset(base).getQuantity();
                 baseNode->nature = base == primaryBase? Layout::Category::NVPrimaryBase : Layout::Category::NVBase;
                 node->children.push_back(baseNode);
+                node->isValid = node->isValid && baseNode->isValid;
             }
 
             // vbptr (for Microsoft C++ ABI)
@@ -188,6 +190,7 @@ namespace ClangParser
                     RetrieveLocation(fieldNode->fieldLocation,context,field.getLocation());
 
                     node->children.push_back(fieldNode);
+                    node->isValid = node->isValid && fieldNode->isValid;
                 }
                 else
                 {
@@ -197,8 +200,9 @@ namespace ClangParser
 
                         //bitfield
                         Layout::Node* fieldNode = new Layout::Node();
-                        fieldNode->name   = field.getNameAsString(); 
-                        fieldNode->type   = field.getType().getAsString();
+                        fieldNode->name    = field.getNameAsString(); 
+                        fieldNode->type    = field.getType().getAsString();
+                        fieldNode->isValid = !field.isInvalidDecl();
 
                         fieldNode->nature = Layout::Category::Bitfield;
                         fieldNode->offset = fieldOffset.getQuantity();
@@ -211,6 +215,7 @@ namespace ClangParser
                         fieldNode->children.push_back(extraData);
 
                         node->children.push_back(fieldNode);
+                        node->isValid = node->isValid && fieldNode->isValid;
                     }
                     else
                     {
@@ -218,8 +223,9 @@ namespace ClangParser
 
                         //simple field
                         Layout::Node* fieldNode = new Layout::Node();
-                        fieldNode->name   = field.getNameAsString(); 
-                        fieldNode->type   = field.getType().getAsString();
+                        fieldNode->name    = field.getNameAsString(); 
+                        fieldNode->type    = field.getType().getAsString();
+                        fieldNode->isValid = !field.isInvalidDecl();
 
                         fieldNode->nature = Layout::Category::SimpleField;
                         fieldNode->offset = fieldOffset.getQuantity();
@@ -229,6 +235,7 @@ namespace ClangParser
                         RetrieveLocation(fieldNode->fieldLocation,context,field.getLocation());
 
                         node->children.push_back(fieldNode);
+                        node->isValid = node->isValid && fieldNode->isValid;
                     }
                 }
             }
@@ -260,6 +267,7 @@ namespace ClangParser
                     vBaseNode->offset = vBaseOffset.getQuantity();
                     vBaseNode->nature = vBase == primaryBase? Layout::Category::VPrimaryBase : Layout::Category::VBase;
                     node->children.push_back(vBaseNode);
+                    node->isValid = node->isValid && vBaseNode->isValid;
                 }
             }
 
@@ -302,7 +310,7 @@ namespace ClangParser
     private: 
         void TryRecord(const clang::CXXRecordDecl* declaration, const clang::SourceRange& sourceRange)
         { 
-            if (declaration && !declaration->isDependentType() && declaration->getDefinition() && !declaration->isInvalidDecl() && declaration->isCompleteDefinition())
+            if (declaration && !declaration->isDependentType() && declaration->getDefinition() /* && !declaration->isInvalidDecl() && declaration->isCompleteDefinition() */)
             { 
                 //Check range
                 const clang::PresumedLoc startLocation = m_sourceManager.getPresumedLoc(sourceRange.getBegin());
@@ -349,12 +357,12 @@ namespace ClangParser
 
             if (const clang::CXXRecordDecl* best = visitor.GetBest())
             {
-                g_result.node = Helpers::ComputeStruct(context, best);
+                g_result.node    = Helpers::ComputeStruct(context, best);
             }
         }
     };
 
-    class Action : public clang::ASTFrontendAction 
+    class Action : public clang::SyntaxOnlyAction
     {
     public:
         using ASTConsumerPointer = std::unique_ptr<clang::ASTConsumer>;
@@ -387,9 +395,6 @@ namespace Parser
 
     bool Parse(int argc, const char* argv[])
     { 
-        llvm::InitializeNativeTarget();
-        llvm::InitializeNativeTargetAsmParser();
-
         llvm::Expected<clang::tooling::CommonOptionsParser> optionsParser = clang::tooling::CommonOptionsParser::create(argc, argv, CommandLine::g_commandLineCategory);
         if (!optionsParser)
         {
@@ -401,16 +406,13 @@ namespace Parser
 
         SetFilter(ClangParser::LocationFilter{ CommandLine::g_locationRow, CommandLine::g_locationCol });
 
-        const int retCode = tool.run(clang::tooling::newFrontendActionFactory<ClangParser::Action>().get());
+        tool.run(clang::tooling::newFrontendActionFactory<ClangParser::Action>().get());
 
-        bool ret = retCode == 0;
-        if (ret)
-        {
-            const char* outputFileName = CommandLine::g_outputFilename.size() == 0 ? "output.slbin" : CommandLine::g_outputFilename.c_str();
-            ret = IO::ToFile(ClangParser::g_result, outputFileName);
-        }
+        const char* outputFileName = CommandLine::g_outputFilename.size() == 0 ? "output.slbin" : CommandLine::g_outputFilename.c_str();
+        bool ret = IO::ToFile(ClangParser::g_result, outputFileName);
 
         ClangParser::Helpers::ClearResult();
+
         return ret;
     }
 }

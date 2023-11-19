@@ -9,7 +9,7 @@
 
 namespace IO
 { 
-    enum { DATA_VERSION = 1 };
+    enum { DATA_VERSION = 2 };
 
     using TBuffer = FILE*;
     using U8 = char;
@@ -118,6 +118,7 @@ namespace IO
             Binarize(stream,node.size);
             Binarize(stream,node.align);
             Binarize(stream,node.nature);
+            Binarize(stream,node.isValid);
 
             BinarizeLocation(stream,node.typeLocation);
             BinarizeLocation(stream,node.fieldLocation);

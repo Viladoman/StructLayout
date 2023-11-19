@@ -50,6 +50,7 @@ namespace Layout
             , offset(0u)
             , size(1u)
             , align(1u)
+            , isValid(true)
         {}
 
         std::string        name;
@@ -61,6 +62,7 @@ namespace Layout
         Location           typeLocation;
         Location           fieldLocation;
         Category           nature;
+        bool               isValid;
     };
 
     // ----------------------------------------------------------------------------------------------------------

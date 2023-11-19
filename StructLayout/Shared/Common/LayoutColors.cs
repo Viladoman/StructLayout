@@ -4,6 +4,8 @@
 
     class Colors
     {
+        static Brush ErrorBrush    = new SolidColorBrush(Color.FromRgb(170, 0, 0));
+
         static Brush RootBrush     = new SolidColorBrush(Color.FromRgb(75, 75, 75));
         static Brush SimpleBrush   = new SolidColorBrush(Color.FromRgb(170, 115, 0));
         static Brush BitfieldBrush = new SolidColorBrush(Color.FromRgb(0, 85, 85));
@@ -39,6 +41,11 @@
         static public Brush GetCategoryForeground()
         {
             return Brushes.White;
+        }
+
+        static public Brush GetErrorBrush()
+        {
+            return ErrorBrush;
         }
     }
 }

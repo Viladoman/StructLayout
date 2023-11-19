@@ -130,6 +130,8 @@ namespace StructLayout
         public uint Padding { get { return Size - RealSize; } }
 
         public LayoutCategory Category { set; get; }
+
+        public bool IsValid { set; get; }
         public LayoutLocation TypeLocation { set; get; }
         public LayoutLocation FieldLocation { set; get; }
 
@@ -215,7 +217,7 @@ namespace StructLayout
         public bool PrintCommandLine { get; set; } = false;
         public string OutputDirectory { get; set; } = null;        
 
-        public const uint VERSION = 1;
+        public const uint VERSION = 2;
       
         private string GetToolPath(string localPath)
         {
@@ -261,6 +263,7 @@ namespace StructLayout
             node.Size = (uint)reader.ReadInt64();
             node.Align = (uint)reader.ReadInt64();
             node.Category = (LayoutNode.LayoutCategory)reader.ReadByte();
+            node.IsValid = reader.ReadBoolean();
 
             node.TypeLocation = ReadLocation(reader, files);
             node.FieldLocation = ReadLocation(reader, files);
@@ -290,7 +293,7 @@ namespace StructLayout
         private void FinalizeNodeRecursive(LayoutNode node)
         {
             node.Offset += node.Parent != null ? node.Parent.Offset : 0;
-            node.RenderData.Background = Colors.GetCategoryBackground(node.Category);
+            node.RenderData.Background = node.IsValid? Colors.GetCategoryBackground(node.Category) : Colors.GetErrorBrush();
 
             node.RealSize = node.Children.Count == 0? node.Size : 0;
             uint realSizeOffset = node.Offset;
