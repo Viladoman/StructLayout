@@ -162,7 +162,7 @@ namespace StructLayout
                 default:                                      return "Unkown error. Please contact with the author!";
             }
         } 
-
+        /*
         private void DisplayResult(ParseResult result)
         {
             if (result.Status != ParseResult.StatusCode.Found)
@@ -177,7 +177,7 @@ namespace StructLayout
                 ParseMessageWindow.Display(content);
             }
         }
-
+        */
         public async System.Threading.Tasks.Task ParseAtCurrentLocationAsync()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -251,19 +251,13 @@ namespace StructLayout
                 result = new ParseResult();
             }
 
-            //Only create or focus the window if we have a valid result
-            LayoutWindow win = EditorUtils.GetLayoutWindow(result.Status == ParseResult.StatusCode.Found);
+            //always open the window to honor the input of the query
+            LayoutWindow win = EditorUtils.GetLayoutWindow( true );
             if (win != null)
             {
                 win.SetResult(result);
-
-                if (result.Status == ParseResult.StatusCode.Found)
-                {
-                    EditorUtils.FocusWindow(win);
-                }
+                EditorUtils.FocusWindow(win);
             }
-
-            DisplayResult(result);
         }
     }
 }
