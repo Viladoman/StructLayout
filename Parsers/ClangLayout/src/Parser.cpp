@@ -7,21 +7,10 @@
 #include <clang/AST/ASTContext.h>
 #include <clang/AST/RecursiveASTVisitor.h>
 #include <clang/AST/RecordLayout.h>
-#include <clang/Analysis/CFG.h>
-#include <clang/Basic/Diagnostic.h>
-#include <clang/Basic/LangOptions.h>
-#include <clang/Basic/TargetInfo.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/FrontendActions.h>
 #include <clang/Tooling/CommonOptionsParser.h>
 #include <clang/Tooling/Tooling.h>
-
-// LLVM includes
-#include <llvm/ADT/StringRef.h>
-#include <llvm/Support/CommandLine.h>
-#include <llvm/Support/raw_ostream.h>
-#include <llvm/Support/TargetSelect.h>
-#include <iostream>
 
 #pragma warning(pop)    
 
