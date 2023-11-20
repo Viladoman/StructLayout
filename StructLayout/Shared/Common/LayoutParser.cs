@@ -131,7 +131,7 @@ namespace StructLayout
 
         public LayoutCategory Category { set; get; }
 
-        public bool IsValid { set; get; }
+        public bool IsValid { set; get; } = true;
         public LayoutLocation TypeLocation { set; get; }
         public LayoutLocation FieldLocation { set; get; }
 
@@ -388,6 +388,7 @@ namespace StructLayout
                 share.Category = LayoutNode.LayoutCategory.Shared;
                 share.Offset = nodeA.Offset;
                 share.Size = nodeA.Size;
+                share.IsValid = nodeA.IsValid;
                 nodeA.Offset = 0;
 
                 //inject the new node
@@ -409,6 +410,7 @@ namespace StructLayout
             share.Children.Add(nodeB);
             nodeB.Parent = share;
             parent.Children.Remove(nodeB);
+            share.IsValid = nodeA.IsValid && nodeB.IsValid;
         }
 
         private void FixEmptyTypes(LayoutNode node)
