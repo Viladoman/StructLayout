@@ -289,14 +289,49 @@ namespace ClangParser
         {          
             if (m_sourceManager.getFileID(declaration->getLocation()) == m_mainFileId)
             {
-                TryRecord(declaration->getType()->getAsCXXRecordDecl(),declaration->getSourceRange());
+                TryType(declaration->getType(), declaration->getSourceRange());
             }
+            return true;
+        }
+
+        bool VisitParmVarDecl(clang::ParmVarDecl* declaration)
+        {
+            if (m_sourceManager.getFileID(declaration->getLocation()) == m_mainFileId)
+            {
+                TryType(declaration->getType(), declaration->getSourceRange());
+            }
+            return true;
+        }
+
+        bool VisitFunctionDecl(clang::FunctionDecl* declaration)
+        {
+            if (m_sourceManager.getFileID(declaration->getLocation()) == m_mainFileId)
+            {
+                TryType(declaration->getReturnType(), declaration->getReturnTypeSourceRange());
+            }         
             return true;
         }
 
         const clang::CXXRecordDecl* GetBest() const { return m_best; }
 
     private: 
+
+        void TryType(clang::QualType qualType, const clang::SourceRange& sourceRange)
+        {
+            if ( qualType->isPointerType() || qualType->isReferenceType() )
+            {
+                TryType(qualType->getPointeeType(), sourceRange);
+            }
+            else if ( qualType->isArrayType() )
+            {
+                TryType(qualType->getAsArrayTypeUnsafe()->getElementType(), sourceRange);
+            }
+            else
+            {
+                TryRecord(qualType->getAsCXXRecordDecl(), sourceRange );
+            }
+        }
+
         void TryRecord(const clang::CXXRecordDecl* declaration, const clang::SourceRange& sourceRange)
         { 
             if (declaration && !declaration->isDependentType() && declaration->getDefinition() /* && !declaration->isInvalidDecl() && declaration->isCompleteDefinition() */)
