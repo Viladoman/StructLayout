@@ -59,7 +59,7 @@
       <Button guid="guidStructLayoutPackageCmdSet2" id="cmdidSettingsCommand" priority="0x0100" type="Button">
         <Parent guid="guidStructLayoutPackageCmdSet2" id="StructLayoutOptionsGroup" />
         <Strings>
-          <ButtonText>Options</ButtonText>
+          <ButtonText>Solution Configuration</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidStructLayoutPackageCmdSet2" id="cmdidGithubCommand" priority="0x0100" type="Button">
