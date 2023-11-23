@@ -1,0 +1,60 @@
+name: Build VS Extension
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    env:
+      clangLayoutSolution: Parsers/ClangLayout/ClangLayout.sln
+      pdbLayoutSolution: Parsers/PDBLayout/PDBLayout.sln
+      extensionSolutionName: StructLayout/StructLayout.sln
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Checkout LLVM library
+      uses: actions/checkout@v4
+      with:
+        repository: Viladoman/ClangArtifacts
+        sparse-checkout: llvm-project
+        path: External
+        
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1
+       
+    - uses: nuget/setup-nuget@v1
+      with:
+        nuget-version: '5.x'
+       
+    - name: Build Clang Layout
+      run: msbuild /m /p:Configuration=Release /p:Platform=x64 ${{ env.clangLayoutSolution }}
+      
+    - name: Build PDB Layout
+      run: msbuild /m /p:Configuration=Release /p:Platform=x64 ${{ env.pdbLayoutSolution }}
+      
+    - name: NuGet restore Struct Layout
+      run: nuget restore ${{ env.extensionSolutionName }}
+     
+    - name: Build Struct Layout VSIX
+      working-directory: ${{env.appsDir}}
+      run: msbuild /m /p:Configuration=Release ${{ env.extensionSolutionName }}
+      
+    - name: Upload VSIX 2019 Extension Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: StructLayout-VSIX2019
+        path: StructLayout/VSIX16/bin/Release/StructLayout.vsix
+    
+    - name: Upload VSIX 2022 Extension Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: StructLayout-VSIX2022
+        path: StructLayout/VSIX17/bin/Release/StructLayout.vsix

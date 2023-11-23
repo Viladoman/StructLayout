@@ -107,14 +107,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\llvm-project\clang\include;$(SolutionDir)..\..\llvm-project\llvm\include;$(SolutionDir)..\..\llvm-project\build\tools\clang\include;$(SolutionDir)..\..\llvm-project\build\include;$(SolutionDir)..\Shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\External\llvm-project\clang\include;$(SolutionDir)..\..\External\llvm-project\llvm\include;$(SolutionDir)..\..\External\llvm-project\build\tools\clang\include;$(SolutionDir)..\..\External\llvm-project\build\include;$(SolutionDir)..\Shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>clangAnalysis.lib;clangAST.lib;clangASTMatchers.lib;clangBasic.lib;clangDriver.lib;clangEdit.lib;clangFrontend.lib;clangLex.lib;clangParse.lib;clangSema.lib;clangSerialization.lib;clangTooling.lib;LLVMAsmParser.lib;LLVMBinaryFormat.lib;LLVMBitReader.lib;LLVMBitstreamReader.lib;LLVMCore.lib;LLVMIRReader.lib;LLVMMC.lib;LLVMMCParser.lib;LLVMOption.lib;LLVMProfileData.lib;LLVMRemarks.lib;LLVMSupport.lib;LLVMTargetParser.lib;LLVMWindowsDriver.lib;version.lib;LLVMFrontendOpenMP.lib;LLVMTarget.lib;LLVMX86Info.lib;LLVMX86Desc.lib;LLVMX86AsmParser.lib;LLVMX86CodeGen.lib;LLVMMCDisassembler.lib;LLVMCodeGen.lib;LLVMSelectionDAG.lib;LLVMAnalysis.lib;LLVMGlobalISel.lib;LLVMCFGuard.lib;LLVMTransformUtils.lib;LLVMScalarOpts.lib;psapi.lib;shell32.lib;ole32.lib;uuid.lib;advapi32.lib;delayimp.lib;-delayload:shell32.dll;-delayload:ole32.dll;LLVMDemangle.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;oleaut32.lib;comdlg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\..\llvm-project\build\Debug\lib;$(SolutionDir)..\..\llvm-project\build\tools\clang\lib\Support\obj.clangSupport.dir\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\..\External\llvm-project\build\Debug\lib;$(SolutionDir)..\..\External\llvm-project\build\tools\clang\lib\Support\obj.clangSupport.dir\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -125,7 +125,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\llvm-project\clang\include;$(SolutionDir)..\..\llvm-project\llvm\include;$(SolutionDir)..\..\llvm-project\build\tools\clang\include;$(SolutionDir)..\..\llvm-project\build\include;$(SolutionDir)..\Shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\External\llvm-project\clang\include;$(SolutionDir)..\..\External\llvm-project\llvm\include;$(SolutionDir)..\..\External\llvm-project\build\tools\clang\include;$(SolutionDir)..\..\External\llvm-project\build\include;$(SolutionDir)..\Shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -134,7 +134,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>clangAnalysis.lib;clangAST.lib;clangASTMatchers.lib;clangBasic.lib;clangDriver.lib;clangEdit.lib;clangFrontend.lib;clangLex.lib;clangParse.lib;clangSema.lib;clangSerialization.lib;clangTooling.lib;LLVMAsmParser.lib;LLVMBinaryFormat.lib;LLVMBitReader.lib;LLVMBitstreamReader.lib;LLVMCore.lib;LLVMIRReader.lib;LLVMMC.lib;LLVMMCParser.lib;LLVMOption.lib;LLVMProfileData.lib;LLVMRemarks.lib;LLVMSupport.lib;LLVMTargetParser.lib;LLVMWindowsDriver.lib;version.lib;obj.clangSupport.lib;LLVMFrontendOpenMP.lib;LLVMTarget.lib;LLVMX86Info.lib;LLVMX86Desc.lib;LLVMX86AsmParser.lib;LLVMX86CodeGen.lib;LLVMMCDisassembler.lib;LLVMCodeGen.lib;LLVMSelectionDAG.lib;LLVMAnalysis.lib;LLVMGlobalISel.lib;LLVMCFGuard.lib;LLVMTransformUtils.lib;LLVMScalarOpts.lib;psapi.lib;shell32.lib;ole32.lib;uuid.lib;advapi32.lib;delayimp.lib;-delayload:shell32.dll;-delayload:ole32.dll;LLVMDemangle.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;oleaut32.lib;comdlg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\..\llvm-project\build\Release\lib;$(SolutionDir)..\..\llvm-project\build\tools\clang\lib\Support\obj.clangSupport.dir\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\..\External\llvm-project\build\Release\lib;$(SolutionDir)..\..\External\llvm-project\build\tools\clang\lib\Support\obj.clangSupport.dir\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(TargetDir)$(ProjectName).dll" "$(SolutionDir)..\StructLayout\$(ProjectName).dll"</Command>
@@ -146,13 +146,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\llvm-project\clang\include;$(SolutionDir)..\..\llvm-project\llvm\include;$(SolutionDir)..\..\llvm-project\build\tools\clang\include;$(SolutionDir)..\..\llvm-project\build\include;$(SolutionDir)..\Shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\External\llvm-project\clang\include;$(SolutionDir)..\..\External\llvm-project\llvm\include;$(SolutionDir)..\..\External\llvm-project\build\tools\clang\include;$(SolutionDir)..\..\External\llvm-project\build\include;$(SolutionDir)..\Shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\..\llvm-project\build\Debug\lib;$(SolutionDir)..\..\llvm-project\build\tools\clang\lib\Support\obj.clangSupport.dir\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\..\External\llvm-project\build\Debug\lib;$(SolutionDir)..\..\External\llvm-project\build\tools\clang\lib\Support\obj.clangSupport.dir\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>clangAnalysis.lib;clangAST.lib;clangASTMatchers.lib;clangBasic.lib;clangDriver.lib;clangEdit.lib;clangFrontend.lib;clangLex.lib;clangParse.lib;clangSema.lib;clangSerialization.lib;clangTooling.lib;LLVMAsmParser.lib;LLVMBinaryFormat.lib;LLVMBitReader.lib;LLVMBitstreamReader.lib;LLVMCore.lib;LLVMIRReader.lib;LLVMMC.lib;LLVMMCParser.lib;LLVMOption.lib;LLVMProfileData.lib;LLVMRemarks.lib;LLVMSupport.lib;LLVMTargetParser.lib;LLVMWindowsDriver.lib;version.lib;LLVMDebugInfoDWARF.lib;LLVMFrontendOpenMP.lib;LLVMTarget.lib;LLVMX86Info.lib;LLVMX86Desc.lib;LLVMX86AsmParser.lib;LLVMX86CodeGen.lib;LLVMMCDisassembler.lib;LLVMCodeGen.lib;LLVMSelectionDAG.lib;LLVMAnalysis.lib;LLVMGlobalISel.lib;LLVMCFGuard.lib;LLVMTransformUtils.lib;LLVMScalarOpts.lib;LLVMObject.lib;LLVMTextAPI.lib;psapi.lib;shell32.lib;ole32.lib;uuid.lib;advapi32.lib;delayimp.lib;-delayload:shell32.dll;-delayload:ole32.dll;LLVMDemangle.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;oleaut32.lib;comdlg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -164,7 +164,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\llvm-project\clang\include;$(SolutionDir)..\..\llvm-project\llvm\include;$(SolutionDir)..\..\llvm-project\build\tools\clang\include;$(SolutionDir)..\..\llvm-project\build\include;$(SolutionDir)..\Shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\External\llvm-project\clang\include;$(SolutionDir)..\..\External\llvm-project\llvm\include;$(SolutionDir)..\..\External\llvm-project\build\tools\clang\include;$(SolutionDir)..\..\External\llvm-project\build\include;$(SolutionDir)..\Shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -172,7 +172,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\..\llvm-project\build\Release\lib;$(SolutionDir)..\..\llvm-project\build\tools\clang\lib\Support\obj.clangSupport.dir\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\..\External\llvm-project\build\Release\lib;$(SolutionDir)..\..\External\llvm-project\build\tools\clang\lib\Support\obj.clangSupport.dir\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>clangAnalysis.lib;clangAST.lib;clangASTMatchers.lib;clangBasic.lib;clangDriver.lib;clangEdit.lib;clangFrontend.lib;clangLex.lib;clangParse.lib;clangSema.lib;clangSerialization.lib;clangTooling.lib;LLVMAsmParser.lib;LLVMBinaryFormat.lib;LLVMBitReader.lib;LLVMBitstreamReader.lib;LLVMCore.lib;LLVMIRReader.lib;LLVMMC.lib;LLVMMCParser.lib;LLVMOption.lib;LLVMProfileData.lib;LLVMRemarks.lib;LLVMSupport.lib;LLVMTargetParser.lib;LLVMWindowsDriver.lib;version.lib;obj.clangSupport.lib;LLVMDebugInfoDWARF.lib;LLVMFrontendOpenMP.lib;LLVMTarget.lib;LLVMX86Info.lib;LLVMX86Desc.lib;LLVMX86AsmParser.lib;LLVMX86CodeGen.lib;LLVMMCDisassembler.lib;LLVMCodeGen.lib;LLVMSelectionDAG.lib;LLVMAnalysis.lib;LLVMGlobalISel.lib;LLVMCFGuard.lib;LLVMTransformUtils.lib;LLVMScalarOpts.lib;LLVMObject.lib;LLVMTextAPI.lib;LLVMDemangle.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
