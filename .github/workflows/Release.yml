@@ -13,7 +13,6 @@ jobs:
       clangLayoutSolution: Parsers/ClangLayout/ClangLayout.sln
       pdbLayoutSolution: Parsers/PDBLayout/PDBLayout.sln
       extensionSolutionName: StructLayout/StructLayout.sln
-      extensionDir: StructLayout
     
     steps:
     - name: Checkout
@@ -51,7 +50,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ${{env.extensionDir}}/VSIX16/bin/Release/StructLayout.vsix
+        asset_path: StructLayout/VSIX16/bin/Release/StructLayout.vsix
         asset_name: StructLayout_VS2019.vsix
         asset_content_type: application/zip
     
@@ -61,6 +60,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ${{env.extensionDir}}/VSIX17/bin/Release/StructLayout.vsix
+        asset_path: StructLayout/VSIX17/bin/Release/StructLayout.vsix
         asset_name: StructLayout_VS2022.vsix
         asset_content_type: application/zip
