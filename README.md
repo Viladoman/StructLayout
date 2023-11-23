@@ -8,7 +8,7 @@ Visual Studio Extension for C++ struct memory layout visualization
 
 [Download latest from the Visual Studio Marketplace 2022](https://marketplace.visualstudio.com/items?itemName=RamonViladomat.StructLayout2022)
 
-[Download latest from the Visual Studio Marketplace 2017/2019](https://marketplace.visualstudio.com/items?itemName=RamonViladomat.StructLayout)
+[Download latest from the Visual Studio Marketplace 2019](https://marketplace.visualstudio.com/items?itemName=RamonViladomat.StructLayout)
 
 ## Motivation
 
