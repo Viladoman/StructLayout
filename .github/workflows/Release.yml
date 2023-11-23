@@ -1,20 +1,19 @@
-name: Build VS Extension
+name: Release
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+  release:
+    types:
+      - created
 
 jobs:
-  build:
+  export:    
     runs-on: windows-latest
     
     env:
       clangLayoutSolution: Parsers/ClangLayout/ClangLayout.sln
       pdbLayoutSolution: Parsers/PDBLayout/PDBLayout.sln
       extensionSolutionName: StructLayout/StructLayout.sln
+      extensionDir: StructLayout
     
     steps:
     - name: Checkout
@@ -46,14 +45,22 @@ jobs:
     - name: Build Struct Layout VSIX
       run: msbuild /m /p:Configuration=Release ${{ env.extensionSolutionName }}
       
-    - name: Upload VSIX 2019 Extension Artifacts
-      uses: actions/upload-artifact@v3
+    - name: Upload VSIX 2019 Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: StructLayout-VSIX2019
-        path: StructLayout/VSIX16/bin/Release/StructLayout.vsix
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ${{env.extensionDir}}/VSIX16/bin/Release/StructLayout.vsix
+        asset_name: StructLayout_VS2019.vsix
+        asset_content_type: application/zip
     
-    - name: Upload VSIX 2022 Extension Artifacts
-      uses: actions/upload-artifact@v3
+    - name: Upload VSIX 2022 Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: StructLayout-VSIX2022
-        path: StructLayout/VSIX17/bin/Release/StructLayout.vsix
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ${{env.extensionDir}}/VSIX17/bin/Release/StructLayout.vsix
+        asset_name: StructLayout_VS2022.vsix
+        asset_content_type: application/zip
