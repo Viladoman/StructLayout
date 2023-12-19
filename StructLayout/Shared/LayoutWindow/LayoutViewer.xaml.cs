@@ -227,8 +227,9 @@ namespace StructLayout
             displayAlignementComboBox.ItemsSource = Enum.GetValues(typeof(DisplayAlignmentType)).Cast<DisplayAlignmentType>();
             displayAlignementComboBox.SelectedIndex = (int)DefaultDisplayAlignment;
 
+            GeneralSettingsPageGrid settings = EditorUtils.GetGeneralSettings();
             displayModeComboBox.ItemsSource = Enum.GetValues(typeof(DisplayMode)).Cast<DisplayMode>();
-            displayModeComboBox.SelectedIndex = (int)DefaultDisplayMode;
+            displayModeComboBox.SelectedIndex = (int)settings.OptionDefaultDisplayMode;
 
             scrollViewer.Loaded += ScrollViewer_OnLoaded;
             scrollViewer.On2DMouseScroll += ScrollViewer_On2DMouseScroll;
