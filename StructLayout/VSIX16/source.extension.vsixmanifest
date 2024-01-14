@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="StructLayout.ae9caa76-a538-4c6c-bff5-9e0a61e6b728" Version="0.7.2.1" Language="en-US" Publisher="Ramon Viladomat" />
+        <Identity Id="StructLayout.ae9caa76-a538-4c6c-bff5-9e0a61e6b728" Version="0.7.3" Language="en-US" Publisher="Ramon Viladomat" />
         <DisplayName>Struct Layout</DisplayName>
         <Description xml:space="preserve">C++ struct memory layout viewer</Description>
         <MoreInfo>https://github.com/Viladoman/StructLayout</MoreInfo>
