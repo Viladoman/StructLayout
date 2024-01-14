@@ -17,6 +17,9 @@ namespace StructLayout
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
+            if (input == null)
+                return;
+
             var split = input.Split(';').ToList(); //Split
             split.RemoveAll(s => IsMSBuildStringInvalid(s)); //Validate
 
@@ -81,7 +84,7 @@ namespace StructLayout
                 AppendMSBuildStringToList(projProperties.IncludeDirectories, evaluator.Evaluate(evaluatorExtra.Evaluate(customSettings.AdditionalIncludeDirs)));
                 AppendMSBuildStringToList(projProperties.ForceIncludes, evaluator.Evaluate(evaluatorExtra.Evaluate(customSettings.AdditionalForceIncludes)));
                 AppendMSBuildStringToList(projProperties.PrepocessorDefinitions, evaluator.Evaluate(evaluatorExtra.Evaluate(customSettings.AdditionalPreprocessorDefinitions)));
-                projProperties.ExtraArguments = evaluator.Evaluate(evaluatorExtra.Evaluate(customSettings.AdditionalCommandLine));
+                projProperties.ExtraArguments += evaluator.Evaluate(evaluatorExtra.Evaluate(customSettings.AdditionalCommandLine));
                 projProperties.ShowWarnings = customSettings.EnableWarnings;
             }
         }

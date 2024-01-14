@@ -44,11 +44,8 @@ namespace StructLayout
 
             //Include dirs / files and preprocessor
 
-            //CAUTION: platform.IncludeDirectories might be corrupted and it will crash Visual Studio ( platform.IncludeDirectories are equivalent to the INCLUDE environment var according to the documentation)
-            string includeDirectories = "";
-            System.Environment.SetEnvironmentVariable("INCLUDE", includeDirectories);
+            AppendMSBuildStringToList(ret.IncludeDirectories, evaluator.Evaluate("$(IncludePath)"));
 
-            AppendMSBuildStringToList(ret.IncludeDirectories, evaluator.Evaluate(includeDirectories));
             AppendProjectProperties(ret, vctools.Item("VCCLCompilerTool") as VCCLCompilerTool, vctools.Item("VCNMakeTool") as VCNMakeTool, evaluator);
 
             //Get settings from the single file (this might fail badly if there are no settings to catpure)

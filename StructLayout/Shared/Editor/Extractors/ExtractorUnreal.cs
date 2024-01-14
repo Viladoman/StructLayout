@@ -54,6 +54,9 @@ namespace StructLayout
 
             //Add basic preprocessor definition
             projProperties.PrepocessorDefinitions.Add("UNREAL_CODE_ANALYZER");
+
+            //Add special warning disable to clean up the output console
+            projProperties.ExtraArguments += "-Wno-invalid-constexpr ";
         }
 
         protected override void ProcessPostProjectData(ProjectProperties projProperties)
